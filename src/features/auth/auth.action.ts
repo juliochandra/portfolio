@@ -1,17 +1,8 @@
 "use server";
 
-import {
-	type ChangePasswordInput,
-	changePasswordSchema,
-	type LoginInput,
-	loginSchema,
-} from "@/features/auth/auth.schema";
+import { type ChangePasswordInput, changePasswordSchema, type LoginInput, loginSchema } from "@/features/auth/auth.schema";
 import { authenticateUser, changeUserPassword } from "@/features/auth/auth.services";
-import {
-	clearServerSession,
-	getServerSession,
-	setServerSession,
-} from "@/shared/auth/server-session";
+import { clearServerSession, getServerSession, setServerSession } from "@/shared/auth/server-session";
 import { validateWithZod } from "@/shared/validation/zod";
 
 const INVALID_CREDENTIALS_MESSAGE = "Username atau kata sandi salah.";
