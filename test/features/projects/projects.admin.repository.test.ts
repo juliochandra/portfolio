@@ -1,0 +1,92 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PublishStatus } from "@/generated/prisma/client";
+
+const mocks = vi.hoisted(() => ({
+	create: vi.fn(),
+	delete: vi.fn(),
+	findMany: vi.fn(),
+	findUnique: vi.fn(),
+	update: vi.fn(),
+}));
+
+vi.mock("@/shared/database/prisma", () => ({
+	prisma: {
+		project: {
+			create: mocks.create,
+			delete: mocks.delete,
+			findMany: mocks.findMany,
+			findUnique: mocks.findUnique,
+			update: mocks.update,
+		},
+	},
+}));
+
+import {
+	createProjectRecord,
+	findProjectsAdmin,
+	isProjectSlugAvailable,
+	updateProjectRecord,
+} from "@/features/projects/projects.repository";
+
+const input = {
+	content: "Isi project",
+	demoUrl: null,
+	description: "Deskripsi project",
+	publishedAt: null,
+	repositoryUrl: null,
+	skillIds: ["skill-1"],
+	slug: "project-baru",
+	status: PublishStatus.DRAFT,
+	tagIds: ["tag-1"],
+	thumbnailImage: null,
+	title: "Project Baru",
+};
+
+describe("project admin repository", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mocks.findMany.mockResolvedValue([]);
+		mocks.create.mockResolvedValue({ id: "project-1", slug: "project-baru" });
+		mocks.update.mockResolvedValue({ id: "project-1", slug: "project-baru" });
+	});
+
+	it("lists all statuses ordered by newest creation", async () => {
+		await findProjectsAdmin();
+
+		expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: "desc" } }));
+	});
+
+	it("creates a project with connected tags and skills", async () => {
+		await createProjectRecord(input);
+
+		expect(mocks.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({
+					skills: { connect: [{ id: "skill-1" }] },
+					tags: { connect: [{ id: "tag-1" }] },
+				}),
+				select: { id: true, slug: true },
+			}),
+		);
+	});
+
+	it("replaces tags and skills during an update", async () => {
+		await updateProjectRecord("project-1", input);
+
+		expect(mocks.update).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({
+					skills: { set: [{ id: "skill-1" }] },
+					tags: { set: [{ id: "tag-1" }] },
+				}),
+				where: { id: "project-1" },
+			}),
+		);
+	});
+
+	it("checks slug availability", async () => {
+		mocks.findUnique.mockResolvedValue({ id: "project-2" });
+		await expect(isProjectSlugAvailable("project-baru")).resolves.toBe(false);
+		await expect(isProjectSlugAvailable("project-baru", "project-2")).resolves.toBe(true);
+	});
+});

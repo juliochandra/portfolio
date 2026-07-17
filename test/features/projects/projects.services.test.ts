@@ -11,10 +11,7 @@ vi.mock("@/features/projects/projects.repository", () => ({
 	findProjects: mocks.findProjects,
 }));
 
-import {
-	getPublishedProjectBySlug,
-	getPublishedProjects,
-} from "@/features/projects/projects.services";
+import { getPublishedProjectBySlug, getPublishedProjects } from "@/features/projects/projects.services";
 
 const projectRecord = {
 	description: "Gambaran project",
