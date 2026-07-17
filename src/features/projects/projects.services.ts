@@ -1,10 +1,18 @@
 import {
+	createProjectRecord,
+	deleteProjectRecord,
 	findProjectBySlug,
+	findProjectForAdmin,
 	findProjects,
+	findProjectsAdmin,
+	isProjectSlugAvailable,
 	type ProjectDetailRecord,
 	type ProjectListRecord,
+	updateProjectRecord,
 } from "@/features/projects/projects.repository";
+import type { CreateProjectInput, UpdateProjectInput } from "@/features/projects/projects.schema";
 import { PublishStatus } from "@/generated/prisma/client";
+import { generateUniqueSlug } from "@/shared/slug";
 
 export type ProjectSkill = {
 	icon: string;
@@ -25,6 +33,13 @@ export type PublicProjectDetail = PublicProjectListItem & {
 	demoUrl: string | null;
 	repositoryUrl: string | null;
 	tags: { name: string }[];
+};
+
+export type AdminProjectListItem = {
+	description: string | null;
+	id: string;
+	status: PublishStatus;
+	title: string;
 };
 
 function completeSkills(skills: ProjectListRecord["skills"]): ProjectSkill[] {
@@ -52,9 +67,7 @@ function toPublicProjectDetail(project: ProjectDetailRecord): PublicProjectDetai
 	};
 }
 
-export async function getPublishedProjects(params?: {
-	limit?: number;
-}): Promise<PublicProjectListItem[]> {
+export async function getPublishedProjects(params?: { limit?: number }): Promise<PublicProjectListItem[]> {
 	const projects = await findProjects({
 		limit: params?.limit,
 		status: PublishStatus.PUBLISHED,
@@ -65,4 +78,43 @@ export async function getPublishedProjects(params?: {
 export async function getPublishedProjectBySlug(slug: string): Promise<PublicProjectDetail | null> {
 	const project = await findProjectBySlug({ slug, status: PublishStatus.PUBLISHED });
 	return project ? toPublicProjectDetail(project) : null;
+}
+
+export function getProjectsAdmin(): Promise<AdminProjectListItem[]> {
+	return findProjectsAdmin();
+}
+
+export async function createAdminProject(input: CreateProjectInput): Promise<{ id: string; slug: string }> {
+	const slug = await generateUniqueSlug(input.title, isProjectSlugAvailable);
+	const publishedAt = input.status === PublishStatus.PUBLISHED ? new Date() : null;
+
+	return createProjectRecord({
+		...input,
+		publishedAt,
+		slug,
+	});
+}
+
+export async function updateAdminProject(id: string, input: UpdateProjectInput): Promise<{ id: string; slug: string } | null> {
+	const existing = await findProjectForAdmin(id);
+	if (!existing) {
+		return null;
+	}
+
+	const slug =
+		existing.title === input.title
+			? existing.slug
+			: await generateUniqueSlug(input.title, (candidate) => isProjectSlugAvailable(candidate, id));
+	const publishedAt = existing.publishedAt ?? (input.status === PublishStatus.PUBLISHED ? new Date() : null);
+
+	return updateProjectRecord(id, {
+		...input,
+		publishedAt,
+		slug,
+	});
+}
+
+export async function deleteAdminProject(id: string): Promise<{ id: string } | null> {
+	const existing = await findProjectForAdmin(id);
+	return existing ? deleteProjectRecord(id) : null;
 }
