@@ -6,17 +6,22 @@ project, tulisan, keahlian, tag, media, info kontak, dan pesan masuk.
 ## Tech Stack
 
 Next.js 15 (App Router) · React 19 · TypeScript 7 (strict) · Tailwind CSS 4 ·
-react-icons · Zod 4 · React Hook Form 7 · Vitest 4 · Playwright 1 · Biome 2.
+react-icons · PostgreSQL 18 (Neon) · Prisma 7 · Zod 4 · React Hook Form 7 ·
+Vitest 4 · Playwright 1 · Biome 2.
 
 ## Prasyarat
 
 - Node.js (runtime dikunci lewat Docker — lihat ISS-003)
 - npm
+- Project PostgreSQL di [Neon](https://neon.tech) untuk pengembangan
 
 ## Setup
 
 ```bash
 npm install
+cp .env.example .env
+# isi DATABASE_URL di .env dengan connection string Neon Anda
+npx prisma migrate dev
 ```
 
 ## Perintah
@@ -31,6 +36,9 @@ npm install
 | `npm run type-check` | Cek tipe TypeScript |
 | `npm run test` | Unit test (Vitest) |
 | `npm run test:e2e` | E2E test (Playwright) — build & start otomatis |
+| `npx prisma migrate dev` | Menjalankan migrasi database |
+| `npx prisma generate` | Meng-generate Prisma Client (otomatis lewat `postinstall`) |
+| `npx prisma studio` | Membuka GUI database |
 
 ## Struktur Folder
 
