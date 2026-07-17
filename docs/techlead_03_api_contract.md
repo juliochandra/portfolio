@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Tanggal** | 2026-07-17 |
-| **Versi** | 2.8 |
+| **Versi** | 2.10 |
 | **Sumber** | Set BA v6.0 + Set UI/UX v1.8 |
 | **Konteks** | docs/pm_01_project.md v1.6 |
 | **Disusun oleh** | Tech Lead Agent |
@@ -13,8 +13,8 @@
 
 ## Ringkasan
 
-**15 Route Handler** (baca publik & baca admin) + **23 Server Action**
-(mutasi admin + autentikasi masuk/keluar) — revisi total dari v1.0 (21
+**Nol Route Handler** + **38 Server Action** (baca publik, baca admin,
+mutasi admin, dan autentikasi — v2.9, D-022) — revisi total dari v1.0 (21
 Route Handler, tanpa Server Action).
 **v2.2** (referensi desain admin client, pm_01 D009) menambah 3 Route
 Handler (EP-14 Tags, EP-15 Media, EP-16 Dashboard) + 6 Server Action
@@ -78,39 +78,66 @@ sudah ada — ia justru membuat sesi baru (lihat Konvensi § Auth).
 `EP-07`/`EP-08` tidak dipakai ulang untuk ID lain; `EP-09` dst. tidak
 berubah nomor.
 
+**v2.9** (D-022 techlead_01, permintaan eksplisit user — "server action
+untuk semuanya"): **seluruh 15 Route Handler baca tersisa** (`EP-01`,
+`EP-02`, `EP-03`, `EP-04`, `EP-05`, `EP-06`, `EP-09`..`EP-17`) **dicabut**,
+digantikan **`SA-24`..`SA-38`** — dokumen ini kini **tanpa Route Handler
+sama sekali**. Struktur dirombak: bagian "Route Handlers — Publik" &
+"Route Handlers — Baca Admin" dihapus; isinya jadi "Server Actions — Baca
+Publik" (SA-24..29, SA-38, digabung di depan, sebelum Autentikasi) dan
+setiap "baca admin" (dulu EP-09..16) disisipkan ke bagian "Kelola X"
+masing-masing (mis. `SA-30` `getProjectsAdmin` gabung ke §Kelola Project
+bersama `SA-01`..`03`) — lebih koheren daripada dipisah per-mekanisme.
+`SA-37` (`getDashboardSummary`, ex-`EP-16`) dapat bagian sendiri (tanpa
+F-06.X, murni pemanis lintas entitas). `EP-01`..`EP-17` tidak dipakai
+ulang untuk ID lain (seluruh slot pensiun). **Menyimpang dari
+`TEAM_STACK.md`** ("Route Handlers + Server Actions") — deviasi khusus
+proyek ini, `TEAM_STACK.md` tidak diminta diperbarui.
+
+**v2.10** (D-023 techlead_01, folder fitur pindah ke pola flat 4-file):
+dokumen ini tidak tersentuh secara kontrak — tidak ada Server Action yang
+ditambah/diubah/dihapus, bentuk request/respons seluruh SA-01..38 sama
+persis. Satu-satunya perubahan: referensi lokasi kode unggahan berkas
+(§ Unggahan berkas di bawah) diperbarui dari lapisan `infrastructure` ke
+`*.repository.ts` fitur, mengikuti `techlead_04_folder_structure.md` v2.10.
+
 ## Konvensi
 
-- **Route Handler (baca & auth):** respons JSON `{ data }` / `{ error }` —
-  kontrak ditulis sebagai **object shape TypeScript**
-  ([07_CONTRACT_RULES.md](../techlead-agent/07_CONTRACT_RULES.md) §4.1);
-  schema Zod & handler diturunkan BE 1:1 dari shape.
-- **Server Action (mutasi admin):** fungsi async di `"use server"`, dipanggil
-  langsung dari form (React Hook Form + `action`) atau handler klien — tidak
-  melalui `fetch`/path HTTP. Kontrak ditulis sebagai **signature fungsi
-  TypeScript**: parameter masuk & bentuk hasil (`Result<T>`), memakai
-  `FormData` untuk form yang menyertakan unggahan berkas, objek biasa untuk
-  sisanya.
+- **Server Action, satu-satunya mekanisme API (v2.9, D-022):** fungsi async
+  di `"use server"`, dipanggil langsung dari Server Component (baca) atau
+  form/handler klien (mutasi & auth) — **tanpa Route Handler, tanpa
+  `fetch`/path HTTP sama sekali** di seluruh proyek ini (`app/api/`
+  dihapus, techlead_04 v2.9). Kontrak ditulis sebagai **signature fungsi
+  TypeScript**: parameter masuk & bentuk hasil (`Result<T>` —
+  `{ data: T }` sukses / `{ error }` gagal), memakai `FormData` untuk form
+  yang menyertakan unggahan berkas, objek biasa untuk sisanya. Baca publik
+  (`SA-24`..`SA-29`, `SA-38`) tetap dipanggil tanpa sesi apa pun — "Server
+  Action" di sini adalah pilihan mekanisme pemanggilan (fungsi vs REST),
+  bukan penanda "aksi admin"; siapa boleh memanggil apa tetap diatur
+  `auth`/Matriks Akses per fungsi, bukan oleh mekanismenya.
 - **Auth:** JWT access token (httpOnly cookie) untuk seluruh operasi admin;
-  tanpa token valid → `401` (Route Handler) / `{ error: { message:
-  "UNAUTHORIZED" } }` (Server Action). Refresh token (httpOnly cookie
-  terpisah) memperbarui access token; keduanya diset oleh `SA-22` (`login`)
-  dan dihapus oleh `SA-23` (`logout`) — v2.8, D-021. Middleware `/admin/*`
-  menolak akses tanpa sesi sebelum halaman dirender (AC-009-3); **setiap
-  Server Action tetap memverifikasi sesi ulang secara independen** di dalam
-  fungsinya (tidak semata mengandalkan middleware — praktik baku Next.js
-  Server Actions, karena action dapat dipanggil langsung tanpa lewat render
-  halaman) — **kecuali `SA-22` (`login`)**, satu-satunya pengecualian: ia
-  dipanggil justru untuk *membuat* sesi baru, bukan memverifikasi yang sudah
-  ada, sehingga tidak ada sesi untuk diverifikasi ulang saat dipanggil.
+  tanpa token valid → `{ error: { message: "UNAUTHORIZED" } }`. Refresh
+  token (httpOnly cookie terpisah) memperbarui access token; keduanya
+  diset oleh `SA-22` (`login`) dan dihapus oleh `SA-23` (`logout`) — v2.8,
+  D-021. Middleware `/admin/*` menolak akses tanpa sesi sebelum halaman
+  dirender (AC-009-3); **setiap Server Action admin tetap memverifikasi
+  sesi ulang secara independen** di dalam fungsinya (tidak semata
+  mengandalkan middleware — praktik baku Next.js Server Actions, karena
+  action dapat dipanggil langsung tanpa lewat render halaman) — **kecuali
+  `SA-22` (`login`)**, satu-satunya pengecualian: ia dipanggil justru
+  untuk *membuat* sesi baru, bukan memverifikasi yang sudah ada. Server
+  Action baca publik (`SA-24`..`SA-29`, `SA-38`) tidak memverifikasi sesi
+  sama sekali — memang tidak butuh sesi apa pun.
 - **Bentuk error validasi:** `{ error: { fields: Record<string, string> } }`
-  (Route Handler: HTTP `422`; Server Action: dikembalikan sebagai nilai
-  `Result` biasa, bukan exception) — konsisten dengan state error-validasi
-  di uiux_02_wireframe.md.
+  — dikembalikan sebagai nilai `Result` biasa, bukan exception maupun
+  status HTTP — konsisten dengan state error-validasi di
+  uiux_02_wireframe.md.
 - **Unggahan berkas:** Server Action yang menerima gambar (`createProject`,
   `updateProject`, `createPost`, `updatePost`) memakai `FormData`; batas
   ukuran & jenis: gambar (jpg/png/webp) ≤ 2MB (G-003,
   techlead_01_architecture.md). File diunggah ke Cloudflare R2 lewat S3 SDK
-  di lapisan `infrastructure` (v2.4, D-017 techlead_01) — Server Action tetap
+  di `*.repository.ts` fitur (v2.4, D-017 techlead_01; v2.10 D-023 — dulu
+  lapisan `infrastructure`) — Server Action tetap
   satu-satunya jalur, tanpa endpoint/presigned-URL terpisah. Tiap unggahan
   sukses mencatat satu baris baru di `Media` (katalog); URL R2 hasil disalin
   ke field `thumbnailImage`.
@@ -125,293 +152,151 @@ berubah nomor.
 
 | Permukaan | Publik | admin |
 |-----------|:------:|:-----:|
-| Baca publik: EP-01 s.d. EP-05, EP-17 | ✅ | ✅ |
-| Kirim pesan: EP-06 | ✅ | ✅ |
-| Baca admin: EP-09 s.d. EP-16 | — | ✅ |
+| Baca publik: SA-24, SA-25, SA-26, SA-27, SA-28, SA-38 | ✅ | ✅ |
+| Kirim pesan: SA-29 | ✅ | ✅ |
 | Masuk: SA-22 (`login`) | ✅ | — |
-| Keluar: SA-23 (`logout`) | — | ✅ |
-| Server Action lain: SA-01 s.d. SA-21 | — | ✅ |
+| Server Action lain (baca admin & mutasi): SA-01 s.d. SA-21, SA-23, SA-30 s.d. SA-37 | — | ✅ |
 
-## Route Handlers — Publik
+*v2.9 (D-022): tabel ini sebelumnya membedakan "Route Handler" dari
+"Server Action" — sejak seluruh Route Handler dicabut, satu-satunya
+sumbu yang tersisa adalah **akses** (publik vs admin), bukan lagi
+mekanisme pemanggilan.*
 
-### EP-01 — Daftar project
+## Server Actions — Baca Publik (F-01, F-03, F-04, F-05)
+
+*v2.9 (D-022): menggantikan `EP-01`, `EP-02`, `EP-03`, `EP-04`, `EP-05`,
+`EP-06`, `EP-17` (Route Handler, dicabut).*
+
+### SA-24 — `getProjects`
 
 | | |
 |---|---|
-| **Method & Path** | `GET /api/projects` |
 | **Melayani** | SCR-01, SCR-03 · FLOW-02, FLOW-04 |
 | **Menopang** | AC-003-1, AC-003-2, AC-019-1, AC-019-3 |
-| **Akses** | public |
 | **Entitas** | ENT-01 |
 
-**Request (query):**
-
 ```ts
-{
+async function getProjects(params?: {
   limit?: number   // Home: 3 (AC-019-1); Portfolio: tanpa batas (AC-003-1)
-}
-```
-
-**Respons sukses `200`:** hanya `status: PUBLISHED`, urut `publishedAt desc`
-(A-002); daftar kosong adalah respons sah, bukan error (AC-003-2, AC-019-3).
-
-```ts
-{
+}): Promise<{
   data: {
     id: string; title: string; slug: string; description: string | null
     thumbnailImage: string | null
     skills: { name: string; icon: string }[]
   }[]
-}
+}>
 ```
 
-### EP-02 — Detail project
+**Hasil:** hanya `status: Terbit`, urut `publishedAt desc` (A-002); daftar
+kosong adalah respons sah, bukan error (AC-003-2, AC-019-3).
+
+### SA-25 — `getProjectBySlug`
 
 | | |
 |---|---|
-| **Method & Path** | `GET /api/projects/{slug}` |
 | **Melayani** | SCR-04 · FLOW-05 |
 | **Menopang** | AC-004-1 |
-| **Akses** | public |
 | **Entitas** | ENT-01 |
 
-**Respons sukses `200`:** hanya `status: PUBLISHED`; tautan tampil hanya bila
-diisi (AC-004-1).
-
 ```ts
-{
-  data: {
-    id: string; title: string; slug: string; description: string | null
-    content: string   // deskripsi lengkap, dapat memuat "peran saya" (G-013 BA)
-    demoUrl: string | null; repositoryUrl: string | null
-    thumbnailImage: string | null
-    skills: { name: string; icon: string }[]
-    tags: { name: string }[]
-  }
-}
+async function getProjectBySlug(slug: string): Promise<
+  | {
+      data: {
+        id: string; title: string; slug: string; description: string | null
+        content: string   // deskripsi lengkap, dapat memuat "peran saya" (G-013 BA)
+        demoUrl: string | null; repositoryUrl: string | null
+        thumbnailImage: string | null
+        skills: { name: string; icon: string }[]
+        tags: { name: string }[]
+      }
+    }
+  | { error: { message: string } }
+>
 ```
 
-**Respons gagal:**
-- `404` — project tidak ditemukan atau berstatus bukan `PUBLISHED`.
+**Sukses:** hanya `status: Terbit`; tautan tampil hanya bila diisi
+(AC-004-1).
 
-### EP-03 — Daftar tulisan · EP-04 — Detail tulisan
+**Gagal:** slug tidak ditemukan atau berstatus bukan `Terbit` →
+`{ error: { message: string } }`.
 
-*Bentuk & aturan identik EP-01/EP-02, menggantikan `demoUrl`/`repositoryUrl`/
-`skills` dengan tidak ada (Tulisan tidak punya field itu); EP-04 tambah
-`readingTime: number`. Daftar kosong sah (AC-005-2, AC-019-3); detail `404`
-bila tidak ditemukan/bukan `PUBLISHED`.*
+### SA-26 — `getPosts` · SA-27 — `getPostBySlug`
+
+*Bentuk & aturan identik `SA-24`/`SA-25`, menggantikan `demoUrl`/
+`repositoryUrl`/`skills` dengan tidak ada (Tulisan tidak punya field itu);
+`SA-27` tambah `readingTime: number`. Daftar kosong sah (AC-005-2,
+AC-019-3); gagal bila tidak ditemukan/bukan `Terbit`.*
 
 ```
-GET /api/posts        → SCR-01, SCR-05 · FLOW-02, FLOW-06 · AC-005-1, AC-005-2, AC-019-1, AC-019-3
-GET /api/posts/{slug} → SCR-06 · FLOW-07 · AC-006-1
+getPosts(params?: { limit?: number }) → SCR-01, SCR-05 · FLOW-02, FLOW-06 · AC-005-1, AC-005-2, AC-019-1, AC-019-3
+getPostBySlug(slug: string)           → SCR-06 · FLOW-07 · AC-006-1
 ```
 
-### EP-05 — Info kontak
+### SA-28 — `getContactInfo`
 
 | | |
 |---|---|
-| **Method & Path** | `GET /api/contact` |
 | **Melayani** | SCR-07 · FLOW-08 |
 | **Menopang** | AC-007-1 |
-| **Akses** | public |
 | **Entitas** | ENT-07 |
 
-**Respons sukses `200`:** seluruh baris `ContactInfo`, tanpa urutan khusus
-(urut input admin).
-
 ```ts
-{ data: { id: string; label: string; value: string; icon: string | null }[] }
+async function getContactInfo(): Promise<{
+  data: { id: string; label: string; value: string; icon: string | null }[]
+}>
 ```
 
-### EP-06 — Kirim pesan
+**Hasil:** seluruh baris `ContactInfo`, tanpa urutan khusus (urut input
+admin).
+
+### SA-29 — `sendMessage`
 
 | | |
 |---|---|
-| **Method & Path** | `POST /api/contact/messages` |
 | **Melayani** | SCR-07 · FLOW-09 |
 | **Menopang** | AC-008-1, AC-008-2 |
-| **Akses** | public |
 | **Entitas** | ENT-06 |
 
-**Request:**
-
 ```ts
-{
+async function sendMessage(data: {
   name: string     // wajib — AC-008-2
   email: string    // wajib — AC-008-2
   message: string  // wajib — AC-008-2
-}
+}): Promise<
+  | { data: { id: string } }
+  | { error: { fields: Record<string, string> } }
+>
 ```
 
-**Respons sukses `201`:** pesan tersimpan berstatus `UNREAD`; muncul di
-kotak pesan admin (AC-008-1, EP-11).
+**Sukses:** pesan tersimpan berstatus `UNREAD`; muncul di kotak pesan
+admin (AC-008-1, `SA-34`).
 
-```ts
-{ data: { id: string } }
-```
+**Gagal:** bagian wajib kosong → `error.fields`, per bagian (AC-008-2).
 
-**Respons gagal:**
-- `422` — bagian wajib kosong, per bagian (AC-008-2): bentuk error Konvensi.
-
-## Route Handlers — Baca Admin
-
-*Kelima endpoint berikut hanya membaca (list untuk layar kelola); tanpa
-request body; `401`/redirect bila tanpa sesi (AC-009-3).*
-
-### EP-09 — Daftar project (kelola)
+### SA-38 — `getSkills` (publik)
 
 | | |
 |---|---|
-| **Method & Path** | `GET /api/admin/projects` |
-| **Melayani** | SCR-10 · FLOW-11, FLOW-12 |
-| **Akses** | admin |
-| **Entitas** | ENT-01 |
-
-**Respons sukses `200`:** seluruh status, urut `createdAt desc`.
-
-```ts
-{ data: { id: string; title: string; description: string | null; status: "DRAFT" | "PUBLISHED" | "ARCHIVED" }[] }
-```
-
-### EP-10 — Daftar tulisan (kelola)
-
-| | |
-|---|---|
-| **Method & Path** | `GET /api/admin/posts` |
-| **Melayani** | SCR-12 · FLOW-13, FLOW-14 |
-| **Akses** | admin |
-| **Entitas** | ENT-02 |
-
-```ts
-{ data: { id: string; title: string; status: "DRAFT" | "PUBLISHED" | "ARCHIVED"; createdAt: string }[] }
-```
-
-### EP-11 — Daftar keahlian (kelola)
-
-| | |
-|---|---|
-| **Method & Path** | `GET /api/admin/skills` |
-| **Melayani** | SCR-14 · FLOW-15 |
-| **Akses** | admin |
-| **Entitas** | ENT-04 |
-
-```ts
-{ data: { id: string; name: string; icon: string | null }[] }
-```
-
-### EP-12 — Daftar info kontak (kelola)
-
-| | |
-|---|---|
-| **Method & Path** | `GET /api/admin/contact` |
-| **Melayani** | SCR-15 · FLOW-16 |
-| **Akses** | admin |
-| **Entitas** | ENT-07 |
-
-```ts
-{ data: { id: string; label: string; value: string; icon: string | null }[] }
-```
-
-### EP-13 — Daftar pesan masuk
-
-| | |
-|---|---|
-| **Method & Path** | `GET /api/admin/messages` |
-| **Melayani** | SCR-16 · FLOW-18 |
-| **Menopang** | AC-018-1, AC-018-2 |
-| **Akses** | admin |
-| **Entitas** | ENT-06 |
-
-**Request (query):**
-
-```ts
-{ tab?: "aktif" | "arsip" }  // default "aktif" (UNREAD+READ); "arsip" = ARCHIVED
-```
-
-**Respons sukses `200`:** urut `createdAt desc`; daftar kosong sah, bukan
-error (AC-018-2).
-
-```ts
-{
-  data: { id: string; name: string; email: string; message: string; status: "UNREAD" | "READ" | "ARCHIVED"; createdAt: string }[]
-}
-```
-
-### EP-14 — Daftar tag (kelola)
-
-| | |
-|---|---|
-| **Method & Path** | `GET /api/admin/tags` |
-| **Melayani** | SCR-17 · FLOW-21 |
-| **Akses** | admin |
-| **Entitas** | ENT-03 |
-
-```ts
-{ data: { id: string; name: string }[] }
-```
-
-### EP-15 — Daftar media (galeri)
-
-| | |
-|---|---|
-| **Method & Path** | `GET /api/admin/media` |
-| **Melayani** | SCR-18 · FLOW-22 |
-| **Menopang** | AC-022-2 |
-| **Akses** | admin |
-| **Entitas** | ENT-05 |
-
-**Respons sukses `200`:** urut `createdAt desc`; daftar kosong sah, bukan
-error (AC-022-2).
-
-```ts
-{ data: { id: string; fileName: string; url: string; mimeType: string; size: number; createdAt: string }[] }
-```
-
-### EP-16 — Ringkasan Dashboard
-
-| | |
-|---|---|
-| **Method & Path** | `GET /api/admin/dashboard` |
-| **Melayani** | SCR-09 |
-| **Akses** | admin |
-| **Entitas** | ENT-01, ENT-02, ENT-03, ENT-04 |
-
-**Respons sukses `200`:** hitungan agregat + 5 item terbaru tiap Project &
-Post (semua status) — murni pemanis tampilan, non-blocking (pm_01 D009, G-009 uiux).
-
-```ts
-{
-  data: {
-    totalPosts: number; publishedPosts: number
-    totalProjects: number; publishedProjects: number
-    totalTags: number; totalSkills: number
-    recentPosts: { id: string; title: string; thumbnailImage: string | null; status: "DRAFT" | "PUBLISHED" | "ARCHIVED"; createdAt: string }[]
-    recentProjects: { id: string; title: string; thumbnailImage: string | null; status: "DRAFT" | "PUBLISHED" | "ARCHIVED"; createdAt: string }[]
-  }
-}
-```
-
-### EP-17 — Daftar keahlian (publik)
-
-| | |
-|---|---|
-| **Method & Path** | `GET /api/skills` |
 | **Melayani** | SCR-01 · FLOW-02 |
 | **Menopang** | AC-019-1, AC-019-3 |
-| **Akses** | public |
 | **Entitas** | ENT-04 |
 
-*(Ditambahkan v2.3 — nomor mengikuti aturan penomoran append-only §penambahan
-EP-14..16 sebelumnya; secara akses tetap publik meski nomornya jatuh setelah
-kelompok Baca Admin.)*
-
-**Respons sukses `200`:** seluruh baris `Skill`, tanpa urutan khusus (urut
-input admin); daftar kosong adalah respons sah — bagian Keahlian di Home
-disembunyikan bersama sorotan lain saat kosong (AC-019-3).
+*Melengkapi `SA-32` (`getSkillsAdmin`) yang admin-only.*
 
 ```ts
-{ data: { id: string; name: string; icon: string | null }[] }
+async function getSkills(): Promise<{
+  data: { id: string; name: string; icon: string | null }[]
+}>
 ```
+
+**Hasil:** seluruh baris `Skill`, tanpa urutan khusus (urut input admin);
+daftar kosong adalah respons sah — bagian Keahlian di Home disembunyikan
+bersama sorotan lain saat kosong (AC-019-3).
+
+> Salinan dari SA-24, SA-25, SA-26, SA-27, SA-28, SA-29, SA-38 untuk
+> kenyamanan. **Bila berbeda dengan `docs/techlead_03_api_contract.md`,
+> dokumen kontrak yang berlaku** — laporkan selisihnya, jangan memilih
+> sendiri.
 
 ## Server Actions — Autentikasi (F-06.1, F-06.6)
 
@@ -464,6 +349,23 @@ admin tidak lagi dapat diakses tanpa masuk kembali (AC-016-1).
 
 ## Server Actions — Kelola Project (F-06.2)
 
+### SA-30 — `getProjectsAdmin`
+
+*v2.9 (D-022): menggantikan `EP-09` (Route Handler, dicabut).*
+
+| | |
+|---|---|
+| **Melayani** | SCR-10 · FLOW-11, FLOW-12 |
+| **Entitas** | ENT-01 |
+
+```ts
+async function getProjectsAdmin(): Promise<{
+  data: { id: string; title: string; description: string | null; status: "DRAFT" | "PUBLISHED" | "ARCHIVED" }[]
+}>
+```
+
+**Hasil:** seluruh status, urut `createdAt desc`.
+
 ### SA-01 — `createProject`
 
 | | |
@@ -505,6 +407,23 @@ DialogKonfirmasi C-12 — tidak ada konfirmasi di lapisan server).
 
 ## Server Actions — Kelola Tulisan (F-06.3)
 
+### SA-31 — `getPostsAdmin`
+
+*v2.9 (D-022): menggantikan `EP-10` (Route Handler, dicabut).*
+
+| | |
+|---|---|
+| **Melayani** | SCR-12 · FLOW-13, FLOW-14 |
+| **Entitas** | ENT-02 |
+
+```ts
+async function getPostsAdmin(): Promise<{
+  data: { id: string; title: string; status: "DRAFT" | "PUBLISHED" | "ARCHIVED"; createdAt: string }[]
+}>
+```
+
+**Hasil:** seluruh status, urut `createdAt desc`.
+
 ### SA-04 — `createPost` · SA-05 — `updatePost` · SA-06 — `deletePost`
 
 ```ts
@@ -530,6 +449,24 @@ sesudah konfirmasi FE).
 
 ## Server Actions — Kelola Keahlian (F-06.4)
 
+### SA-32 — `getSkillsAdmin`
+
+*v2.9 (D-022): menggantikan `EP-11` (Route Handler, dicabut).*
+
+| | |
+|---|---|
+| **Melayani** | SCR-14 · FLOW-15 |
+| **Entitas** | ENT-04 |
+
+```ts
+async function getSkillsAdmin(): Promise<{
+  data: { id: string; name: string; icon: string | null }[]
+}>
+```
+
+**Hasil:** seluruh baris `Skill`, urut input admin. Berbeda dari `SA-38`
+(`getSkills`) yang publik — lihat §Baca Publik.
+
 ### SA-07 — `createSkill` · SA-08 — `updateSkill` · SA-09 — `deleteSkill`
 
 ```ts
@@ -551,6 +488,25 @@ async function deleteSkill(id: string): Promise<{ data: { id: string } } | { err
 konfirmasi FE) — ringkasan Home menampilkan versi terbaru setelah revalidate.
 
 ## Server Actions — Kelola Info Kontak (F-06.5)
+
+### SA-33 — `getContactInfoAdmin`
+
+*v2.9 (D-022): menggantikan `EP-12` (Route Handler, dicabut).*
+
+| | |
+|---|---|
+| **Melayani** | SCR-15 · FLOW-16 |
+| **Entitas** | ENT-07 |
+
+```ts
+async function getContactInfoAdmin(): Promise<{
+  data: { id: string; label: string; value: string; icon: string | null }[]
+}>
+```
+
+**Hasil:** seluruh baris `ContactInfo`, urut input admin. Bentuk sama
+dengan `SA-28` (`getContactInfo`, publik) — dipisah agar konsisten pola
+publik/admin terpisah di seluruh dokumen ini, meski isinya identik.
 
 ### SA-10 — `createContactInfo` · SA-11 — `updateContactInfo` · SA-12 — `deleteContactInfo`
 
@@ -574,6 +530,27 @@ setelah admin menambah/mengubah/menghapus baris mana pun (menggantikan pola
 
 ## Server Actions — Pesan (F-06.7)
 
+### SA-34 — `getMessages`
+
+*v2.9 (D-022): menggantikan `EP-13` (Route Handler, dicabut).*
+
+| | |
+|---|---|
+| **Melayani** | SCR-16 · FLOW-18 |
+| **Menopang** | AC-018-1, AC-018-2 |
+| **Entitas** | ENT-06 |
+
+```ts
+async function getMessages(params?: {
+  tab?: "aktif" | "arsip"  // default "aktif" (UNREAD+READ); "arsip" = ARCHIVED
+}): Promise<{
+  data: { id: string; name: string; email: string; message: string; status: "UNREAD" | "READ" | "ARCHIVED"; createdAt: string }[]
+}>
+```
+
+**Hasil:** urut `createdAt desc`; daftar kosong sah, bukan error
+(AC-018-2).
+
 ### SA-13 — `markMessageRead`
 
 ```ts
@@ -596,6 +573,23 @@ async function unarchiveMessage(id: string): Promise<{ data: { id: string } } | 
 hapus pesan).
 
 ## Server Actions — Kelola Tag (F-06.8)
+
+### SA-35 — `getTagsAdmin`
+
+*v2.9 (D-022): menggantikan `EP-14` (Route Handler, dicabut).*
+
+| | |
+|---|---|
+| **Melayani** | SCR-17 · FLOW-21 |
+| **Entitas** | ENT-03 |
+
+```ts
+async function getTagsAdmin(): Promise<{
+  data: { id: string; name: string }[]
+}>
+```
+
+**Hasil:** seluruh baris `Tag`, urut input admin.
 
 ### SA-16 — `createTag` · SA-17 — `updateTag` · SA-18 — `deleteTag`
 
@@ -621,6 +615,25 @@ konfirmasi FE) — daftar Tag di form Project/Tulisan menampilkan versi terbaru
 setelah revalidate.
 
 ## Server Actions — Kelola Media (F-06.9)
+
+### SA-36 — `getMediaGallery`
+
+*v2.9 (D-022): menggantikan `EP-15` (Route Handler, dicabut).*
+
+| | |
+|---|---|
+| **Melayani** | SCR-18 · FLOW-22 |
+| **Menopang** | AC-022-2 |
+| **Entitas** | ENT-05 |
+
+```ts
+async function getMediaGallery(): Promise<{
+  data: { id: string; fileName: string; url: string; mimeType: string; size: number; createdAt: string }[]
+}>
+```
+
+**Hasil:** urut `createdAt desc`; daftar kosong sah, bukan error
+(AC-022-2).
 
 ### SA-19 — `uploadMedia`
 
@@ -655,6 +668,34 @@ delete, v2.4); selalu sesudah konfirmasi FE. **Tidak** mengosongkan
 `thumbnailImage` di `Project`/`Post` yang mungkin masih merujuk URL itu
 (tanpa FK, G-017 BA) — tautan jadi rusak bila admin menghapus file yang
 masih dipakai; risiko diterima mengingat skala kecil.
+
+## Server Actions — Dashboard
+
+### SA-37 — `getDashboardSummary`
+
+*v2.9 (D-022): menggantikan `EP-16` (Route Handler, dicabut).*
+
+| | |
+|---|---|
+| **Melayani** | SCR-09 |
+| **Entitas** | ENT-01, ENT-02, ENT-03, ENT-04 |
+
+```ts
+async function getDashboardSummary(): Promise<{
+  data: {
+    totalPosts: number; publishedPosts: number
+    totalProjects: number; publishedProjects: number
+    totalTags: number; totalSkills: number
+    recentPosts: { id: string; title: string; thumbnailImage: string | null; status: "DRAFT" | "PUBLISHED" | "ARCHIVED"; createdAt: string }[]
+    recentProjects: { id: string; title: string; thumbnailImage: string | null; status: "DRAFT" | "PUBLISHED" | "ARCHIVED"; createdAt: string }[]
+  }
+}>
+```
+
+**Hasil:** hitungan agregat + 5 item terbaru tiap Project & Post (semua
+status) — murni pemanis tampilan, non-blocking (pm_01 D009, G-009 uiux).
+Tanpa `F-06.X` sendiri — bukan sub-fitur formal, murni ringkasan lintas
+entitas.
 
 ## Server Actions — Ubah Kata Sandi (F-06.10)
 

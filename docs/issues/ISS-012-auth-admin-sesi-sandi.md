@@ -16,10 +16,11 @@ mengganti kata sandi sendiri (F-06.10). Tanpa issue ini, `/admin/*`
 tidak terlindung — seluruh Server Action kelola terlindung lainnya
 (ISS-017 s.d. ISS-024, yakni Kelola Project/Tulisan/Keahlian/Info
 Kontak/Pesan/Tag/Media & Dashboard) menunggu mekanisme sesi ini
-tersedia. Beda dari endpoint publik (EP-01 s.d. EP-06, EP-17 — mis.
-ISS-013) yang tidak butuh sesi sama sekali. Masuk & keluar **dipanggil
-langsung dari form** (Server Action), konsisten dengan seluruh form
-admin lain — bukan lewat Route Handler REST (v2.8, D-021
+tersedia. Beda dari Server Action baca publik (SA-24 s.d. SA-29, SA-38
+— mis. ISS-013) yang tidak butuh sesi sama sekali. Masuk & keluar
+**dipanggil langsung dari form** (Server Action), konsisten dengan
+seluruh form admin lain — proyek ini tanpa Route Handler sama sekali
+(v2.8 D-021, diperluas v2.9 D-022,
 `docs/techlead_01_architecture.md`). Auth memakai JWT (Access + Refresh
 Token) + Bcrypt (TEAM_STACK.md) — cukup untuk skenario 1 akun admin
 (`User`, ISS-004).
@@ -142,10 +143,11 @@ Tidak ada — satu baris `User`, tanpa query kompleks/pagination.
 ```
 middleware.ts                        ← penjaga /admin/* (AC-009-3)
 src/features/auth/
-├── application/actions.ts           ← SA-22 login, SA-23 logout,
+├── auth.action.ts                   ← SA-22 login, SA-23 logout,
 │                                        SA-21 changePassword ("use server")
-├── infrastructure/                  ← verifikasi kredensial (Bcrypt compare)
-└── presentation/                    ← (bila ada bagian server-only khusus auth)
+├── auth.services.ts                 ← verifikasi kredensial (Bcrypt compare)
+├── auth.repository.ts               ← baca/tulis baris User (Prisma)
+└── auth.schema.ts                   ← validasi Zod (login, changePassword)
 src/shared/                          ← util sign/verify JWT & hash Bcrypt, dipakai
                                         middleware.ts & seluruh Server Action lain
                                         saat verifikasi sesi ulang
@@ -154,8 +156,9 @@ src/shared/                          ← util sign/verify JWT & hash Bcrypt, dip
 *Referensi awal, tidak mengikat — ikuti struktur proyek bila sudah
 terbentuk. Berbeda dari kompilasi sebelumnya: **tidak ada lagi**
 `app/api/admin/login/route.ts` atau `logout/route.ts` — keduanya
-digantikan Server Action di `features/auth/application/actions.ts`
-(v2.8, D-021).*
+digantikan Server Action di `features/auth/auth.action.ts` (v2.8, D-021;
+v2.10 D-023: `features/auth/` sendiri pindah dari
+`application/infrastructure/presentation` ke pola flat 4-file di atas).*
 
 ## In Scope / Out of Scope
 

@@ -20,10 +20,10 @@ endpoint atau Server Action apa pun — murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
-database. Endpoint baca publik (EP-05 — ISS-015); endpoint baca admin &
-Server Action kelola create/update/delete (EP-12, SA-10/11/12 —
-ISS-020) yang memakai tabel ini dikerjakan terpisah.
+Tidak ada Server Action di issue ini — murni migrasi skema database.
+Server Action baca publik (SA-28 — ISS-015); baca admin & kelola
+create/update/delete (SA-33, SA-10/11/12 — ISS-020) yang memakai tabel
+ini dikerjakan terpisah.
 
 ## Aturan Validasi
 
@@ -52,13 +52,11 @@ dicatat di sini sebagai referensi skema:
 
 ## Auth & Permission
 
-Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint baca Info Kontak (EP-05) bersifat publik tanpa sesi; endpoint
-baca daftar kelola (EP-12) & Server Action tambah/ubah/hapus
-(SA-10/11/12) hanya `admin` ber-sesi — mutasi admin selalu Server
-Action, bukan endpoint REST (D-012,
-`docs/techlead_01_architecture.md`). Diterapkan di ISS-015/ISS-020,
-mengikuti matriks akses `docs/techlead_03_api_contract.md`.
+Tidak ada — issue ini tidak membuka Server Action apa pun (murni
+skema). Baca Info Kontak (`SA-28`) bersifat publik tanpa sesi; baca
+daftar kelola (`SA-33`) & tambah/ubah/hapus (`SA-10/11/12`) hanya
+`admin` ber-sesi. Diterapkan di ISS-015/ISS-020, mengikuti matriks
+akses `docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
 
@@ -103,9 +101,9 @@ terbentuk.*
 - [ ] Migrasi dijalankan.
 
 **Out of Scope**
-- Endpoint baca publik (EP-05) — ISS-015.
-- Endpoint baca admin & Server Action kelola create/update/delete
-  (EP-12, SA-10/11/12) — ISS-020.
+- Server Action baca publik (SA-28) — ISS-015.
+- Server Action baca admin & kelola create/update/delete
+  (SA-33, SA-10/11/12) — ISS-020.
 - Layar Contact publik & halaman kelola (SCR-15) — issue frontend.
 - Seed data Info Kontak — tidak ada Data Awal untuk entitas ini.
 
@@ -129,7 +127,7 @@ terbentuk.*
 ## Referensi
 
 - **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-015 untuk
-  EP-05, ISS-020 untuk EP-12 & Server Action SA-10/11/12) —
+  SA-28, ISS-020 untuk SA-33 & SA-10/11/12) —
   `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-07 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-05.1, F-06.5 — `docs/ba_01_feature.md`

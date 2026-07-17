@@ -21,8 +21,8 @@ migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
-database. Endpoint baca galeri (EP-15) & Server Action unggah/hapus
+Tidak ada Server Action di issue ini — murni migrasi skema database.
+Server Action baca galeri (SA-36) & unggah/hapus
 (SA-19 `uploadMedia`, SA-20 `deleteMedia`) Media (SCR-18) yang memakai
 tabel ini dikerjakan terpisah (ISS-023); logika unggah ke R2 pertama
 kali ditulis di ISS-017 (Kelola Project), dipakai ulang ISS-018/ISS-023
@@ -61,11 +61,10 @@ bagian issue ini), dicatat di sini sebagai referensi skema:
 
 ## Auth & Permission
 
-Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint baca galeri (EP-15) & Server Action unggah/hapus (SA-19/20)
-hanya `admin` ber-sesi — mutasi admin selalu Server Action, bukan
-endpoint REST (D-012, `docs/techlead_01_architecture.md`). Diterapkan
-di ISS-023, mengikuti matriks akses `docs/techlead_03_api_contract.md`.
+Tidak ada — issue ini tidak membuka Server Action apa pun (murni
+skema). Baca galeri (`SA-36`) & unggah/hapus (`SA-19/20`) hanya `admin`
+ber-sesi. Diterapkan di ISS-023, mengikuti matriks akses
+`docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
 
@@ -114,7 +113,7 @@ terbentuk.*
 - [ ] Migrasi dijalankan.
 
 **Out of Scope**
-- Endpoint baca galeri (EP-15) & Server Action unggah/hapus
+- Server Action baca galeri (SA-36) & unggah/hapus
   (SA-19/20) Media (SCR-18) — ISS-023.
 - Layar Media (galeri + unggah) — issue frontend.
 - Logika unggah ke Cloudflare R2 (util `shared/`, S3 SDK) — ditulis
@@ -142,6 +141,6 @@ terbentuk.*
 ## Referensi
 
 - **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-023 untuk
-  EP-15 & Server Action SA-19/20) — `docs/techlead_03_api_contract.md`
+  SA-36 & SA-19/20) — `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-05 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-06.9 — `docs/ba_01_feature.md`

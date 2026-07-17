@@ -20,10 +20,11 @@ murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
-database. Endpoint baca publik (EP-03, EP-04 — ISS-014), endpoint baca
-admin & Server Action kelola create/update/delete (EP-10, SA-04/05/06 —
-ISS-018) yang memakai tabel ini dikerjakan terpisah.
+Tidak ada Server Action di issue ini — murni migrasi skema database.
+Server Action baca publik (SA-26, SA-27 — ISS-014), baca admin & kelola
+create/update/delete (SA-31, SA-04/05/06 — ISS-018) yang memakai tabel
+ini dikerjakan terpisah. Proyek ini tanpa Route Handler sama sekali
+(v2.9, D-022) — seluruhnya Server Action.
 
 ## Aturan Validasi
 
@@ -64,13 +65,12 @@ dicatat di sini sebagai referensi skema:
 
 ## Auth & Permission
 
-Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint baca Tulisan (EP-03/04 publik, EP-10 admin) bersifat publik
-untuk `status: Terbit`, admin untuk daftar kelola; Server Action
-tambah/ubah/hapus (SA-04/05/06) hanya `admin` ber-sesi — mutasi admin
-selalu Server Action, bukan endpoint REST (D-012,
-`docs/techlead_01_architecture.md`). Diterapkan di issue endpoint
-terkait, mengikuti matriks akses `docs/techlead_03_api_contract.md`.
+Tidak ada — issue ini tidak membuka Server Action apa pun (murni
+skema). Baca Tulisan (`SA-26`/`27` publik, `SA-31` admin) bersifat
+publik untuk `status: Terbit`, admin untuk daftar kelola; Server Action
+tambah/ubah/hapus (`SA-04/05/06`) hanya `admin` ber-sesi. Diterapkan di
+issue Server Action terkait, mengikuti matriks akses
+`docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
 
@@ -135,7 +135,7 @@ terbentuk.*
 - [ ] Migrasi dijalankan; index `slug` dan `status, publishedAt` aktif.
 
 **Out of Scope**
-- Endpoint baca Tulisan (EP-03, EP-04, EP-10) & Server Action kelola
+- Server Action baca Tulisan (SA-26, SA-27, SA-31) & kelola
   create/update/delete (SA-04/05/06) — issue backend berikutnya.
 - Layar Blog (daftar/detail) & form kelola — issue frontend.
 - Model `Tag` (sisi lain relasi m-n) — migrasi tersendiri.
@@ -166,7 +166,7 @@ terbentuk.*
 ## Referensi
 
 - **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-014 untuk
-  EP-03/04, ISS-018 untuk EP-10 & Server Action SA-04/05/06) —
+  SA-26/27, ISS-018 untuk SA-31 & SA-04/05/06) —
   `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-02 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-01.2, F-04, F-06.3 —

@@ -20,10 +20,10 @@ membuat endpoint atau Server Action apa pun — murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
-database. Endpoint baca daftar kelola (EP-14) & Server Action
-create/update/delete (SA-16/17/18) Tag (SCR-17) yang memakai tabel ini
-dikerjakan terpisah (ISS-022).
+Tidak ada Server Action di issue ini — murni migrasi skema database.
+Server Action baca daftar kelola (SA-35) & create/update/delete
+(SA-16/17/18) Tag (SCR-17) yang memakai tabel ini dikerjakan terpisah
+(ISS-022). Proyek ini tanpa Route Handler sama sekali (v2.9, D-022).
 
 ## Aturan Validasi
 
@@ -52,11 +52,9 @@ dicatat di sini sebagai referensi skema:
 
 ## Auth & Permission
 
-Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint baca daftar kelola (EP-14) & Server Action tambah/ubah/hapus
-(SA-16/17/18) hanya `admin` ber-sesi — mutasi admin selalu Server
-Action, bukan endpoint REST (D-012, `docs/techlead_01_architecture.md`).
-Diterapkan di ISS-022, mengikuti matriks akses
+Tidak ada — issue ini tidak membuka Server Action apa pun (murni
+skema). Baca daftar kelola (`SA-35`) & tambah/ubah/hapus (`SA-16/17/18`)
+hanya `admin` ber-sesi. Diterapkan di ISS-022, mengikuti matriks akses
 `docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
@@ -110,7 +108,7 @@ terbentuk.*
 - [ ] Migrasi dijalankan (setelah Project & Post juga ada di skema).
 
 **Out of Scope**
-- Endpoint baca (EP-14) & Server Action kelola create/update/delete
+- Server Action baca (SA-35) & kelola create/update/delete
   (SA-16/17/18) Tag (SCR-17) — ISS-022.
 - Layar kelola Tag & form — issue frontend.
 - Model `Project`/`Post` (sisi lain relasi m-n) — migrasi masing-masing
@@ -141,7 +139,7 @@ terbentuk.*
 ## Referensi
 
 - **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-022 untuk
-  EP-14 & Server Action SA-16/17/18) —
+  SA-35 & SA-16/17/18) —
   `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-03 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-06.8 — `docs/ba_01_feature.md`

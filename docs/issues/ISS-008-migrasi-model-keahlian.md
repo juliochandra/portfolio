@@ -20,10 +20,11 @@ pun — murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
-database. Endpoint baca publik (EP-17 — ISS-016), endpoint baca admin &
-Server Action kelola create/update/delete (EP-11, SA-07/08/09 —
-ISS-019) yang memakai tabel ini dikerjakan terpisah.
+Tidak ada Server Action di issue ini — murni migrasi skema database.
+Server Action baca publik (SA-38 — ISS-016), baca admin & kelola
+create/update/delete (SA-32, SA-07/08/09 — ISS-019) yang memakai tabel
+ini dikerjakan terpisah. Proyek ini tanpa Route Handler sama sekali
+(v2.9, D-022).
 
 ## Aturan Validasi
 
@@ -43,9 +44,9 @@ dicatat di sini sebagai referensi skema:
 
 - CRUD penuh lewat SCR-14 (Server Action tambah/ubah/hapus,
   SA-07/08/09), selalu konfirmasi sebelum hapus (AC-014-2).
-- Dibaca publik lewat EP-17 — bagian Keahlian di Home (SCR-01)
-  menampilkan seluruh baris ke pengunjung, terpisah dari EP-11 (baca
-  daftar kelola) yang khusus admin. Kedua endpoint di luar cakupan
+- Dibaca publik lewat `SA-38` — bagian Keahlian di Home (SCR-01)
+  menampilkan seluruh baris ke pengunjung, terpisah dari `SA-32` (baca
+  daftar kelola) yang khusus admin. Kedua Server Action di luar cakupan
   issue ini.
 - Relasi ke `Project` adalah m-n implisit Prisma (tabel penghubung
   otomatis) — tanpa model join manual.
@@ -55,12 +56,10 @@ dicatat di sini sebagai referensi skema:
 
 ## Auth & Permission
 
-Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint baca daftar kelola (EP-11) & Server Action tambah/ubah/hapus
-(SA-07/08/09) hanya `admin` ber-sesi — mutasi admin selalu Server
-Action, bukan endpoint REST (D-012,
-`docs/techlead_01_architecture.md`); endpoint baca publik (EP-17) tanpa
-sesi. Diterapkan di ISS-016/ISS-019, mengikuti matriks akses
+Tidak ada — issue ini tidak membuka Server Action apa pun (murni
+skema). Baca daftar kelola (`SA-32`) & tambah/ubah/hapus (`SA-07/08/09`)
+hanya `admin` ber-sesi; baca publik (`SA-38`) tanpa sesi. Diterapkan di
+ISS-016/ISS-019, mengikuti matriks akses
 `docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
@@ -114,8 +113,8 @@ terbentuk.*
 - [ ] Migrasi dijalankan (setelah Project juga ada di skema).
 
 **Out of Scope**
-- Endpoint baca publik (EP-17 — ISS-016), endpoint baca admin & Server
-  Action kelola create/update/delete (EP-11, SA-07/08/09 — ISS-019).
+- Server Action baca publik (SA-38 — ISS-016), baca admin & kelola
+  create/update/delete (SA-32, SA-07/08/09 — ISS-019).
 - Layar kelola Keahlian & form — issue frontend.
 - Model `Project` (sisi lain relasi m-n) — migrasi tersendiri (ISS-005).
 - Data identitas pemilik (About Hero dst.) — statis di kode (pm_01 D007).
@@ -144,7 +143,7 @@ terbentuk.*
 ## Referensi
 
 - **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-016 untuk
-  EP-17, ISS-019 untuk EP-11 & Server Action SA-07/08/09) —
+  SA-38, ISS-019 untuk SA-32 & SA-07/08/09) —
   `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-04 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-01.2, F-06.4 — `docs/ba_01_feature.md`
