@@ -1,0 +1,180 @@
+# ARCHITECTURE: Portfolio Developer
+
+## Metadata
+
+| | |
+|---|---|
+| **Tanggal** | 2026-07-17 |
+| **Versi** | 2.6 |
+| **Sumber** | Set BA v6.0 + Set UI/UX v1.8 |
+| **Konteks** | docs/pm_01_project.md v1.6 (+ techlead-agent/TEAM_STACK.md sebagai sumber stack & struktur) |
+| **Disusun oleh** | Tech Lead Agent |
+| **Set dokumen** | techlead_01_architecture.md · techlead_02_database.md · techlead_03_api_contract.md · techlead_04_folder_structure.md |
+
+## Ringkasan
+
+Kelas proyek: **CMS ringan** (monolith server-rendered) — bukan situs statis,
+karena Objective menuntut pemilik memiliki kendali penuh memperbarui seluruh
+isinya sendiri (pemilik = Admin = Target User). **Delapan entitas**, 17 Route
+Handler (baca publik + baca admin + auth) + 21 Server Action (mutasi admin),
+tanpa integrasi pihak ketiga transaksional. Stack diambil apa adanya dari
+`TEAM_STACK.md` untuk **seluruh layer, termasuk penyimpanan berkas** — sejak
+v2.4, TEAM_STACK.md mencakup Cloudflare R2 sebagai object storage baku,
+mencabut penyimpangan filesystem-lokal yang berlaku di v2.0-v2.3 (D-002,
+D-017).
+
+Revisi total dari v1.0 (7 entitas, 21 Route Handler, tanpa Server Action) —
+lihat techlead_02_database.md Ringkasan untuk daftar perubahan skema, dan
+Keputusan & Trade-off (D-008 s.d. D-015) di bawah untuk keputusan arsitektur
+baru dari perancangan skema lanjutan (pm_01 D008) dan referensi desain admin
+client (pm_01 D009).
+
+## Tech Stack
+
+| Layer | Pilihan | Sumber | Alasan | Constraint |
+|-------|---------|--------|--------|------------|
+| Framework | Next.js 15 (App Router) | TEAM_STACK.md | Stack baku tim, mencakup seluruh kapabilitas inventory | — |
+| UI Library | React 19 | TEAM_STACK.md | Stack baku tim | — |
+| Bahasa | TypeScript 7 (strict mode) | TEAM_STACK.md | Stack baku tim | — |
+| Styling | Tailwind CSS 4 | TEAM_STACK.md | Stack baku tim | — |
+| Icon | react-icons/si | TEAM_STACK.md | Stack baku tim | — |
+| Runtime | Node.js 22 (LTS) | TEAM_STACK.md | Stack baku tim | — |
+| API Layer | Route Handlers + Server Actions | TEAM_STACK.md | Stack baku tim; v2.0: Route Handler untuk baca (publik & admin) + auth, **Server Action untuk seluruh mutasi admin** (D-012) — permintaan eksplisit user | — |
+| Database | PostgreSQL 18 (Neon) | TEAM_STACK.md | Stack baku tim | — |
+| ORM | Prisma 7 | TEAM_STACK.md | Stack baku tim; skema deklaratif = kontrak techlead_02 (07 §3.1) | — |
+| Auth | JWT (Access + Refresh Token) + Bcrypt | TEAM_STACK.md | Stack baku tim; cukup untuk 1 akun admin (F-06.1) | — |
+| Validasi | Zod 4 | TEAM_STACK.md | Stack baku tim; schema diturunkan 1:1 dari shape techlead_03 | — |
+| Form | React Hook Form 7 | TEAM_STACK.md | Stack baku tim | — |
+| Test | Vitest 4 (unit) + Playwright 1 (E2E) | TEAM_STACK.md | Stack baku tim | — |
+| CI/CD | GitHub Actions | TEAM_STACK.md | Stack baku tim | — |
+| Linter/Formatter | Biome 2 | TEAM_STACK.md | Stack baku tim | — |
+| Container | Docker Engine 29 + Docker Compose 2 | TEAM_STACK.md | Stack baku tim | — |
+| Hosting | Ubuntu LTS 22/24 + Caddy 2 + Cloudflare | TEAM_STACK.md | Stack baku tim; Caddy = HTTPS otomatis, menopang kebutuhan kualitas "mudah ditemukan Google" (AC-001-4, D-007) | — |
+| Penyimpanan Berkas | Cloudflare R2 (S3-compatible object storage) | TEAM_STACK.md | Object storage terkelola, S3-compatible — cocok untuk gambar unggahan (thumbnail Project/Post, galeri Media); tanpa biaya egress (ciri khas R2), selaras dengan Cloudflare yang sudah dipakai sebagai CDN & Security di depan Caddy. Menggantikan filesystem-lokal v2.0-v2.3 (D-002, dicabut D-017) — TEAM_STACK.md kini mencakup layer ini, bukan lagi penyimpangan proyek | Kebutuhan Aset uiux_03_design_system.md: foto profil, gambar project, berkas CV |
+
+## Arsitektur Sistem
+
+```
+( pengunjung — HP/desktop )                 ( admin — 1 akun )
+        │ HTTPS                                    │ HTTPS (masuk via JWT)
+        ▼                                          ▼
+┌─────────────────────────────────────────────────────────┐
+│           Aplikasi Next.js (satu unit, App Router)       │
+│  sisi publik: Home · About · Portfolio · Blog · Contact  │
+│  sisi admin: terlindung middleware (verifikasi JWT)      │
+└───────┬─────────────────────────────┬─────────────────────┘
+        │ Prisma                      │ unggah via Server Action
+        ▼                             ▼ (S3 SDK, di lapisan infrastructure)
+┌────────────────┐            ┌────────────────────┐
+│ PostgreSQL       │            │ Cloudflare R2         │
+│ 8 tabel          │            │ (object storage)      │
+└────────────────┘            └────────────────────┘
+        ▲
+        │ di depan aplikasi
+┌─────────────────────────┐
+│ Caddy (reverse proxy)    │  ← HTTPS otomatis
+│ Cloudflare (CDN/security)│  ← di depan Caddy
+└─────────────────────────┘
+```
+
+Komponen: **Aplikasi Next.js** menyajikan seluruh halaman publik dan admin
+dalam satu unit (tidak ada layanan terpisah). **PostgreSQL** menyimpan
+kedelapan entitas via Prisma. **Cloudflare R2** menyimpan gambar unggahan
+admin (thumbnail project & tulisan, galeri Media) — diakses lewat Server
+Action yang sama dengan mutasi admin lain (createProject/createPost/
+uploadMedia, D-012 tidak berubah), bukan endpoint terpisah; tanpa volume
+Docker manual sejak v2.4 (D-017, mencabut D-002). Berkas CV **tidak** lewat
+R2 — ditempel developer langsung ke aset statis/`public/` saat deploy
+(pm_01 D007), tidak melalui unggahan admin. **Caddy** menerbitkan sertifikat
+HTTPS otomatis dan meneruskan lalu lintas ke aplikasi; **Cloudflare** berada
+di depan Caddy untuk CDN & proteksi dasar — vendor yang sama dengan R2,
+dua produk berbeda (CDN/proxy vs object storage).
+
+## Modul Aplikasi
+
+| Modul | Tugas | Melayani |
+|-------|-------|----------|
+| Sisi publik | Menyajikan Home, About, Portfolio, Blog, Contact; menerima pesan | F-01, F-02, F-03, F-04, F-05, F-07 |
+| Sisi admin (terlindung) | Masuk/keluar + kelola project, tulisan, keahlian, tag, media, info kontak, pesan masuk + ubah kata sandi sendiri | F-06 |
+| Penyimpanan berkas | Menyimpan & menyajikan gambar unggahan admin (thumbnail project & tulisan) — Cloudflare R2, v2.4 | Kebutuhan Aset (F-03, F-04, F-06) |
+
+*(Penataan kode per fitur & layer: techlead_04_folder_structure.md.)*
+
+## Environment & Deployment
+
+- **Lokal:** Node.js 22 + PostgreSQL via Docker Compose (sesuai TEAM_STACK.md);
+  `prisma migrate` + seed untuk data awal; unggahan gambar langsung ke bucket
+  R2 sandbox/dev (v2.4) — tidak ada lagi folder/volume unggahan lokal.
+- **Produksi:** Docker Compose menjalankan aplikasi Next.js + PostgreSQL (atau
+  PostgreSQL terkelola/Neon) di VPS Ubuntu LTS; Cloudflare R2 (bucket
+  produksi) untuk seluruh berkas unggahan admin — tanpa volume Docker
+  terpisah (v2.4, D-017); Caddy sebagai reverse proxy di depan aplikasi;
+  Cloudflare di depan Caddy. Deploy = build image via GitHub Actions →
+  `docker compose up` di server.
+- **Konfigurasi:** `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`,
+  `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
+  `R2_BUCKET_NAME`, `R2_PUBLIC_URL` (domain publik bucket/custom domain),
+  domain untuk Caddy/Cloudflare.
+
+## Keputusan & Trade-off
+
+| ID | Keputusan | Alasan (termasuk alternatif yang ditolak) |
+|----|-----------|-------------------------------------------|
+| D-001 | Kelas proyek: CMS ringan, bukan situs statis | Objective v1.2 menuntut "kendali penuh memperbarui seluruh isinya sendiri" — pemilik ADALAH Admin/Target User; berbeda dari baseline contoh statis di mana pemilik bukan Target User |
+| D-002 | ~~TEAM_STACK.md dipakai apa adanya, kecuali penyimpanan berkas~~ — **DICABUT v2.4 (D-017)**: TEAM_STACK.md kini mencakup penyimpanan berkas (Cloudflare R2) | Berlaku v2.0-v2.3: validasi cakupan waktu itu — stack baku tim menutup seluruh kapabilitas inventory kecuali penyimpanan objek; celah itu ditutup user langsung di TEAM_STACK.md, bukan lagi penyimpangan proyek |
+| D-003 | Struktur folder = jalur 1 (Struktur Folder Baku TEAM_STACK.md) | Kerangka sudah baku; pekerjaan Tech Lead murni memetakan fitur ke folder (lihat techlead_04) |
+| D-004 | ~~Profil & Info Kontak = entitas singleton, tanpa endpoint buat/hapus~~ — **DICABUT total v2.0 (D-013)** | Profil dihapus sepenuhnya (bukan lagi singleton — bukan tabel sama sekali); Info Kontak jadi multi-baris dengan CRUD penuh, bukan singleton |
+| D-005 | Pesan tanpa endpoint ubah **isi** atau hapus — v2.0 menambah endpoint ubah **status** (baca/arsip, D-012) | US-018 hanya menuntut "membaca"; endpoint ubah isi/hapus = endpoint hantu (Scope Validation); status baca/arsip = kemampuan baru dari pm_01 D008, bukan "ubah isi" |
+| D-006 | Sorotan Home memakai endpoint yang sama dengan daftar penuh (EP-01/EP-03), dibedakan parameter `limit` | Data & aturan identik; endpoint terpisah untuk kebutuhan sama = duplikasi tanpa alasan |
+| D-007 | AC-001-4 (muncul di Google) ditopang lewat SSR + metadata + sitemap.xml, bukan endpoint | Kebutuhan kualitas → keputusan arsitektur (rendering), bukan permukaan API |
+| D-008 | ID seluruh entitas: `String @default(cuid())`, bukan `BigInt autoincrement()` (v1.0) | Id tidak bisa ditebak/dienumerasi lewat manipulasi URL; berpasangan wajar dengan slug yang sudah dipakai di seluruh entitas berkonten; keputusan user saat perancangan skema |
+| D-009 | `ContactInfo` & `User` tanpa kolom `createdAt`/`updatedAt`, beda dari entitas lain | Skala 1 baris/1 akun; tidak ada kebutuhan produk/UI yang menampilkan riwayat perubahan keduanya — menambah kolom tanpa manfaat terukur |
+| D-010 | Slug (`projects`, `posts`, `tags`, `skills`) dibuat otomatis dari nama/judul (slugify), bukan isian manual admin | Admin tunggal non-teknis; auto-generate menghindari slug kosong/bentrok tanpa validasi form tambahan; tidak ada requirement stabilitas URL manual |
+| D-011 | `Media` = katalog metadata file, bukan foreign key relasional dari `projects`/`posts` (field gambar tetap string path langsung) | Skala kecil (1 admin, unggahan jarang) tidak sepadan dengan kompleksitas menjaga relasi FK tetap sinkron; katalog cukup untuk kebutuhan "admin lihat file yang pernah diunggah" |
+| D-012 | Seluruh mutasi admin (create/update/delete, termasuk transisi status) jadi **Server Action**; Route Handler dipertahankan untuk baca (publik & admin) dan autentikasi | Permintaan eksplisit user saat perancangan skema ("nanti menggunakan server action"); mutasi dipanggil langsung dari form admin, tidak butuh permukaan REST terpisah untuk dikonsumsi pihak luar |
+| D-013 | Entitas Profil dihapus total (bukan lagi tabel); Info Kontak jadi tabel flat multi-baris dengan CRUD penuh (mencabut D-004) | pm_01 D007 (Profil statis) + pm_01 D008 lanjutan (perancangan skema) — data identitas jarang berubah, tidak sepadan jadi form admin; Info Kontak sebaliknya perlu fleksibel tambah/kurang saluran tanpa migrasi skema |
+| D-014 | Skema Prisma **tanpa** `@map`/`@@map` — konvensi default Prisma apa adanya (model PascalCase singular = nama tabel, field camelCase = nama kolom, tanpa dipetakan ulang ke snake_case) | Proyek tidak pernah mengakses PostgreSQL secara langsung di luar Prisma Client (tanpa raw SQL, tool eksternal, atau BI yang membaca skema) — lapisan pemetaan nama snake_case tidak punya manfaat terukur untuk skala ini; keputusan user, mencabut konvensi snake_case v2.0 |
+| D-015 | `Tag` & `Media` (sudah ada sejak v2.0) dapat permukaan CRUD/kelola admin penuh (EP-14/SA-16..18 Tag; EP-15/SA-19..20 Media) menggantikan pola inline-only/write-only; `changePassword` (SA-21) baru tanpa field tambahan; `GET /api/admin/dashboard` (EP-16) baru untuk statistik & aktivitas terbaru — murni pemanis, tanpa AC | Referensi desain admin eksplisit dari client (`docs/ui/cms/`, pm_01 D009) — bukan tebakan tim; tidak menambah tabel karena `Tag`/`Media`/`User.passwordHash` sudah cukup di skema v2.0/v2.1 |
+| D-016 | `GET /api/skills` (EP-17, publik) ditambahkan v2.3 | Celah kontrak ditemukan Issue Planner saat memecah backlog: SCR-01 Home menampilkan bagian Keahlian ke pengunjung publik (AC-019-1), tapi satu-satunya endpoint baca Skill yang ada sebelumnya (EP-11) khusus admin — pengunjung publik tidak pernah punya jalur baca; gap blocking dikembalikan & langsung diperbaiki di sini sebelum Issue Planner lanjut memecah issue Home |
+| D-017 | Penyimpanan berkas pindah dari filesystem lokal (volume Docker) ke Cloudflare R2 (S3-compatible object storage); mencabut D-002 — TEAM_STACK.md kini mencakup layer ini sebagai stack baku, bukan lagi penyimpangan per-proyek. Alur unggah TETAP lewat Server Action (D-012 tidak berubah): file dikirim `FormData` ke Server Action yang sama (`createProject`/`createPost`/`uploadMedia`), Server Action-nya yang mengunggah ke R2 lewat S3 SDK di lapisan `infrastructure` — tanpa endpoint/kontrak API baru, tanpa presigned URL client-langsung (opsi itu dipertimbangkan & ditolak user demi kesederhanaan skala kecil, satu admin) | Perubahan kapabilitas tim (bukan requirement proyek) — user memperbarui TEAM_STACK.md; R2 menghapus kebutuhan volume Docker terpisah untuk berkas (lebih sederhana dikelola, tanpa biaya egress, terintegrasi dengan Cloudflare yang sudah dipakai sebagai CDN) |
+| D-018 | Kelima layar publik (SCR-01..07) dibungkus route group `app/(public)/` (techlead_04) — satu `layout.tsx` bersama (Navbar/MenuUtama C-02 + Footer) tanpa mengubah URL; `admin/` TETAP folder biasa (bukan route group) karena memang perlu tampil di path `/admin/*` yang sebenarnya, dan SCR-08 Masuk sengaja tidak ikut berbagi layout admin | Permintaan user: navbar & footer kemungkinan sama di seluruh halaman publik — route group Next.js adalah mekanisme baku untuk itu tanpa duplikasi kode per halaman; murni keputusan struktur folder (implementasi), tidak mengubah wireframe/kontrak API mana pun |
+| D-019 | SCR-08 Masuk Admin (`login/`) dipindah keluar dari `admin/` jadi `app/login/` tersendiri (techlead_04 v2.6) — `admin/layout.tsx` (MenuAdmin) kini berlaku utuh ke seluruh `admin/*` tanpa pengecualian; `middleware.ts` yang menjaga `/admin/*` otomatis tidak lagi menyentuh rute login | Permintaan user: SCR-08 punya UI form sendiri, berbeda dari SCR-09..19 yang seluruhnya berbagi UI Dashboard/MenuAdmin — dicek ke wireframe uiux_02, SCR-08 memang satu-satunya layar kelola tanpa bagian "Header Admin"; murni keputusan struktur folder, tidak mengubah wireframe/kontrak API |
+
+## Assumptions
+
+- Berkas CV adalah aset statis (bukan data DB) — ditempel developer ke
+  `public/` sebelum situs tayang publik; tautan unduh langsung, tanpa
+  endpoint (G-001, DIREVISI 2026-07-16 — pm_01 D007 mencabut kewajiban skema
+  `NOT NULL` v1.0).
+- Daftar Project & Tulisan publik tampil terbaru dulu (`publishedAt desc`),
+  hanya `status: PUBLISHED` (G-002, DIREVISI 2026-07-16 — pm_01 D008).
+- Batas unggahan: gambar (jpg/png/webp) ≤ 2MB (G-003, DIREVISI 2026-07-16 —
+  ketentuan CV ≤5MB dicabut bersama D-007, CV tidak lagi diunggah lewat admin).
+- Sesi admin: token akses 15 menit, token pembaruan 7 hari, disimpan sebagai
+  httpOnly cookie (G-004) — berlaku juga untuk verifikasi sesi di dalam
+  Server Action (D-012).
+
+## Open Questions
+
+- Titipan Open Questions UI/UX: "project unggulan" saat ini = project terbaru
+  (bukan kurasi manual). Bila pemilik ingin memilih sendiri project yang
+  disorot, itu kemampuan baru (kolom penanda unggulan) — diteruskan untuk
+  siklus PM/BA berikutnya, bukan dijawab sendiri di sini.
+- Pendaftaran domain, sertifikat/konfigurasi Cloudflare, dan penyimpanan
+  kredensial (`JWT_*_SECRET`, `DATABASE_URL`) produksi → titipan untuk DevOps.
+
+## Handoff
+
+- Dokumen ini bagian dari **set blueprint Tech Lead** proyek Portfolio Developer:
+  techlead_01_architecture.md + techlead_02_database.md + techlead_03_api_contract.md +
+  techlead_04_folder_structure.md (versi sama, dibaca bersama).
+- **Sumber:** set BA v6.0 (FEATURE + USER_STORY + ACCEPTANCE_CRITERIA) +
+  set UI/UX v1.8 (USER_FLOW + WIREFRAME + DESIGN_SYSTEM),
+  konteks docs/pm_01_project.md v1.6 (+ TEAM_STACK.md sebagai sumber stack).
+- **Penerima:** FE & BE Agent (via Issue Planner); QA memakai API_CONTRACT
+  sebagai acuan uji.
+- **Pertanyaan hilir** tentang stack/data/API yang tak terjawab set ini =
+  kekurangan dokumen Tech Lead → dikembalikan ke Tech Lead; pertanyaan tentang
+  tampilan/alur → ke UI/UX; tentang requirement → ke BA.
+- **Perubahan kebutuhan** ditangani dari hulu: siklus PM → BA → UI/UX → set ini
+  terbit versi baru. Tidak diedit langsung.
