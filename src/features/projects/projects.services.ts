@@ -52,9 +52,7 @@ function toPublicProjectDetail(project: ProjectDetailRecord): PublicProjectDetai
 	};
 }
 
-export async function getPublishedProjects(params?: {
-	limit?: number;
-}): Promise<PublicProjectListItem[]> {
+export async function getPublishedProjects(params?: { limit?: number }): Promise<PublicProjectListItem[]> {
 	const projects = await findProjects({
 		limit: params?.limit,
 		status: PublishStatus.PUBLISHED,

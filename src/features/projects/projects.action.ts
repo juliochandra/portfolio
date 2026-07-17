@@ -1,10 +1,6 @@
 "use server";
 
-import {
-	type GetProjectsParams,
-	getProjectsParamsSchema,
-	projectSlugSchema,
-} from "@/features/projects/projects.schema";
+import { type GetProjectsParams, getProjectsParamsSchema, projectSlugSchema } from "@/features/projects/projects.schema";
 import {
 	getPublishedProjectBySlug,
 	getPublishedProjects,
