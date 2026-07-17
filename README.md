@@ -6,21 +6,22 @@ project, tulisan, keahlian, tag, media, info kontak, dan pesan masuk.
 ## Tech Stack
 
 Next.js 15 (App Router) · React 19 · TypeScript 7 (strict) · Tailwind CSS 4 ·
-react-icons · PostgreSQL 18 (Neon) · Prisma 7 · Zod 4 · React Hook Form 7 ·
-Vitest 4 · Playwright 1 · Biome 2.
+react-icons · PostgreSQL 18 (Neon) · Prisma 7 · Cloudflare R2 · Zod 4 ·
+React Hook Form 7 · Vitest 4 · Playwright 1 · Biome 2.
 
 ## Prasyarat
 
-- Node.js (runtime dikunci lewat Docker — lihat ISS-003)
+- Node.js
 - npm
 - Project PostgreSQL di [Neon](https://neon.tech) untuk pengembangan
+- Bucket [Cloudflare R2](https://developers.cloudflare.com/r2/) (sandbox/dev)
 
 ## Setup
 
 ```bash
 npm install
 cp .env.example .env
-# isi DATABASE_URL di .env dengan connection string Neon Anda
+# isi DATABASE_URL & R2_* di .env dengan nilai proyek Anda sendiri
 npx prisma migrate dev
 ```
 
@@ -39,6 +40,8 @@ npx prisma migrate dev
 | `npx prisma migrate dev` | Menjalankan migrasi database |
 | `npx prisma generate` | Meng-generate Prisma Client (otomatis lewat `postinstall`) |
 | `npx prisma studio` | Membuka GUI database |
+| `npm run r2:verify` | Verifikasi upload & baca berkas percobaan ke bucket R2 |
+| `npm run r2:cleanup` | Menghapus berkas percobaan `r2:verify` dari bucket |
 
 ## Struktur Folder
 
@@ -46,7 +49,8 @@ npx prisma migrate dev
 src/
 ├── app/        # route App Router
 ├── features/   # fitur (domain/application/infrastructure/presentation)
-└── core/       # shared lintas fitur (UI dasar, config, dsb.)
+├── core/       # shared lintas fitur (UI dasar, klien Prisma, dsb.)
+└── shared/     # util lintas aplikasi (mis. validasi env)
 ```
 
 Detail lengkap: `docs/techlead_04_folder_structure.md`.
