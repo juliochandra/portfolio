@@ -112,3 +112,10 @@ model Message {
 
   @@index([status, createdAt])
 }
+
+model ContactInfo {
+  id    String  @id @default(cuid())
+  label String  @db.VarChar(100)
+  value String  @db.VarChar(255)
+  icon  String? @db.VarChar(100)
+}
