@@ -19,11 +19,11 @@ endpoint atau Server Action apa pun — murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
-database. Endpoint kirim pesan publik (EP-06 — ISS-015); endpoint baca
-daftar pesan admin (EP-13) & Server Action transisi status (SA-13
-`markMessageRead`, SA-14/15 `archiveMessage`/`unarchiveMessage` — ISS-021)
-yang memakai tabel ini dikerjakan terpisah.
+Tidak ada Server Action di issue ini — murni migrasi skema database.
+Server Action kirim pesan publik (SA-29 — ISS-015); baca daftar pesan
+admin (SA-34) & transisi status (SA-13 `markMessageRead`, SA-14/15
+`archiveMessage`/`unarchiveMessage` — ISS-021) yang memakai tabel ini
+dikerjakan terpisah.
 
 ## Aturan Validasi
 
@@ -53,11 +53,11 @@ dicatat di sini sebagai referensi skema:
 
 ## Auth & Permission
 
-Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint kirim pesan (EP-06) bersifat publik tanpa sesi; endpoint baca
-daftar (EP-13) & Server Action tandai-baca/arsip/kembalikan
-(SA-13/14/15) hanya `admin` ber-sesi. Diterapkan di ISS-015/ISS-021,
-mengikuti matriks akses `docs/techlead_03_api_contract.md`.
+Tidak ada — issue ini tidak membuka Server Action apa pun (murni
+skema). Kirim pesan (`SA-29`) bersifat publik tanpa sesi; baca daftar
+(`SA-34`) & tandai-baca/arsip/kembalikan (`SA-13/14/15`) hanya `admin`
+ber-sesi. Diterapkan di ISS-015/ISS-021, mengikuti matriks akses
+`docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
 
@@ -109,8 +109,8 @@ terbentuk.*
 - [ ] Migrasi dijalankan; index `status, createdAt` aktif.
 
 **Out of Scope**
-- Endpoint kirim pesan publik (EP-06) — ISS-015.
-- Endpoint baca daftar (EP-13) & Server Action transisi status
+- Server Action kirim pesan publik (SA-29) — ISS-015.
+- Server Action baca daftar (SA-34) & transisi status
   (SA-13/14/15) — ISS-021.
 - Layar formulir Contact & kotak pesan admin — issue frontend.
 - Story ubah isi pesan — tidak ada di kontrak (Scope Validation).
@@ -137,7 +137,7 @@ terbentuk.*
 ## Referensi
 
 - **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-015 untuk
-  EP-06, ISS-021 untuk EP-13 & Server Action SA-13/14/15) —
+  SA-29, ISS-021 untuk SA-34 & SA-13/14/15) —
   `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-06 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-05.2, F-06.7 — `docs/ba_01_feature.md`

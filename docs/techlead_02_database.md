@@ -6,7 +6,7 @@
 |---|---|
 | **Tanggal** | 2026-07-17 |
 | **Status** | Disetujui client |
-| **Versi** | 2.8 |
+| **Versi** | 2.10 |
 | **Sumber** | Set BA v6.0 + Set UI/UX v1.8 |
 | **Konteks** | docs/pm_01_project.md v1.6 |
 | **Disusun oleh** | Tech Lead Agent |
@@ -78,6 +78,19 @@ sekali tidak tersentuh — perubahan murni permukaan API (techlead_03),
 tidak menambah/mengubah kolom `User` (ENT-08) atau entitas mana pun; `User`
 tetap dibaca & diperbarui lewat mekanisme yang sama (Bcrypt compare/hash),
 hanya jalur pemanggilannya yang berubah.
+
+**v2.9** (D-022 techlead_01, sisa 15 Route Handler dicabut digantikan
+`SA-24`..`SA-38`): dokumen ini juga sama sekali tidak tersentuh — sama
+seperti v2.8, murni permukaan API; tidak ada tabel/kolom/relasi yang
+berubah. Seluruh entitas tetap dibaca lewat Prisma Client yang sama,
+hanya dipanggil dari Server Action, bukan Route Handler.
+
+**v2.10** (D-023 techlead_01, folder fitur pindah ke pola flat 4-file):
+dokumen ini juga sama sekali tidak tersentuh — murni perubahan struktur
+folder (`techlead_04_folder_structure.md`: `domain/`·`application/`·
+`infrastructure/`·`presentation/` → `.action.ts`/`.services.ts`/
+`.repository.ts`/`.schema.ts`), tidak menyentuh skema/entitas/data. Prisma
+Client tetap diakses dari `*.repository.ts` tiap fitur (dulu `infrastructure/`).
 
 ## Konvensi
 
@@ -281,8 +294,9 @@ model Skill {
 **Aturan:** `icon` divalidasi wajib di lapisan Zod (AC-014-1: "nama + ikon"),
 bukan `NOT NULL` skema, konsisten pola `description` Project. CRUD penuh
 lewat SCR-14 (tambah/ubah/hapus, selalu konfirmasi sebelum hapus — AC-014-2).
-Dibaca publik lewat EP-17 (v2.3) — bagian Keahlian di Home (SCR-01)
-menampilkan seluruh baris ke pengunjung, terpisah dari EP-11 yang khusus admin.
+Dibaca publik lewat `SA-38` (v2.3, v2.9 D-022 — dulu `EP-17`) — bagian
+Keahlian di Home (SCR-01) menampilkan seluruh baris ke pengunjung,
+terpisah dari `SA-32` (dulu `EP-11`) yang khusus admin.
 
 ### ENT-05 — Media (`Media`)
 
