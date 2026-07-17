@@ -1,0 +1,92 @@
+project:
+  id: PRJ-001
+  title: "Portfolio Developer"
+  type: "website portfolio"
+  status: done   # v1.1 diserahkan ke BA (siklus revisi Gap Report G-001 selesai) — PM berhenti
+
+conversation:
+  - { id: Q001, question: "Portfolio ini untuk profesi atau bidang apa?", answer: "Developer / programmer." }
+  - { id: Q002, question: "Apa tujuan utama portfolio ini?", answer: "Dilirik perusahaan (melamar kerja)." }
+  - { id: Q003, question: "Siapa yang paling diharapkan membuka website ini?", answer: "HRD / recruiter perusahaan." }
+  - { id: Q004, question: "Hal apa yang diharapkan terjadi berkat portfolio ini?", answer: "Dipanggil interview, menonjol dibanding kandidat lain, dan punya identitas online yang rapi." }
+  - { id: Q005, question: "Apa saja yang ingin ditampilkan di website ini?", answer: "HOME, ABOUT, PORTFOLIO, BLOG, CONTACT. Untuk admin: CMS lengkap." }
+  - { id: Q006, question: "Konten apa saja yang ingin bisa dikelola sendiri lewat halaman admin?", answer: "Semua konten (project, blog, profil, kontak)." }
+  - { id: Q007, question: "Ada halaman/bagian lain yang belum dibahas?", answer: "Download CV." }
+  - { id: Q008, question: "Adakah fitur yang dipastikan TIDAK termasuk tahap ini?", answer: "Komentar di blog, dua bahasa, newsletter — dan tidak ada pengecualian lain ('Tidak ada' ikut dipilih, dimaknai sebagai penutup daftar; dikonfirmasi ulang di ringkasan)." }
+  - { id: Q009, question: "Konten website memakai bahasa apa?", answer: "Bahasa Indonesia." }
+  - { id: Q010, question: "Adakah batasan/keinginan khusus lain?", answer: "Nyaman dibuka dari HP; mudah ditemukan di Google." }
+  - { id: Q011, question: "Hal apa yang membuat website ini terasa berhasil?", answer: "Dipanggil interview, bisa update konten mandiri, muncul di Google saat nama dicari." }
+  - { id: Q012, question: "Ada warna/gaya tampilan tertentu atau referensi?", answer: "Terinspirasi warna di github.com; gunakan light dan dark mode; gaya profesional dan simple." }
+  - { id: Q013, question: "Halaman Contact sifatnya bagaimana?", answer: "Keduanya — menampilkan info kontak dan ada formulir kirim pesan." }
+  - { id: Q014, question: "Bagaimana Anda ingin menerima pesan dari formulir Contact? (siklus revisi — Gap Report BA G-001)", answer: "Kotak masuk di halaman admin." }
+  - { id: Q015, question: "Selain perkenalan singkat, apa saja yang ingin ditonjolkan di halaman Home? (siklus revisi — client menilai rincian Home terlalu tipis)", answer: "Hero, skill, cuplikan portfolio, blog terbaru, CTA (istilah client sendiri)." }
+
+project_state:
+  objective: "Portfolio online developer untuk dilirik perusahaan (melamar kerja)"
+  business_goals:
+    - "Memperbesar peluang dipanggil interview"
+    - "Menonjol dibanding kandidat lain"
+    - "Memiliki identitas profesional online yang rapi"
+    - "Mudah ditemukan di pencarian Google saat namanya dicari (Q010)"
+  target_users:
+    - "HRD / recruiter perusahaan"
+    - "Admin / pemilik website (mengelola seluruh konten, dari Q005)"
+  core_features:
+    - { name: "Halaman Home (beranda) — menonjolkan perkenalan, ringkasan keahlian, cuplikan project unggulan, tulisan terbaru, ajakan kontak/unduh CV", priority: must, source: Q005/Q015 }
+    - { name: "Halaman About (tentang saya & keahlian)",     priority: must, source: Q005 }
+    - { name: "Halaman Portfolio (daftar project/karya)",    priority: must, source: Q005 }
+    - { name: "Halaman Blog (tulisan)",                      priority: must, source: Q005 }
+    - { name: "Halaman Contact (info kontak + formulir kirim pesan; pesan masuk ke kotak pesan halaman admin)", priority: must, source: Q005/Q013/Q014 }
+    - { name: "Pengelolaan konten oleh admin (dashboard), termasuk membaca pesan masuk", priority: must, source: Q005/Q014 }
+    - { name: "Tombol unduh CV",                             priority: should, source: Q007 }
+  out_of_scope:
+    - { name: "Komentar pengunjung di blog", reason: "Client mengecualikan eksplisit (Q008, D001)" }
+    - { name: "Versi dua bahasa",            reason: "Client mengecualikan eksplisit (Q008, D001)" }
+    - { name: "Newsletter/berlangganan",     reason: "Client mengecualikan eksplisit (Q008, D001)" }
+  constraints:
+    - "Seluruh konten berbahasa Indonesia (Q009)"
+    - "Harus nyaman dibuka dari ponsel (Q010)"
+  success_criteria:
+    - "Pemilik dipanggil interview dengan portfolio ini sebagai referensi (Q011)"
+    - "Pemilik dapat menambah/mengubah project, blog, profil, dan kontak sendiri tanpa bantuan teknis (Q011)"
+    - "Website muncul di pencarian Google saat nama pemilik dicari (Q011)"
+  visual_preference: "Terinspirasi warna github.com; tersedia mode terang & gelap (light/dark mode); gaya profesional dan simple (Q012 — catatan mentah untuk UI/UX)"
+  platform: "keduanya (desktop & ponsel; ponsel ditekankan client di Q010)"
+  login: ["Admin (pemilik website)"]
+  dashboard: true
+  content_management: "Semua konten (project, blog, profil, kontak) dikelola sendiri oleh admin melalui halaman pengelolaan (Q006)"
+
+assumption_list: []
+
+decision_log:
+  - id: D001
+    decision: "Komentar blog, versi dua bahasa, dan newsletter tidak termasuk scope tahap ini"
+    reason: "Client mengecualikannya secara eksplisit saat ditanya ruang lingkup"
+    time: "2026-07-14"
+  - id: D002
+    decision: "Interpretasi Q008 dikonfirmasi: hanya 3 pengecualian di atas, tidak ada yang lain"
+    reason: "Client menyetujui ringkasan yang menyebut eksplisit 'tidak ada pengecualian lain'"
+    time: "2026-07-14"
+  - id: D003
+    decision: "Halaman Contact berisi info kontak sekaligus formulir kirim pesan"
+    reason: "Klarifikasi ambiguitas 'Contact' sebelum dokumen disusun (Q013)"
+    time: "2026-07-14"
+  - id: D004
+    decision: "Pesan formulir Contact masuk ke kotak pesan di halaman admin (bukan ke email)"
+    reason: "Gap Report BA (G-001); client memilih opsi kotak masuk admin (Q014) → pm_01_project.md naik ke v1.1"
+    time: "2026-07-14"
+  - id: D005
+    decision: "Isi halaman Home dirinci: perkenalan, ringkasan keahlian, cuplikan project unggulan, tulisan terbaru, ajakan kontak/unduh CV"
+    reason: "Client menilai rincian Home terlalu tipis; discovery ulang terbatas (Q015) — semua sorotan = komposisi fitur yang sudah ada → pm_01_project.md naik ke v1.2"
+    time: "2026-07-15"
+
+validation_result:
+  duplicate: PASS
+  conflict: PASS
+  ambiguity: PASS   # 'CMS lengkap' diklarifikasi di Q006: semua konten
+  consistency: PASS
+  scope: PASS
+  missing: []
+  information_complete: true
+
+pending_question: null   # Decision Gate lolos — berhenti bertanya, lanjut Project Summary

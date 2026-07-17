@@ -1,0 +1,156 @@
+project:
+  id: PRJ-001
+  title: "Portfolio Developer"
+  source: "4 dokumen Tech Lead (ARCHITECTURE + DATABASE + API_CONTRACT + FOLDER_STRUCTURE) + set UI/UX + set BA"
+  source_versions: { techlead: "2.6", uiux: "1.8", ba: "6.0" }
+  context: "docs/pm_01_project.md v1.6"
+  status: definition   # Decision Gate lolos (Backlog Complete) — siap Phase 2 kapan saja, TAPI compile ke docs/issues/ SENGAJA ditunda (D-006): permintaan eksplisit user, dibuat satu per satu manual dengan review, bukan borongan otomatis. Breakdown ini adalah rebuild PENUH dari nol — memory lama (berbasis Tech Lead v1.0/BA v2.0/UI-UX v1.0, 7 entitas tanpa Server Action) sudah sepenuhnya usang & digantikan, bukan ditambal. v2.4 (2026-07-17): techlead_01 D-017 — penyimpanan berkas pindah ke Cloudflare R2, hanya menyentuh ISS-003 (lihat D-009 issue.yaml); seluruh issue lain tidak berubah (tanpa endpoint/kontrak baru). v2.5 (2026-07-17): techlead_04 D-018 — 5 layar publik dibungkus route group app/(public)/, murni struktur folder; TIDAK ada issue yang berubah (ISS-025 Fondasi FE tetap satu-satunya issue yang membangun layout ini, cuma detail implementasinya makin jelas — lihat D-010 issue.yaml). v2.6 (2026-07-17): techlead_04 D-019 — login/ dipindah keluar dari admin/ ke app/login/, murni struktur folder; TIDAK ada issue yang berubah (ISS-031 Layar Masuk Admin & ISS-025 Fondasi FE tetap issue yang sama, cuma detail folder-nya makin jelas — lihat D-011 issue.yaml).
+
+build_inventory:
+  # SETUP — dari techlead_01_architecture.md (Tech Stack + Environment & Deployment)
+  - { phase: setup, unit: "Inisialisasi proyek Next.js 15 + repositori (Framework/UI Library/Bahasa/Styling/Icon/Runtime/API Layer/Validasi/Form/Test/CI-CD/Linter)", from: ["Framework", "UI Library", "Bahasa", "Styling", "Icon", "Runtime", "API Layer", "Validasi", "Form", "Test", "CI/CD", "Linter/Formatter"] }
+  - { phase: setup, unit: "Koneksi PostgreSQL (Neon) + kerangka migrasi Prisma", from: ["Database", "ORM"] }
+  - { phase: setup, unit: "Kerangka deploy: Docker Compose + Caddy + Cloudflare (CDN/reverse proxy) + bucket Cloudflare R2 (penyimpanan berkas, v2.4) + konfigurasi env/kredensial (nilai sandbox)", from: ["Container", "Hosting", "Penyimpanan Berkas", "Environment & Deployment"] }
+
+  # BACKEND — dari techlead_02_database.md (ENT) & techlead_03_api_contract.md (EP + SA)
+  - { phase: backend, unit: "Migrasi & model User + seed 1 akun admin (Data Awal)", from: [ENT-08] }
+  - { phase: backend, unit: "Migrasi & model Project", from: [ENT-01] }
+  - { phase: backend, unit: "Migrasi & model Tulisan (Post)", from: [ENT-02] }
+  - { phase: backend, unit: "Migrasi & model Tag", from: [ENT-03] }
+  - { phase: backend, unit: "Migrasi & model Keahlian (Skill)", from: [ENT-04] }
+  - { phase: backend, unit: "Migrasi & model Media", from: [ENT-05] }
+  - { phase: backend, unit: "Migrasi & model Pesan (Message)", from: [ENT-06] }
+  - { phase: backend, unit: "Migrasi & model Info Kontak (ContactInfo)", from: [ENT-07] }
+  - { phase: backend, unit: "Auth admin: masuk, keluar, pelindung sesi (middleware) & ubah kata sandi sendiri", from: [EP-07, EP-08, "Auth", SA-21] }
+  - { phase: backend, unit: "Endpoint publik Portfolio: daftar & detail project", from: [EP-01, EP-02] }
+  - { phase: backend, unit: "Endpoint publik Blog: daftar & detail tulisan", from: [EP-03, EP-04] }
+  - { phase: backend, unit: "Endpoint publik Contact: info kontak & kirim pesan", from: [EP-05, EP-06] }
+  - { phase: backend, unit: "Endpoint publik keahlian untuk Home (v2.3, celah ditemukan Issue Planner, D-016 techlead_01)", from: [EP-17] }
+  - { phase: backend, unit: "Kelola project: daftar, tambah, ubah & hapus (termasuk status Draft/Published/Archived)", from: [EP-09, SA-01, SA-02, SA-03] }
+  - { phase: backend, unit: "Kelola tulisan: daftar, tulis, ubah & hapus (termasuk status)", from: [EP-10, SA-04, SA-05, SA-06] }
+  - { phase: backend, unit: "Kelola keahlian: daftar, tambah, ubah & hapus", from: [EP-11, SA-07, SA-08, SA-09] }
+  - { phase: backend, unit: "Kelola info kontak: daftar, tambah, ubah & hapus", from: [EP-12, SA-10, SA-11, SA-12] }
+  - { phase: backend, unit: "Kelola pesan masuk: daftar, baca-otomatis & arsip/kembalikan", from: [EP-13, SA-13, SA-14, SA-15] }
+  - { phase: backend, unit: "Kelola tag: daftar, tambah, ubah & hapus", from: [EP-14, SA-16, SA-17, SA-18] }
+  - { phase: backend, unit: "Kelola media: galeri, unggah & hapus", from: [EP-15, SA-19, SA-20] }
+  - { phase: backend, unit: "Ringkasan Dashboard (agregat lintas Project/Post/Tag/Skill) — pemanis, non-blocking", from: [EP-16] }
+
+  # FRONTEND — dari uiux_02_wireframe.md (SCR) & uiux_03_design_system.md (C-XX + Kebutuhan Aset)
+  - { phase: frontend, unit: "Layout dasar, design system, kerangka admin (Header Admin/MenuAdmin C-10) & SEO dasar (metadata+sitemap, D-007 techlead_01)", from: [SCR-01, SCR-02, SCR-03, SCR-04, SCR-05, SCR-06, SCR-07, SCR-08, SCR-09, SCR-10, SCR-11, SCR-12, SCR-13, SCR-14, SCR-15, SCR-16, SCR-17, SCR-18, SCR-19] }
+  - { phase: frontend, unit: "Layar Home", from: [SCR-01] }
+  - { phase: frontend, unit: "Layar About (statis)", from: [SCR-02] }
+  - { phase: frontend, unit: "Layar Portfolio: daftar & detail project", from: [SCR-03, SCR-04] }
+  - { phase: frontend, unit: "Layar Blog: daftar & detail tulisan", from: [SCR-05, SCR-06] }
+  - { phase: frontend, unit: "Layar Contact: info kontak & formulir pesan", from: [SCR-07] }
+  - { phase: frontend, unit: "Layar Masuk Admin", from: [SCR-08] }
+  - { phase: frontend, unit: "Layar Dashboard", from: [SCR-09] }
+  - { phase: frontend, unit: "Layar kelola project: daftar & form", from: [SCR-10, SCR-11] }
+  - { phase: frontend, unit: "Layar kelola tulisan: daftar & form", from: [SCR-12, SCR-13] }
+  - { phase: frontend, unit: "Layar Skills (kelola keahlian)", from: [SCR-14] }
+  - { phase: frontend, unit: "Layar Contact Info (kelola)", from: [SCR-15] }
+  - { phase: frontend, unit: "Layar Messages (kelola pesan)", from: [SCR-16] }
+  - { phase: frontend, unit: "Layar Tags (kelola)", from: [SCR-17] }
+  - { phase: frontend, unit: "Layar Media (galeri + unggah)", from: [SCR-18] }
+  - { phase: frontend, unit: "Layar Password (ubah kata sandi sendiri)", from: [SCR-19] }
+
+issues:
+  # ——— SETUP ———
+  - { id: ISS-001, phase: setup, title: "[SETUP] Inisialisasi proyek Next.js & repositori", labels: [setup], size: M, serves: ["Framework", "UI Library", "Bahasa", "Styling", "Icon", "Runtime", "API Layer", "Validasi", "Form", "Test", "CI/CD", "Linter/Formatter"], covers: [], blocked_by: [], status: ready }
+  - { id: ISS-002, phase: setup, title: "[SETUP] Koneksi PostgreSQL & kerangka migrasi Prisma", labels: [setup], size: S, serves: ["Database", "ORM"], covers: [], blocked_by: [ISS-001], status: ready }
+  - { id: ISS-003, phase: setup, title: "[SETUP] Kerangka deploy: Docker Compose, Caddy, Cloudflare & bucket R2", labels: [setup], size: M, serves: ["Container", "Hosting", "Penyimpanan Berkas", "Environment & Deployment"], covers: [], blocked_by: [ISS-001], status: ready }
+
+  # ——— BACKEND: migrasi (8 entitas, paralel — D-009) ———
+  - { id: ISS-004, phase: backend, title: "[BE] Migrasi & model User + seed akun admin", labels: [backend, F-06], size: S, serves: [ENT-08], covers: [], blocked_by: [ISS-002], status: ready }
+  - { id: ISS-005, phase: backend, title: "[BE] Migrasi & model Project", labels: [backend, F-01, F-03, F-06], size: S, serves: [ENT-01], covers: [], blocked_by: [ISS-002], status: ready }
+  - { id: ISS-006, phase: backend, title: "[BE] Migrasi & model Tulisan", labels: [backend, F-01, F-04, F-06], size: S, serves: [ENT-02], covers: [], blocked_by: [ISS-002], status: ready }
+  - { id: ISS-007, phase: backend, title: "[BE] Migrasi & model Tag", labels: [backend, F-06], size: S, serves: [ENT-03], covers: [], blocked_by: [ISS-002], status: ready }
+  - { id: ISS-008, phase: backend, title: "[BE] Migrasi & model Keahlian", labels: [backend, F-01, F-06], size: S, serves: [ENT-04], covers: [], blocked_by: [ISS-002], status: ready }
+  - { id: ISS-009, phase: backend, title: "[BE] Migrasi & model Media", labels: [backend, F-06], size: S, serves: [ENT-05], covers: [], blocked_by: [ISS-002], status: ready }
+  - { id: ISS-010, phase: backend, title: "[BE] Migrasi & model Pesan", labels: [backend, F-05, F-06], size: S, serves: [ENT-06], covers: [], blocked_by: [ISS-002], status: ready }
+  - { id: ISS-011, phase: backend, title: "[BE] Migrasi & model Info Kontak", labels: [backend, F-05, F-06], size: S, serves: [ENT-07], covers: [], blocked_by: [ISS-002], status: ready }
+
+  # ——— BACKEND: auth & endpoint publik ———
+  - { id: ISS-012, phase: backend, title: "[BE] Auth admin: masuk, keluar, pelindung sesi & ubah kata sandi sendiri", labels: [backend, F-06], size: M, serves: [EP-07, EP-08, "Auth", SA-21], covers: [AC-009-1, AC-009-2, AC-009-3, AC-016-1, AC-023-1, AC-023-2], blocked_by: [ISS-004], status: ready }
+  - { id: ISS-013, phase: backend, title: "[BE] Endpoint publik Portfolio: daftar & detail project", labels: [backend, F-01, F-03], size: M, serves: [EP-01, EP-02], covers: [AC-003-1, AC-003-2, AC-004-1, AC-019-1, AC-019-3], blocked_by: [ISS-005], status: ready }
+  - { id: ISS-014, phase: backend, title: "[BE] Endpoint publik Blog: daftar & detail tulisan", labels: [backend, F-01, F-04], size: M, serves: [EP-03, EP-04], covers: [AC-005-1, AC-005-2, AC-006-1, AC-019-1, AC-019-3], blocked_by: [ISS-006], status: ready }
+  - { id: ISS-015, phase: backend, title: "[BE] Endpoint publik Contact: info kontak & kirim pesan", labels: [backend, F-05], size: M, serves: [EP-05, EP-06], covers: [AC-007-1, AC-008-1, AC-008-2], blocked_by: [ISS-011, ISS-010], status: ready }
+  - { id: ISS-016, phase: backend, title: "[BE] Endpoint publik keahlian untuk Home", labels: [backend, F-01], size: S, serves: [EP-17], covers: [AC-019-1, AC-019-3], blocked_by: [ISS-008], status: ready }
+
+  # ——— BACKEND: kelola (admin) ———
+  - { id: ISS-017, phase: backend, title: "[BE] Kelola project: daftar, tambah, ubah & hapus", labels: [backend, F-06], size: M, serves: [EP-09, SA-01, SA-02, SA-03], covers: [AC-010-1, AC-010-2, AC-011-1, AC-011-2, AC-011-3, AC-011-4], blocked_by: [ISS-005, ISS-012], status: ready }
+  - { id: ISS-018, phase: backend, title: "[BE] Kelola tulisan: daftar, tulis, ubah & hapus", labels: [backend, F-06], size: M, serves: [EP-10, SA-04, SA-05, SA-06], covers: [AC-012-1, AC-012-2, AC-013-1, AC-013-2, AC-013-3, AC-013-4], blocked_by: [ISS-006, ISS-012], status: ready }
+  - { id: ISS-019, phase: backend, title: "[BE] Kelola keahlian: daftar, tambah, ubah & hapus", labels: [backend, F-06], size: M, serves: [EP-11, SA-07, SA-08, SA-09], covers: [AC-014-1, AC-014-2], blocked_by: [ISS-008, ISS-012], status: ready }
+  - { id: ISS-020, phase: backend, title: "[BE] Kelola info kontak: daftar, tambah, ubah & hapus", labels: [backend, F-06], size: M, serves: [EP-12, SA-10, SA-11, SA-12], covers: [AC-015-1], blocked_by: [ISS-011, ISS-012], status: ready }
+  - { id: ISS-021, phase: backend, title: "[BE] Kelola pesan masuk: daftar, baca-otomatis & arsip", labels: [backend, F-06], size: M, serves: [EP-13, SA-13, SA-14, SA-15], covers: [AC-018-1, AC-018-2, AC-018-3, AC-018-4], blocked_by: [ISS-010, ISS-012], status: ready }
+  - { id: ISS-022, phase: backend, title: "[BE] Kelola tag: daftar, tambah, ubah & hapus", labels: [backend, F-06], size: M, serves: [EP-14, SA-16, SA-17, SA-18], covers: [AC-021-1, AC-021-2], blocked_by: [ISS-007, ISS-012], status: ready }
+  - { id: ISS-023, phase: backend, title: "[BE] Kelola media: galeri, unggah & hapus", labels: [backend, F-06], size: M, serves: [EP-15, SA-19, SA-20], covers: [AC-022-1, AC-022-2, AC-022-3], blocked_by: [ISS-009, ISS-012], status: ready }
+  - { id: ISS-024, phase: backend, title: "[BE] Ringkasan Dashboard", labels: [backend, F-06], size: S, serves: [EP-16], covers: [], blocked_by: [ISS-005, ISS-006, ISS-007, ISS-008, ISS-012], status: ready }
+
+  # ——— FRONTEND ———
+  - { id: ISS-025, phase: frontend, title: "[FE] Layout dasar, design system & kerangka admin", labels: [frontend], size: M, serves: [SCR-01, SCR-02, SCR-03, SCR-04, SCR-05, SCR-06, SCR-07, SCR-08, SCR-09, SCR-10, SCR-11, SCR-12, SCR-13, SCR-14, SCR-15, SCR-16, SCR-17, SCR-18, SCR-19], covers: [AC-001-4, AC-009-3, AC-016-1], blocked_by: [ISS-001], status: ready }
+  - { id: ISS-026, phase: frontend, title: "[FE] Layar Home", labels: [frontend, F-01], size: M, serves: [SCR-01], covers: [AC-001-1, AC-001-2, AC-001-3, AC-017-1, AC-019-1, AC-019-2, AC-019-3], blocked_by: [ISS-013, ISS-014, ISS-016, ISS-025], status: ready }
+  - { id: ISS-027, phase: frontend, title: "[FE] Layar About", labels: [frontend, F-02], size: S, serves: [SCR-02], covers: [AC-002-1, AC-020-1, AC-020-2, AC-020-3, AC-020-4], blocked_by: [ISS-025], status: ready }
+  - { id: ISS-028, phase: frontend, title: "[FE] Layar Portfolio: daftar & detail project", labels: [frontend, F-03], size: M, serves: [SCR-03, SCR-04], covers: [AC-003-1, AC-003-2, AC-004-1], blocked_by: [ISS-013, ISS-025], status: ready }
+  - { id: ISS-029, phase: frontend, title: "[FE] Layar Blog: daftar & detail tulisan", labels: [frontend, F-04], size: M, serves: [SCR-05, SCR-06], covers: [AC-005-1, AC-005-2, AC-006-1, AC-006-2], blocked_by: [ISS-014, ISS-025], status: ready }
+  - { id: ISS-030, phase: frontend, title: "[FE] Layar Contact: info kontak & formulir pesan", labels: [frontend, F-05], size: M, serves: [SCR-07], covers: [AC-007-1, AC-008-1, AC-008-2], blocked_by: [ISS-015, ISS-025], status: ready }
+  - { id: ISS-031, phase: frontend, title: "[FE] Layar Masuk Admin", labels: [frontend, F-06], size: S, serves: [SCR-08], covers: [AC-009-1, AC-009-2], blocked_by: [ISS-012, ISS-025], status: ready }
+  - { id: ISS-032, phase: frontend, title: "[FE] Layar Dashboard", labels: [frontend, F-06], size: M, serves: [SCR-09], covers: [], blocked_by: [ISS-024, ISS-025], status: ready }
+  - { id: ISS-033, phase: frontend, title: "[FE] Layar kelola project: daftar & form", labels: [frontend, F-06], size: M, serves: [SCR-10, SCR-11], covers: [AC-010-1, AC-010-2, AC-011-1, AC-011-2, AC-011-3, AC-011-4], blocked_by: [ISS-017, ISS-025], status: ready }
+  - { id: ISS-034, phase: frontend, title: "[FE] Layar kelola tulisan: daftar & form", labels: [frontend, F-06], size: M, serves: [SCR-12, SCR-13], covers: [AC-012-1, AC-012-2, AC-013-1, AC-013-2, AC-013-3, AC-013-4], blocked_by: [ISS-018, ISS-025], status: ready }
+  - { id: ISS-035, phase: frontend, title: "[FE] Layar Skills (kelola keahlian)", labels: [frontend, F-06], size: M, serves: [SCR-14], covers: [AC-014-1, AC-014-2], blocked_by: [ISS-019, ISS-025], status: ready }
+  - { id: ISS-036, phase: frontend, title: "[FE] Layar Contact Info (kelola)", labels: [frontend, F-06], size: M, serves: [SCR-15], covers: [AC-015-1], blocked_by: [ISS-020, ISS-025], status: ready }
+  - { id: ISS-037, phase: frontend, title: "[FE] Layar Messages (kelola pesan)", labels: [frontend, F-06], size: M, serves: [SCR-16], covers: [AC-018-1, AC-018-2, AC-018-3, AC-018-4], blocked_by: [ISS-021, ISS-025], status: ready }
+  - { id: ISS-038, phase: frontend, title: "[FE] Layar Tags (kelola)", labels: [frontend, F-06], size: M, serves: [SCR-17], covers: [AC-021-1, AC-021-2], blocked_by: [ISS-022, ISS-025], status: ready }
+  - { id: ISS-039, phase: frontend, title: "[FE] Layar Media (galeri + unggah)", labels: [frontend, F-06], size: M, serves: [SCR-18], covers: [AC-022-1, AC-022-2, AC-022-3], blocked_by: [ISS-023, ISS-025], status: ready }
+  - { id: ISS-040, phase: frontend, title: "[FE] Layar Password (ubah kata sandi sendiri)", labels: [frontend, F-06], size: S, serves: [SCR-19], covers: [AC-023-1, AC-023-2], blocked_by: [ISS-012, ISS-025], status: ready }
+
+gap_list:
+  - { id: G-001, question: "17 Route Handler + 21 Server Action menjadi berapa issue backend?", blocking: false, to: null,
+      resolution: "Dikelompokkan per fitur, bukan per EP/SA individual: 8 migrasi entitas (satu per entitas — tidak ada yang digabung, beda dari v1.0 lama karena ContactInfo kini sudah flat single-table sendiri, tak perlu digabung ContactLink lagi), 1 auth+password, 4 kelompok publik (Portfolio/Blog/Contact/Keahlian), 7 kelompok kelola (satu per entitas yang py CRUD admin: Project/Tulisan/Keahlian/InfoKontak/Pesan/Tag/Media), 1 Dashboard — 21 issue BE. Endpoint & Server Action serumpun (list-read + create/update/delete satu fitur) satu issue — satu-satu jadi remeh (04 §3.2, §5).", status: resolved }
+  - { id: G-002, question: "Auth (EP-07/EP-08) & ubah kata sandi (SA-21) satu issue atau dipisah?", blocking: false, to: null,
+      resolution: "Digabung (ISS-012) — sama-sama domain sesi/kredensial User (ENT-08); changePassword cuma 1 Server Action kecil, remeh bila berdiri sendiri (04 §5, 'jangan remeh').", status: resolved }
+  - { id: G-003, question: "Fondasi tampilan (layout publik + kerangka admin) satu issue untuk kedua sisi, atau dipisah?", blocking: false, to: null,
+      resolution: "Satu issue (ISS-025) — token warna/tipografi/spacing & sebagian komponen (TombolUtama, FormIsian, DialogKonfirmasi, PesanStatus, SaklarTema) dipakai identik lintas sisi; MenuAdmin (C-10) meski kini lebih berat (grouped, label Inggris) tetap satu kerangka admin yang sama dipakai 11 layar kelola — memisahkannya menduplikasi pekerjaan token yang sama (pola sama G-003 versi lama, tetap berlaku).", status: resolved }
+  - { id: G-004, question: "Layar Masuk (SCR-08) & Dashboard (SCR-09) satu issue atau dipisah? (v1.0 lama menggabungkannya)", blocking: false, to: null,
+      resolution: "DIPISAH — beda dari precedent lama. Dashboard kini py konten substantif (KartuStatistik C-18, BarisRingkasan C-19, PintasanAksi C-21, panggil EP-16) sejak referensi desain admin client (pm_01 D009), bukan lagi kerangka kosong berisi daftar pintasan. Masuk (SCR-08) tetap layar kecil berdiri sendiri (D-004).", status: resolved }
+  - { id: G-005, question: "SCR-01 Home menampilkan bagian Keahlian ke pengunjung publik (AC-019-1), tapi satu-satunya endpoint baca Skill yang ada (EP-11) khusus admin — pekerjaan FE Home tidak bisa didefinisikan tanpa jalur baca publik.", blocking: true, to: techlead,
+      resolution: "DIPERBAIKI dalam siklus yang sama — Tech Lead menambah EP-17 (GET /api/skills, publik) di techlead_03_api_contract.md v2.3 (D-016 techlead_01). Ikut ditemukan & diperbaiki: bug wireframe SCR-01 (leftover 'Selengkapnya di About', tautan ke halaman yang sudah tidak menampilkan keahlian sejak D-009) — uiux_02_wireframe.md v1.8 (D-015 uiux).", status: resolved }
+  - { id: G-006, question: "Migrasi 8 entitas: perlu saling blocked_by karena ada relasi m-n implisit (Project↔Tag, Project↔Skill, Post↔Tag)?", blocking: false, to: null,
+      resolution: "Tidak — kedelapan migrasi hanya blocked_by ISS-002 (koneksi DB), tanpa saling blocking. Satu schema.prisma lazimnya ditulis & di-migrate sekali di awal proyek; pola sama dipakai contoh kanonik framework (03_website-sekolah: ENT-01/02/03 paralel tanpa saling blocked_by meski py Data Awal bersama).", status: resolved }
+  - { id: G-007, question: "Kredensial produksi (JWT_*_SECRET, DATABASE_URL), pendaftaran domain, & konfigurasi Cloudflare — dibuatkan issue?", blocking: false, to: null,
+      resolution: "Tidak — titipan Open Questions techlead_01_architecture.md, dibawa ke Catatan/Titipan backlog (bukan issue kerja); ISS-003 berhenti di kerangka deploy + variabel env nilai sandbox saja.", status: resolved }
+  - { id: G-008, question: "'Project unggulan' (Open Question uiux_02/techlead_01: saat ini = project terbaru, bukan kurasi manual) — dibuatkan issue?", blocking: false, to: null,
+      resolution: "Tidak — bukan requirement tersurat di set BA/UI-UX/Tech Lead manapun saat ini; kemampuan baru (kolom penanda unggulan) diteruskan sebagai titipan/usulan siklus PM/BA berikutnya, bukan dikerjakan diam-diam lewat backlog (Scope Validation).", status: resolved }
+
+assumption_list:
+  - { id: A-001, assumption: "21 issue BE dikelompokkan per fitur (migrasi 1:1 entitas, endpoint+action serumpun digabung), bukan per EP/SA individual", gap: G-001, status: documented }
+  - { id: A-002, assumption: "Auth & ubah kata sandi satu issue (ISS-012)", gap: G-002, status: documented }
+  - { id: A-003, assumption: "Fondasi tampilan satu issue kedua sisi (ISS-025), termasuk kerangka admin MenuAdmin", gap: G-003, status: documented }
+  - { id: A-004, assumption: "Layar Masuk & Dashboard DIPISAH jadi 2 issue FE (ISS-031, ISS-032) — beda dari pola v1.0 lama karena Dashboard kini py konten nyata", gap: G-004, status: documented }
+  - { id: A-005, assumption: "EP-17 (GET /api/skills, publik) ditambahkan techlead_03 v2.3 untuk menutup celah baca Skill publik di Home", gap: G-005, status: documented }
+  - { id: A-006, assumption: "Migrasi 8 entitas tidak saling blocked_by walau ada relasi m-n implisit — hanya blocked_by ISS-002", gap: G-006, status: documented }
+  - { id: A-007, assumption: "Kredensial & konfigurasi produksi dibawa ke Titipan backlog, bukan issue kerja", gap: G-007, status: documented }
+  - { id: A-008, assumption: "'Project unggulan' kurasi manual diteruskan sebagai usulan siklus PM/BA berikutnya, tanpa issue", gap: G-008, status: documented }
+
+decision_log:
+  - { id: D-001, decision: "Seed 1 akun User (Data Awal, satu-satunya di proyek ini) digabung ke migrasi User (ISS-004), bukan issue tersendiri", reason: "Terlalu kecil berdiri sendiri; selalu dikerjakan bersama migrasinya (pola sama contoh kanonik 03)", time: "2026-07-16" }
+  - { id: D-002, decision: "Auth admin (EP-07/EP-08 + middleware) + ubah kata sandi (SA-21) satu issue BE (ISS-012), mendahului seluruh endpoint & Server Action kelola terlindung", reason: "Rantai wajib backend: migrasi → seed → auth → mutasi terlindung (04_BREAKDOWN_ENGINE §6); changePassword sekelompok domain sesi/kredensial yang sama", time: "2026-07-16" }
+  - { id: D-003, decision: "Layar publik berpasangan daftar+detail (Portfolio: SCR-03+04; Blog: SCR-05+06) masing-masing satu issue FE; demikian juga BE-nya (EP-01+02, EP-03+04)", reason: "Satu alur baca utuh (daftar → detail → kembali); memisahkan akan memutus verifikasi alur dalam satu PR", time: "2026-07-16" }
+  - { id: D-004, decision: "Layar Masuk Admin (SCR-08) & Dashboard (SCR-09) DIPISAH jadi 2 issue FE — mencabut pola v1.0 lama yang menggabungkannya", reason: "Dashboard kini py konten substantif (kartu statistik, aktivitas terbaru, pintasan cepat — pm_01 D009) yang dipanggil dari EP-16 tersendiri, bukan lagi kerangka kosong tanpa endpoint sendiri seperti v1.0", time: "2026-07-16" }
+  - { id: D-005, decision: "Gap blocking ditemukan & diperbaiki dalam siklus yang sama: EP-17 (GET /api/skills, publik) ditambahkan techlead_03_api_contract.md v2.3 (D-016 techlead_01) — SCR-01 Home butuh baca Skill publik yang sebelumnya tidak tersedia (hanya EP-11 admin-only). Turut memicu perbaikan bug wireframe terkait (uiux_02/03/01 v1.8, D-015 uiux — leftover tautan 'Selengkapnya di About' pada SCR-01 Keahlian, dan FLOW-02/C-06 yang ikut basi)", reason: "Coverage/Traceability validation (06_VALIDATION_ENGINE §3-4) menangkap SCR-01 tidak py jalur data untuk salah satu bagiannya — pekerjaan FE Home tidak bisa didefinisikan tanpa endpoint itu; diperbaiki di hulu (Tech Lead) sebelum lanjut memecah issue Home, bukan ditebak sendiri oleh Issue Planner", time: "2026-07-16" }
+  - { id: D-006, decision: "`docs/issues/` SENGAJA belum di-compile meski Decision Gate (Backlog Complete) sudah lolos — project.status tetap `definition`, bukan `done`", reason: "Permintaan eksplisit user: file issue akan dibuat satu per satu secara manual sambil direview, bukan di-generate borongan sekaligus. Working memory ini (build_inventory, issues, dependency, validasi) sudah lengkap & bisa dipakai kapan saja sebagai basis compile per-issue", time: "2026-07-16" }
+  - { id: D-007, decision: "Kelola project/tulisan/media semuanya bisa mengunggah gambar (thumbnail inline atau galeri mandiri) tanpa issue 'util penyimpanan berkas' tersendiri — logika unggah pertama kali ditulis di issue fitur yang membutuhkannya (ISS-017 Kelola Project), dipakai ulang ISS-018 & ISS-023", reason: "Pola CMS ringan (04_BREAKDOWN_ENGINE §7.2): 'unggahan berkas (foto) = bagian issue fiturnya, bukan issue sendiri'; tidak ada blocked_by silang antar ketiganya karena masing-masing bisa menulis versi awal util itu sendiri bila urutan pengerjaan aktual berbeda dari urutan nomor", time: "2026-07-16" }
+  - { id: D-008, decision: "Rebuild penuh dari nol, bukan retrofit memory lama", reason: "Memory lama (`docs/memory/issue.yaml` sebelumnya) berbasis Tech Lead v1.0/BA v2.0/UI-UX v1.0 — 7 entitas, TANPA Server Action, 16 layar; blueprint saat ini (Tech Lead v2.3/BA v6.0/UI-UX v1.8) sudah berubah total (8 entitas, 17 EP + 21 SA, 19 layar) sejak reversal Profile→Keahlian, penambahan status Draft/Published/Archived, dan cascade referensi desain admin client — menambal breakdown lama akan mewariskan struktur yang sudah tidak berlaku sama sekali", time: "2026-07-16" }
+  - { id: D-009, decision: "Sinkron ke Tech Lead v2.4 (D-017 techlead_01 — penyimpanan berkas pindah filesystem-lokal → Cloudflare R2): hanya ISS-003 (judul & unit build_inventory) yang disentuh, seluruh 39 issue lain TIDAK berubah", reason: "Perubahan murni infrastructure/kapabilitas tim, tanpa endpoint/Server Action/entitas baru atau berubah bentuk (kontrak API tetap FormData in, URL string out) — tidak ada dampak ke serves/covers/blocked_by issue manapun selain baris setup yang menyebut lokasi penyimpanan berkas", time: "2026-07-17" }
+  - { id: D-010, decision: "Sinkron ke Tech Lead v2.5 (D-018 techlead_01/04 — 5 layar publik dibungkus route group app/(public)/): TIDAK ada issue yang berubah sama sekali, cukup source_versions.techlead di-bump", reason: "Route group murni detail implementasi struktur folder untuk ISS-025 (Fondasi FE, sudah serves SCR-01..19 sejak awal — route group ada di dalam cakupan itu, bukan unit kerja baru); tidak ada SCR/EP/AC yang berubah, tidak ada issue baru yang perlu ditambahkan", time: "2026-07-17" }
+  - { id: D-011, decision: "Sinkron ke Tech Lead v2.6 (D-019 techlead_01/04 — login/ dipindah keluar dari admin/ ke app/login/): TIDAK ada issue yang berubah sama sekali, cukup source_versions.techlead di-bump", reason: "Pemindahan folder murni detail implementasi presentation untuk ISS-031 (Layar Masuk Admin, sudah serves SCR-08 sejak awal) & ISS-025 (Fondasi FE, kerangka admin/MenuAdmin) — tidak ada SCR/EP/AC yang berubah; EP-07 (login API) juga tidak berubah, jalur API terpisah dari path halaman FE", time: "2026-07-17" }
+
+validation_result:
+  traceability: PASS         # semua issue ber-serves ke ENT/EP/SA/SCR/layer yang benar-benar ada di set dokumen v2.3/v1.8/v6.0; semua covers menunjuk AC yang ada di ba_03_acceptance_criteria.md
+  coverage: PASS              # 8/8 ENT, 17/17 EP (termasuk EP-17 baru), 21/21 SA, 19/19 SCR, seluruh layer Tech Stack — semua tercatat minimal 1 issue; seluruh 53 AC tertutup (lintas BE+FE, beberapa FE-only seperti AC-017-1/AC-020-x karena About & CV murni statis tanpa BE)
+  atomicity: PASS              # seluruh issue S/M; terbesar (ISS-025 Fondasi) tetap satu deliverable kohesif (token+kerangka admin+SEO), bukan multi-deliverable tercampur
+  dependency: PASS             # seluruh blocked_by menunjuk nomor lebih kecil, tanpa siklus; rantai wajib migrasi→auth→mutasi terlindung & fondasi FE→layar terjaga (diverifikasi manual per issue)
+  clarity: PARTIAL             # struktur memory (judul/serves/covers/blocked_by) lengkap & jelas; salinan spesifikasi lengkap (Deskripsi/Spesifikasi/Aturan/Acceptance Criteria/DoD) BELUM diperiksa karena compile ke docs/issues/ sengaja ditunda (D-006) — validasi penuh menyusul saat tiap issue benar-benar di-compile
+  scope: PASS                  # tanpa issue untuk komentar blog/dua bahasa/newsletter (Out of Scope pm_01); tanpa issue kurasi 'project unggulan' (G-008); tanpa endpoint hapus Pesan (Scope BA)
+  missing: ["Compile docs/issues/ISS-NNN-*.md + 00_BACKLOG.md (Stage 10-11) — ditunda sengaja per D-006, dikerjakan satu per satu manual"]
+  backlog_complete: true

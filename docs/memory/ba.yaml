@@ -1,0 +1,514 @@
+project:
+  id: PRJ-001
+  title: "Portfolio Developer"
+  source: "docs/pm_01_project.md"
+  source_version: "1.6"
+  status: done   # set BA v6.0 (sumber v1.6, revisi D009: referensi desain admin client — Tag & Media dapat halaman kelola, ubah kata sandi, label admin boleh Inggris) diserahkan ke UI/UX & Tech Lead — BA berhenti
+
+feature_breakdown:
+  - id: F-01
+    name: "Halaman Home"
+    description: "Halaman pembuka: pengunjung langsung tahu siapa pemilik, melihat sorotan konten, dan dapat menuju bagian lain"
+    priority: must
+    source: "pm_01_project.md > Core Features > Halaman Home (v1.2)"
+    sub:
+      - { id: F-01.1, name: "Melihat halaman pembuka", description: "Identitas singkat pemilik (nama & profesi) tampil; tersedia jalan ke About, Portfolio, Blog, Contact" }
+      - { id: F-01.2, name: "Melihat sorotan konten beranda", description: "Ringkasan keahlian, cuplikan project unggulan, tulisan terbaru, dan ajakan menghubungi/unduh CV tampil; tiap sorotan mengarah ke halaman lengkapnya (komposisi fitur yang ada — susunan/urutan milik UI/UX)" }
+  - id: F-02
+    name: "Halaman About"
+    description: "Perkenalan singkat pemilik (About Hero) serta cara berpikir dan cara bekerjanya (v1.3, D006); keahlian tidak diulang di sini, cukup di Home (F-01.2)"
+    priority: must
+    source: "pm_01_project.md > Core Features > Halaman About (v1.3, D006)"
+    sub:
+      - { id: F-02.1, name: "Melihat perkenalan diri (About Hero)", description: "Foto, profesi, dan perkenalan singkat pemilik tampil" }
+      - { id: F-02.2, name: "Melihat Engineering Principles", description: "Prinsip kerja teknis yang dipegang pemilik tampil" }
+      - { id: F-02.3, name: "Melihat Development Workflow", description: "Alur kerja pemilik saat membangun sebuah project tampil" }
+      - { id: F-02.4, name: "Melihat Current Focus", description: "Hal yang sedang dipelajari/difokuskan pemilik saat ini tampil" }
+      - { id: F-02.5, name: "Melihat Beyond Code", description: "Sisi personal pemilik di luar coding (minat/kegiatan) tampil" }
+  - id: F-03
+    name: "Halaman Portfolio"
+    description: "Pengunjung melihat kumpulan project pemilik dan membuka detailnya"
+    priority: must
+    source: "pm_01_project.md > Core Features > Halaman Portfolio"
+    sub:
+      - { id: F-03.1, name: "Melihat daftar project", description: "Kumpulan project berstatus Terbit tampil dengan nama & gambaran singkat; kondisi belum-ada-project (Terbit) ditangani wajar (A-010)" }
+      - { id: F-03.2, name: "Melihat detail project", description: "Satu project dibuka: deskripsi (dapat memuat peran pemilik), tautan bila ada (A-001, A-012)" }
+  - id: F-04
+    name: "Halaman Blog"
+    description: "Pengunjung melihat daftar tulisan pemilik dan membacanya"
+    priority: must
+    source: "pm_01_project.md > Core Features > Halaman Blog"
+    sub:
+      - { id: F-04.1, name: "Melihat daftar tulisan", description: "Daftar tulisan berstatus Terbit tampil urut terbaru (A-002); kondisi kosong (Terbit) ditangani wajar" }
+      - { id: F-04.2, name: "Membaca satu tulisan", description: "Isi tulisan tampil utuh; tanpa fitur komentar (Out of Scope)" }
+  - id: F-05
+    name: "Halaman Contact"
+    description: "Pengunjung menemukan info kontak dan dapat mengirim pesan lewat formulir"
+    priority: must
+    source: "pm_01_project.md > Core Features > Halaman Contact"
+    sub:
+      - { id: F-05.1, name: "Melihat info kontak", description: "Info kontak (sesuai yang dikelola admin) tampil" }
+      - { id: F-05.2, name: "Mengirim pesan lewat formulir", description: "Pengunjung mengisi formulir; pesan tersimpan ke kotak pesan halaman admin (v1.1)" }
+  - id: F-06
+    name: "Pengelolaan Konten oleh Admin"
+    description: "Area terlindung tempat pemilik mengelola seluruh konten tanpa bantuan teknis"
+    priority: must
+    source: "pm_01_project.md > Core Features > Pengelolaan konten oleh admin"
+    sub:
+      - { id: F-06.1, name: "Masuk ke halaman admin", description: "Hanya admin ber-akun yang dapat masuk; jalur gagal ditangani" }
+      - { id: F-06.2, name: "Mengelola project", description: "Menambah, mengubah, menghapus project; siklus kelola tersirat dari 'CMS lengkap'; mengatur status tayang Draf/Terbit/Arsip lewat satu isian di form (A-010, v1.5 D008)" }
+      - { id: F-06.3, name: "Mengelola tulisan blog", description: "Menambah, mengubah, menghapus tulisan; mengatur status tayang Draf/Terbit/Arsip, pola sama Project (A-010, v1.5 D008)" }
+      - { id: F-06.4, name: "Mengelola keahlian", description: "Menambah, mengubah, menghapus keahlian (nama + ikon) yang tampil di ringkasan Home (F-01.2); data identitas pemilik (About Hero, Engineering Principles, Development Workflow, Current Focus, Beyond Code) TIDAK dikelola dari sini — bersifat statis (pm_01 D007)" }
+      - { id: F-06.5, name: "Mengubah info kontak", description: "Info kontak halaman Contact diperbarui admin" }
+      - { id: F-06.6, name: "Keluar dari halaman admin", description: "Admin mengakhiri sesi kerjanya" }
+      - { id: F-06.7, name: "Membaca pesan masuk", description: "Admin melihat daftar pesan dari formulir Contact dan membaca isinya (v1.1); pesan otomatis tertandai dibaca saat dibuka, dapat diarsipkan admin tanpa dihapus (A-011, v1.5 D008)" }
+      - { id: F-06.8, name: "Mengelola tag", description: "Menambah, mengubah, menghapus tag (nama) dipakai bersama Project & Tulisan — halaman kelola tersendiri, mencabut G-014 lama (inline-only); referensi desain admin client (pm_01 D009, v1.6)" }
+      - { id: F-06.9, name: "Mengelola media", description: "Mengunggah gambar lewat halaman Media tersendiri, melihat galeri seluruh gambar pernah diunggah, menghapus bila tidak dipakai lagi (pm_01 D009, v1.6)" }
+      - { id: F-06.10, name: "Mengubah kata sandi", description: "Admin mengganti kata sandi akunnya sendiri — kata sandi awal dari developer, dapat diganti mandiri (pm_01 D009, v1.6)" }
+  - id: F-07
+    name: "Unduh CV"
+    description: "Pengunjung mengunduh CV terbaru pemilik dalam satu aksi"
+    priority: should
+    source: "pm_01_project.md > Core Features > Unduh CV"
+    sub:
+      - { id: F-07.1, name: "Mengunduh CV", description: "Berkas CV terunduh dan dapat dibuka" }
+
+later_features: []   # pm_01_project.md tidak memuat fitur Later
+
+user_stories:
+  - { id: US-001, feature: F-01.1, priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "langsung melihat siapa pemilik website dan menuju bagian yang saya butuhkan saat pertama membuka",
+      so_that: "saya cepat memahami kandidat tanpa membuang waktu" }
+  - { id: US-002, feature: F-02.1, priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "melihat perkenalan singkat pemilik website",
+      so_that: "saya mengenal sosok di balik portfolio ini" }
+  - { id: US-020, feature: [F-02.2, F-02.3, F-02.4, F-02.5], priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "melihat cara berpikir dan cara bekerja pemilik (prinsip teknis, alur kerja, fokus saat ini, dan sisi personal)",
+      so_that: "saya dapat menilai kecocokan karakter dan budaya kerja kandidat, bukan cuma kemampuan teknisnya" }
+  - { id: US-003, feature: F-03.1, priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "melihat daftar project kandidat dalam satu tempat",
+      so_that: "saya dapat menilai kemampuannya dengan cepat" }
+  - { id: US-004, feature: F-03.2, priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "membuka detail sebuah project",
+      so_that: "saya yakin dengan kualitas dan peran kandidat di dalamnya" }
+  - { id: US-005, feature: F-04.1, priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "melihat daftar tulisan kandidat",
+      so_that: "saya melihat sisi lain kandidat yang membuatnya menonjol dibanding pelamar lain" }
+  - { id: US-006, feature: F-04.2, priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "membaca satu tulisan secara utuh",
+      so_that: "saya dapat menilai cara berpikir dan berkomunikasinya" }
+  - { id: US-007, feature: F-05.1, priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "melihat info kontak pemilik",
+      so_that: "saya dapat menghubunginya untuk proses rekrutmen" }
+  - { id: US-008, feature: F-05.2, priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "mengirim pesan langsung dari website",
+      so_that: "saya dapat menghubungi kandidat tanpa berpindah aplikasi" }
+  - { id: US-009, feature: F-06.1, priority: must, as: "Admin (pemilik website)",
+      i_want: "masuk ke halaman admin dengan akun saya",
+      so_that: "hanya saya yang dapat mengubah isi website" }
+  - { id: US-010, feature: F-06.2, priority: must, as: "Admin (pemilik website)",
+      i_want: "menambah project baru",
+      so_that: "portfolio saya selalu mencerminkan karya terbaru tanpa bantuan teknis" }
+  - { id: US-011, feature: F-06.2, priority: must, as: "Admin (pemilik website)",
+      i_want: "mengubah, menghapus, atau mengatur status tayang (Draf/Terbit/Arsip) project yang sudah ada",
+      so_that: "saya dapat memperbaiki, mencabut, atau menyembunyikan sementara karya yang belum siap/tidak lagi relevan" }
+  - { id: US-012, feature: F-06.3, priority: must, as: "Admin (pemilik website)",
+      i_want: "menulis tulisan baru dan memilih menyimpannya sebagai draf atau langsung menerbitkannya",
+      so_that: "saya dapat berbagi tulisan yang memperkuat citra profesional saya tanpa terburu-buru menayangkan yang belum selesai" }
+  - { id: US-013, feature: F-06.3, priority: must, as: "Admin (pemilik website)",
+      i_want: "mengubah, menghapus, atau mengatur status tayang tulisan yang sudah terbit",
+      so_that: "isi blog saya tetap akurat, layak dibaca, dan bisa disembunyikan sementara tanpa dihapus" }
+  - { id: US-014, feature: F-06.4, priority: must, as: "Admin (pemilik website)",
+      i_want: "menambah, mengubah, atau menghapus keahlian saya",
+      so_that: "ringkasan keahlian di Home selalu menggambarkan kemampuan saya terkini" }
+  - { id: US-015, feature: F-06.5, priority: must, as: "Admin (pemilik website)",
+      i_want: "mengubah info kontak yang tampil",
+      so_that: "recruiter selalu menghubungi saya lewat saluran yang benar" }
+  - { id: US-016, feature: F-06.6, priority: must, as: "Admin (pemilik website)",
+      i_want: "keluar dari halaman admin setelah selesai",
+      so_that: "orang lain yang memakai perangkat saya tidak dapat mengubah isi website" }
+  - { id: US-017, feature: F-07.1, priority: should, as: "HRD / recruiter perusahaan",
+      i_want: "mengunduh CV terbaru kandidat",
+      so_that: "saya dapat membawanya ke proses rekrutmen internal" }
+  - { id: US-018, feature: F-06.7, priority: must, as: "Admin (pemilik website)",
+      i_want: "membaca pesan yang dikirim pengunjung lewat formulir Contact dan merapikan kotak pesan dengan mengarsipkan yang sudah ditindaklanjuti",
+      so_that: "saya tidak melewatkan peluang yang datang lewat website dan kotak pesan tetap mudah dipantau" }
+  - { id: US-019, feature: F-01.2, priority: must, as: "HRD / recruiter perusahaan",
+      i_want: "melihat sorotan keahlian, project unggulan, dan tulisan terbaru langsung di halaman depan",
+      so_that: "saya menangkap gambaran kandidat dengan cepat tanpa menjelajah semua halaman" }
+  - { id: US-021, feature: F-06.8, priority: must, as: "Admin (pemilik website)",
+      i_want: "menambah, mengubah, atau menghapus tag",
+      so_that: "label yang dipakai di Project dan Tulisan tetap rapi dan konsisten" }
+  - { id: US-022, feature: F-06.9, priority: must, as: "Admin (pemilik website)",
+      i_want: "mengunggah gambar dan melihat semua gambar yang pernah saya unggah dalam satu galeri",
+      so_that: "saya bisa memakai ulang gambar tanpa mengunggah dobel" }
+  - { id: US-023, feature: F-06.10, priority: must, as: "Admin (pemilik website)",
+      i_want: "mengubah kata sandi akun saya sendiri",
+      so_that: "saya bisa mengganti kata sandi awal dari developer sesuai kebutuhan saya" }
+
+acceptance_criteria:
+  - { id: AC-001-1, story: US-001,
+      given: "Pengunjung membuka website",
+      when: "Halaman Home terbuka",
+      then: "Nama dan profesi pemilik tampil, dan tersedia jalan menuju About, Portfolio, Blog, dan Contact" }
+  - { id: AC-001-2, story: US-001,
+      given: "Pengunjung membuka website dari ponsel",
+      when: "Pengunjung menjelajah halaman Home",
+      then: "Seluruh isi terbaca tanpa perlu menggeser layar ke samping atau memperbesar tampilan" }
+  - { id: AC-001-3, story: US-001,
+      given: "Pengunjung membuka halaman mana pun",
+      when: "Pengunjung membaca isinya",
+      then: "Seluruh teks berbahasa Indonesia" }
+  - { id: AC-001-4, story: US-001,
+      given: "Website telah tayang dan dapat diakses publik",
+      when: "Nama pemilik dicari di Google",
+      then: "Website ini muncul di hasil pencarian" }
+  - { id: AC-002-1, story: US-002,
+      given: "Pengunjung membuka website",
+      when: "Pengunjung membuka halaman About",
+      then: "Foto (bila ada), profesi, dan perkenalan singkat pemilik tampil" }
+  - { id: AC-020-1, story: US-020,
+      given: "Pengunjung berada di halaman About",
+      when: "Halaman dimuat",
+      then: "Engineering Principles (prinsip kerja teknis pemilik) tampil — teks statis (pm_01 D007)" }
+  - { id: AC-020-2, story: US-020,
+      given: "Pengunjung berada di halaman About",
+      when: "Halaman dimuat",
+      then: "Development Workflow (alur kerja pemilik) tampil — teks statis (pm_01 D007)" }
+  - { id: AC-020-3, story: US-020,
+      given: "Pengunjung berada di halaman About",
+      when: "Halaman dimuat",
+      then: "Current Focus (fokus yang sedang dipelajari/dikerjakan pemilik saat ini) tampil — teks statis (pm_01 D007)" }
+  - { id: AC-020-4, story: US-020,
+      given: "Pengunjung berada di halaman About",
+      when: "Halaman dimuat",
+      then: "Beyond Code (sisi personal pemilik di luar coding) tampil — teks statis (pm_01 D007)" }
+  - { id: AC-003-1, story: US-003,
+      given: "Sudah ada project berstatus Terbit",
+      when: "Pengunjung membuka halaman Portfolio",
+      then: "Daftar project tampil; tiap project menunjukkan nama dan gambaran singkat — project berstatus Draf/Arsip tidak ikut tampil" }
+  - { id: AC-003-2, story: US-003,
+      given: "Belum ada project berstatus Terbit (termasuk bila yang ada baru Draf/Arsip)",
+      when: "Pengunjung membuka halaman Portfolio",
+      then: "Halaman tetap tampil wajar dengan keterangan bahwa belum ada project" }
+  - { id: AC-004-1, story: US-004,
+      given: "Pengunjung berada di daftar project",
+      when: "Pengunjung memilih satu project",
+      then: "Detail project tampil: deskripsi (dapat memuat peran pemilik bila ditulis admin di sana, G-013) dan tautan bila ada" }
+  - { id: AC-005-1, story: US-005,
+      given: "Sudah ada tulisan berstatus Terbit",
+      when: "Pengunjung membuka halaman Blog",
+      then: "Daftar tulisan tampil urut dari yang terbaru — tulisan berstatus Draf/Arsip tidak ikut tampil" }
+  - { id: AC-005-2, story: US-005,
+      given: "Belum ada tulisan berstatus Terbit (termasuk bila yang ada baru Draf/Arsip)",
+      when: "Pengunjung membuka halaman Blog",
+      then: "Halaman tetap tampil wajar dengan keterangan bahwa belum ada tulisan" }
+  - { id: AC-006-1, story: US-006,
+      given: "Pengunjung berada di daftar tulisan",
+      when: "Pengunjung memilih satu tulisan",
+      then: "Isi tulisan tampil utuh dan dapat dibaca" }
+  - { id: AC-006-2, story: US-006,
+      given: "Pengunjung membaca sebuah tulisan",
+      when: "Pengunjung mencari cara meninggalkan komentar",
+      then: "Tidak ada fitur komentar di mana pun (sesuai Out of Scope)" }
+  - { id: AC-007-1, story: US-007,
+      given: "Pengunjung ingin menghubungi pemilik",
+      when: "Pengunjung membuka halaman Contact",
+      then: "Info kontak yang dikelola admin tampil" }
+  - { id: AC-008-1, story: US-008,
+      given: "Pengunjung berada di halaman Contact",
+      when: "Pengunjung mengisi formulir dengan lengkap lalu mengirimnya",
+      then: "Pengunjung melihat tanda pesan terkirim, dan pesan itu muncul di kotak pesan halaman admin" }
+  - { id: AC-008-2, story: US-008,
+      given: "Pengunjung berada di halaman Contact",
+      when: "Pengunjung mengirim formulir dengan isian wajib kosong",
+      then: "Pesan tidak terkirim dan pengunjung melihat pemberitahuan bagian yang harus diisi" }
+  - { id: AC-009-1, story: US-009,
+      given: "Admin memiliki akun",
+      when: "Admin memasukkan data masuk yang benar",
+      then: "Admin berada di halaman admin dan dapat mulai mengelola konten" }
+  - { id: AC-009-2, story: US-009,
+      given: "Admin berada di halaman masuk",
+      when: "Admin memasukkan data masuk yang salah",
+      then: "Admin tidak masuk dan melihat pemberitahuan bahwa data masuknya keliru" }
+  - { id: AC-009-3, story: US-009,
+      given: "Seseorang belum masuk sebagai admin",
+      when: "Ia mencoba membuka halaman admin",
+      then: "Halaman pengelolaan tidak dapat diakses" }
+  - { id: AC-010-1, story: US-010,
+      given: "Admin berada di halaman admin",
+      when: "Admin menambah project baru dengan lengkap, memilih status Terbit, lalu menyimpannya",
+      then: "Project tampil di halaman Portfolio publik; bila status yang dipilih Draf, project tersimpan namun belum tampil publik (default status konten baru = Draf, G-011)" }
+  - { id: AC-010-2, story: US-010,
+      given: "Admin sedang menambah project",
+      when: "Admin menyimpan tanpa mengisi bagian wajib",
+      then: "Project tidak tersimpan dan admin melihat pemberitahuan bagian yang harus diisi" }
+  - { id: AC-011-1, story: US-011,
+      given: "Ada project yang sudah tersimpan",
+      when: "Admin mengubahnya lalu menyimpan",
+      then: "Halaman Portfolio publik menampilkan versi terbaru" }
+  - { id: AC-011-2, story: US-011,
+      given: "Ada project yang sudah tersimpan",
+      when: "Admin menghapusnya",
+      then: "Muncul konfirmasi dulu; setelah dikonfirmasi, project hilang dari halaman publik" }
+  - { id: AC-011-3, story: US-011,
+      given: "Ada project berstatus Draf",
+      when: "Admin mengubah statusnya jadi Terbit lalu menyimpan",
+      then: "Project mulai tampil di halaman Portfolio publik" }
+  - { id: AC-011-4, story: US-011,
+      given: "Ada project berstatus Terbit",
+      when: "Admin mengubah statusnya jadi Arsip lalu menyimpan",
+      then: "Project hilang dari halaman Portfolio publik namun tetap ada (tidak terhapus) di halaman Kelola Project — status dapat dikembalikan ke Terbit kapan saja" }
+  - { id: AC-012-1, story: US-012,
+      given: "Admin berada di halaman admin",
+      when: "Admin menulis tulisan baru (judul & isi), memilih status Terbit, lalu menyimpannya",
+      then: "Tulisan langsung tampil di halaman Blog publik sebagai yang terbaru; bila status yang dipilih Draf, tulisan tersimpan namun belum tampil publik (default status konten baru = Draf, G-011)" }
+  - { id: AC-012-2, story: US-012,
+      given: "Admin sedang menulis tulisan",
+      when: "Admin menyimpan tanpa mengisi judul",
+      then: "Tulisan tidak tersimpan dan admin melihat pemberitahuan bagian yang harus diisi" }
+  - { id: AC-013-1, story: US-013,
+      given: "Ada tulisan yang sudah terbit",
+      when: "Admin mengubahnya lalu menyimpan",
+      then: "Halaman Blog publik menampilkan versi terbaru tulisan itu" }
+  - { id: AC-013-2, story: US-013,
+      given: "Ada tulisan yang sudah terbit",
+      when: "Admin menghapusnya",
+      then: "Muncul konfirmasi dulu; setelah dikonfirmasi, tulisan hilang dari halaman publik" }
+  - { id: AC-013-3, story: US-013,
+      given: "Ada tulisan berstatus Draf",
+      when: "Admin mengubah statusnya jadi Terbit lalu menyimpan",
+      then: "Tulisan mulai tampil di halaman Blog publik" }
+  - { id: AC-013-4, story: US-013,
+      given: "Ada tulisan berstatus Terbit",
+      when: "Admin mengubah statusnya jadi Arsip lalu menyimpan",
+      then: "Tulisan hilang dari halaman Blog publik namun tetap ada (tidak terhapus) di halaman Kelola Tulisan — status dapat dikembalikan ke Terbit kapan saja" }
+  - { id: AC-014-1, story: US-014,
+      given: "Admin berada di halaman admin",
+      when: "Admin menambah keahlian baru (nama + ikon) lalu menyimpan",
+      then: "Keahlian tampil di ringkasan Home" }
+  - { id: AC-014-2, story: US-014,
+      given: "Ada keahlian yang sudah tersimpan",
+      when: "Admin mengubah atau menghapusnya",
+      then: "Ringkasan Home menampilkan versi terbaru; hapus selalu lewat konfirmasi dulu" }
+  - { id: AC-015-1, story: US-015,
+      given: "Admin berada di halaman admin",
+      when: "Admin mengubah info kontak lalu menyimpan",
+      then: "Halaman Contact menampilkan info kontak terbaru" }
+  - { id: AC-016-1, story: US-016,
+      given: "Admin sedang masuk di halaman admin",
+      when: "Admin keluar",
+      then: "Halaman admin tidak lagi dapat diakses tanpa masuk kembali" }
+  - { id: AC-017-1, story: US-017,
+      given: "Pengunjung membuka website",
+      when: "Pengunjung memakai aksi unduh CV",
+      then: "Berkas CV terunduh dan dapat dibuka" }
+  - { id: AC-018-1, story: US-018,
+      given: "Ada pesan yang pernah dikirim lewat formulir Contact",
+      when: "Admin membuka kotak pesan di halaman admin",
+      then: "Daftar pesan tampil urut dari yang terbaru; tiap pesan menunjukkan nama, alamat email pengirim, dan isinya" }
+  - { id: AC-018-2, story: US-018,
+      given: "Belum ada pesan yang masuk",
+      when: "Admin membuka kotak pesan",
+      then: "Kotak pesan tampil wajar dengan keterangan belum ada pesan" }
+  - { id: AC-018-3, story: US-018,
+      given: "Ada pesan berstatus belum dibaca",
+      when: "Admin membuka/melihat pesan tersebut di kotak pesan",
+      then: "Status pesan otomatis berubah jadi sudah dibaca, tanpa aksi manual terpisah" }
+  - { id: AC-018-4, story: US-018,
+      given: "Ada pesan yang sudah ditindaklanjuti admin",
+      when: "Admin mengarsipkannya",
+      then: "Pesan pindah dari daftar utama ke daftar arsip, tidak terhapus, dan dapat dikembalikan ke daftar utama kapan saja" }
+  - { id: AC-019-1, story: US-019,
+      given: "Sudah ada project dan tulisan yang tayang",
+      when: "Pengunjung menjelajah halaman Home",
+      then: "Ringkasan keahlian, cuplikan project unggulan, dan tulisan terbaru tampil — masing-masing menyediakan jalan ke halaman lengkapnya" }
+  - { id: AC-019-2, story: US-019,
+      given: "Pengunjung berada di halaman Home",
+      when: "Pengunjung menjelajahinya",
+      then: "Tersedia ajakan menghubungi pemilik yang mengarah ke halaman Contact serta aksi unduh CV" }
+  - { id: AC-019-3, story: US-019,
+      given: "Belum ada project atau tulisan yang tayang",
+      when: "Pengunjung membuka halaman Home",
+      then: "Halaman tetap tampil wajar — sorotan yang datanya kosong tidak tampil rusak atau membingungkan" }
+  - { id: AC-021-1, story: US-021,
+      given: "Admin berada di halaman admin",
+      when: "Admin menambah tag baru (nama) lalu menyimpan",
+      then: "Tag tersimpan dan tersedia dipilih di form Project/Tulisan" }
+  - { id: AC-021-2, story: US-021,
+      given: "Ada tag yang sudah tersimpan",
+      when: "Admin mengubah atau menghapusnya",
+      then: "Daftar tag menampilkan versi terbaru; hapus selalu lewat konfirmasi dulu; menghapus tag yang sedang dipakai hanya melepas keterkaitannya, tidak menghapus Project/Tulisan itu sendiri" }
+  - { id: AC-022-1, story: US-022,
+      given: "Admin berada di halaman Media",
+      when: "Admin mengunggah gambar baru",
+      then: "Gambar tersimpan dan muncul di galeri" }
+  - { id: AC-022-2, story: US-022,
+      given: "Ada gambar yang pernah diunggah",
+      when: "Admin membuka halaman Media",
+      then: "Seluruh gambar tampil dalam galeri, urut terbaru; kondisi belum ada gambar ditangani wajar" }
+  - { id: AC-022-3, story: US-022,
+      given: "Ada gambar di galeri",
+      when: "Admin menghapusnya",
+      then: "Muncul konfirmasi dulu; setelah dikonfirmasi, gambar hilang dari galeri" }
+  - { id: AC-023-1, story: US-023,
+      given: "Admin berada di halaman admin",
+      when: "Admin mengisi kata sandi lama yang benar, kata sandi baru, dan konfirmasinya (cocok), lalu menyimpan",
+      then: "Kata sandi berhasil diganti dan admin melihat pesan berhasil" }
+  - { id: AC-023-2, story: US-023,
+      given: "Admin sedang mengubah kata sandi",
+      when: "Kata sandi lama yang dimasukkan salah, atau kata sandi baru & konfirmasi tidak cocok",
+      then: "Perubahan ditolak dan admin melihat pemberitahuan bagian yang salah" }
+
+gap_list:
+  - id: G-001
+    question: "Pesan dari formulir Contact: bagaimana pemilik menerimanya/membacanya? (masuk ke email pemilik? kotak masuk di halaman admin? keduanya?)"
+    blocking: true
+    resolution: "Dijawab pm_01_project.md v1.1 (D004): pesan masuk ke kotak pesan di halaman admin → F-06.7, US-018"
+    status: resolved
+  - id: G-002
+    question: "Detail project berisi apa saja?"
+    blocking: false
+    resolution: "Tidak dirinci sumber → default sederhana: deskripsi, peran pemilik, tautan bila ada"
+    status: resolved
+  - id: G-003
+    question: "Daftar tulisan blog: urutan & kategori?"
+    blocking: false
+    resolution: "Tidak disebut sumber → urut waktu terbaru, tanpa pengelompokan kategori pada tampilan daftar. DIREVISI (2026-07-16, keputusan skema database): tulisan dapat diberi tag/label (dipakai bersama Project) sebagai metadata siap-pakai untuk kebutuhan filter di masa depan — belum ada filter/pengelompokan aktif memakainya saat ini, tampilan daftar tetap kronologis tanpa kategori"
+    status: resolved
+  - id: G-004
+    question: "Hapus project/tulisan: permanen atau bisa dikembalikan?"
+    blocking: false
+    resolution: "Default paling sederhana: permanen, dengan konfirmasi sebelum menghapus. DIREVISI (2026-07-16, pm_01 D008): kini ada opsi Arsip (status tayang) sebagai alternatif 'sembunyikan tanpa hapus' sebelum admin memutuskan hapus permanen — dua mekanisme terpisah, bukan saling menggantikan"
+    status: resolved
+  - id: G-005
+    question: "Bagaimana berkas CV diperbarui?"
+    blocking: false
+    resolution: "DIREVISI (2026-07-16, pm_01 D007): CV bersifat statis, diperbarui developer saat deploy — bukan diganti admin. Resolusi awal (CV bagian pengelolaan profil) sudah tidak berlaku"
+    status: resolved
+  - id: G-006
+    question: "Siapa menyiapkan akun admin pertama kali?"
+    blocking: false
+    resolution: "Konteks operasional: satu akun admin (pemilik), disiapkan saat penyiapan awal website"
+    status: resolved
+  - id: G-007
+    question: "Apakah ada mekanisme draf sebelum terbit?"
+    blocking: false
+    resolution: "Sumber tidak menyebut draf → konten yang disimpan langsung tayang. DIREVISI (2026-07-16, pm_01 D008): Project & Tulisan kini punya status tayang Draf/Terbit/Arsip — admin butuh cara menyimpan konten belum selesai tanpa tampil publik; hanya status Terbit tampil di halaman publik"
+    status: resolved
+  - id: G-008
+    question: "Formulir pesan berisi isian apa saja?"
+    blocking: false
+    resolution: "Default sederhana selaras tujuan 'menghubungi': nama, alamat email pengirim, isi pesan"
+    status: resolved
+  - id: G-009
+    question: "Empat section About baru (Engineering Principles, Development Workflow, Current Focus, Beyond Code) — teks statis atau daftar item CRUD seperti Project/Tulisan?"
+    blocking: false
+    resolution: "DIREVISI (2026-07-16, pm_01 D007): teks statis di KODE, BUKAN dikelola admin sama sekali (bukan field database). Resolusi awal (dikelola admin sebagai bagian Profil) sudah tidak berlaku — seluruh data identitas pemilik (About Hero + 4 section ini) statis"
+    status: resolved
+  - id: G-010
+    question: "Keahlian sekarang tabel `skill` tersendiri (bukan field Profile) — dikelola bagaimana oleh admin?"
+    blocking: false
+    resolution: "Default sederhana konsisten pola Project/Tulisan: tambah/ubah/hapus satu-satu (nama + ikon) — F-06.4 dirombak jadi 'Mengelola keahlian'"
+    status: resolved
+  - id: G-011
+    question: "Bagaimana admin memicu perubahan status Draf/Terbit/Arsip pada Project/Tulisan?"
+    blocking: false
+    resolution: "Satu isian status di form yang sama (dropdown/radio Draf/Terbit/Arsip), bukan tombol simpan terpisah — konsisten dengan pola form tunggal yang sudah ada; status awal konten baru = Draf"
+    status: resolved
+  - id: G-012
+    question: "Bagaimana admin tahu pesan mana yang belum dibaca, dan bagaimana merapikan kotak pesan?"
+    blocking: false
+    resolution: "Pesan otomatis tertandai dibaca saat admin membuka/melihatnya (tanpa aksi manual tandai-dibaca terpisah); pesan yang sudah ditindaklanjuti dapat diarsipkan admin secara manual agar kotak pesan tetap rapi, tanpa dihapus — dapat dikembalikan ke daftar utama kapan saja"
+    status: resolved
+  - id: G-013
+    question: "'Peran saya' pada Project — field terstruktur terpisah, atau bagian deskripsi bebas?"
+    blocking: false
+    resolution: "Keputusan implementasi Tech Lead saat perancangan skema: digabung ke isian deskripsi bebas, bukan field terpisah — AC-004-1 tetap terpenuhi karena admin dapat menuliskan perannya di sana; tidak mengurangi info yang tampil ke pengunjung, hanya cara admin menuliskannya"
+    status: resolved
+  - id: G-014
+    question: "Tag pada Project/Tulisan — dipilih dari daftar tersedia, ketik bebas, atau kombinasi? Perlu halaman kelola tag tersendiri?"
+    blocking: false
+    resolution: "Input bebas (tag terpisah koma/enter) di form Project/Tulisan; tag baru dibuat otomatis saat pertama dipakai, tag yang sudah ada dipakai ulang bila namanya cocok — tanpa halaman kelola tag terpisah, karena belum ada kebutuhan admin melihat/mengelola daftar tag secara mandiri; disiapkan untuk kebutuhan filter di masa depan. DIREVISI (2026-07-16, pm_01 D009): referensi desain admin client menunjukkan Tag punya halaman kelola tersendiri (pola sama Skill) — F-06.8 baru; isian Tag di form Project/Tulisan jadi pilih-dari-daftar, bukan ketik bebas lagi"
+    status: resolved
+  - id: G-015
+    question: "Menghapus tag yang sedang dipakai Project/Tulisan — ikut menghapus Project/Tulisan, atau cuma melepas keterkaitan?"
+    blocking: false
+    resolution: "Cuma melepas keterkaitan — Project/Tulisan tetap ada, cuma kehilangan 1 tag itu (default non-blocking, konsisten prinsip 'jangan hapus data yang tidak diminta dihapus')"
+    status: resolved
+  - id: G-016
+    question: "Unggah gambar — cuma inline dari form Project/Tulisan (v1.0-v1.6 lama), atau juga langsung dari halaman Media baru?"
+    blocking: false
+    resolution: "Dua jalur: langsung dari halaman Media, atau inline dari form Project/Tulisan — keduanya masuk galeri yang sama; admin bisa pilih gambar dari galeri atau unggah baru saat mengisi form Project/Tulisan"
+    status: resolved
+  - id: G-017
+    question: "Menghapus media yang sedang dipakai sebagai gambar Project/Tulisan — apa yang terjadi ke rujukannya di sana?"
+    blocking: false
+    resolution: "TIDAK otomatis dikosongkan (tanpa relasi wajib ke Media, keputusan Tech Lead D-011) — admin bertanggung jawab tidak menghapus file yang masih dipakai; risiko diterima mengingat skala kecil, 1 admin"
+    status: resolved
+  - id: G-018
+    question: "Ubah kata sandi — perlu verifikasi kata sandi lama, atau admin bisa langsung isi kata sandi baru?"
+    blocking: false
+    resolution: "Wajib verifikasi kata sandi lama yang benar dulu sebelum kata sandi baru disimpan — pola keamanan standar, mencegah orang lain yang kebetulan memegang sesi aktif mengganti kata sandi tanpa tahu kata sandi asli"
+    status: resolved
+
+assumption_list:
+  - { id: A-001, assumption: "Detail project berisi deskripsi, peran pemilik, dan tautan bila ada", gap: G-002, status: documented }
+  - { id: A-002, assumption: "Daftar tulisan blog tampil urut waktu terbaru, tanpa pengelompokan kategori pada tampilan daftar; tulisan dapat diberi tag/label bersama Project, disiapkan untuk filter masa depan, belum aktif dipakai (direvisi 2026-07-16)", gap: G-003, status: documented }
+  - { id: A-003, assumption: "Penghapusan project/tulisan bersifat permanen, selalu dengan konfirmasi sebelum menghapus — terpisah dari Arsip (status tayang) yang menyembunyikan tanpa menghapus (direvisi 2026-07-16, pm_01 D008)", gap: G-004, status: documented }
+  - { id: A-004, assumption: "Berkas CV bersifat statis, diperbarui developer saat deploy — bukan diganti admin (direvisi 2026-07-16, pm_01 D007)", gap: G-005, status: documented }
+  - { id: A-005, assumption: "Terdapat satu akun admin (pemilik); penyiapannya bagian dari penyiapan awal website", gap: G-006, status: documented }
+  - { id: A-006, assumption: "Project & Tulisan punya status tayang Draf/Terbit/Arsip; hanya status Terbit tampil publik (DIREVISI 2026-07-16, pm_01 D008 — mencabut asumsi awal 'tanpa mekanisme draf')", gap: G-007, status: documented }
+  - { id: A-007, assumption: "Formulir pesan berisi nama, alamat email pengirim, dan isi pesan", gap: G-008, status: documented }
+  - { id: A-008, assumption: "Seluruh data identitas pemilik (About Hero, Engineering Principles, Development Workflow, Current Focus, Beyond Code) teks statis di kode — BUKAN dikelola admin dari halaman manapun (direvisi 2026-07-16, pm_01 D007)", gap: G-009, status: documented }
+  - { id: A-009, assumption: "Keahlian dikelola admin lewat tambah/ubah/hapus satu-satu (nama + ikon), pola sama Project/Tulisan — bukan lagi bagian form Profil tunggal", gap: G-010, status: documented }
+  - { id: A-010, assumption: "Admin memilih status Draf/Terbit/Arsip lewat satu isian di form Project/Tulisan yang sama (bukan tombol simpan terpisah); status awal konten baru = Draf", gap: G-011, status: documented }
+  - { id: A-011, assumption: "Pesan otomatis tertandai sudah dibaca saat admin membuka/melihatnya; pesan yang sudah ditindaklanjuti dapat diarsipkan admin secara manual, dapat dikembalikan kapan saja", gap: G-012, status: documented }
+  - { id: A-012, assumption: "'Peran saya' pada Project bukan field terstruktur terpisah — digabung ke isian deskripsi bebas (keputusan implementasi Tech Lead)", gap: G-013, status: documented }
+  - { id: A-013, assumption: "Tag punya halaman kelola tersendiri (tambah/ubah/hapus, pola sama Skill); di Project/Tulisan, isian Tag jadi pilih-dari-daftar (DIREVISI 2026-07-16, pm_01 D009 — mencabut 'inline-only' lama)", gap: G-014, status: documented }
+  - { id: A-014, assumption: "Menghapus tag yang dipakai Project/Tulisan hanya melepas keterkaitan, tidak menghapus Project/Tulisan itu sendiri", gap: G-015, status: documented }
+  - { id: A-015, assumption: "Unggah gambar bisa lewat halaman Media langsung atau inline dari form Project/Tulisan — keduanya masuk galeri yang sama", gap: G-016, status: documented }
+  - { id: A-016, assumption: "Menghapus media yang sedang dipakai TIDAK otomatis mengosongkan rujukannya di Project/Tulisan — risiko diterima, skala kecil", gap: G-017, status: documented }
+  - { id: A-017, assumption: "Ubah kata sandi wajib verifikasi kata sandi lama yang benar sebelum kata sandi baru disimpan", gap: G-018, status: documented }
+
+decision_log:
+  - { id: D-001, decision: "Siklus kelola project & tulisan mencakup hapus, meski sumber menulis 'menambah/mengubah'",
+      reason: "'CMS lengkap'/'mengelola seluruh konten' menyiratkan siklus buat-ubah-hapus (Lensa 2); profil & kontak hanya diubah (konten tunggal)",
+      time: "2026-07-14" }
+  - { id: D-002, decision: "Preferensi Visual (warna github.com, light/dark mode, profesional-simple) TIDAK dijadikan fitur/AC",
+      reason: "Catatan mentah untuk UI/UX sesuai kontrak pm_01_project.md; bukan ranah BA",
+      time: "2026-07-14" }
+  - { id: D-003, decision: "G-001 (tujuan pesan formulir) divonis blocking",
+      reason: "Fitur kontak = Must; tanpa jawabannya fitur tidak terdefinisi utuh (08_GAP_HANDLING §3); memengaruhi apakah halaman admin punya kotak masuk",
+      time: "2026-07-14" }
+  - { id: D-004, decision: "Story admin dipecah per jenis konten (project/tulisan/profil/kontak), tambah vs ubah-hapus dipisah",
+      reason: "Satu story satu kemampuan; mengikuti pola kanonik framework",
+      time: "2026-07-14" }
+  - { id: D-005, decision: "Migrasi sumber v1.0 → v1.1; kotak pesan admin ditambahkan sebagai F-06.7 (bukan F baru)",
+      reason: "Perubahan v1.1 hanya menyentuh alur pesan; membaca pesan = bagian pekerjaan admin di halaman admin; butir lain tidak terdampak — validasi dijalankan ulang seluruhnya",
+      time: "2026-07-14" }
+  - { id: D-006, decision: "Migrasi sumber v1.1 → v1.2; sorotan beranda menjadi F-01.2 + US-019 + AC-019-1..3; set dokumen naik ke v2.0",
+      reason: "pm_01_project.md v1.2 merinci isi Home (D005 PM) — semua sorotan komposisi fitur yang ada, bukan scope baru; blok isi ditetapkan BA, susunan/urutan tetap milik UI/UX; butir lain tidak terdampak — validasi dijalankan ulang seluruhnya",
+      time: "2026-07-15" }
+  - { id: D-007, decision: "Migrasi sumber v1.2 → v1.3; F-02 direvisi (F-02.1 kehilangan keahlian) + F-02.2..F-02.5 baru + US-020 + AC-020-1..4; set dokumen naik ke v3.0",
+      reason: "pm_01_project.md v1.3 merinci isi About (D006 PM: About Hero, Engineering Principles, Development Workflow, Current Focus, Beyond Code) dan memindah keahlian eksklusif ke Home untuk menghindari redundansi; empat section baru = teks statis (G-009/A-008), bukan CRUD terpisah; US-014/AC-014-1 (F-06.4) diperluas cakupannya; butir lain tidak terdampak — validasi dijalankan ulang seluruhnya",
+      time: "2026-07-16" }
+  - { id: D-008, decision: "Migrasi sumber v1.3 → v1.4; SELURUH data identitas pemilik (About Hero + 4 section About) jadi statis di kode, mencabut sebagian D-007; F-06.4/US-014/AC-014-1 dirombak dari 'Mengubah profil' jadi 'Mengelola keahlian' (tambah/ubah/hapus, pola Project/Tulisan) + AC-014-2 baru; F-07/A-004 (CV) ikut jadi statis; AC-020-1..4 wording direvisi (hilangkan 'sesuai isian admin'); set dokumen naik ke v4.0",
+      reason: "pm_01_project.md v1.4 (D007 PM) — keputusan saat perancangan skema database: Profile TIDAK jadi tabel, data identitas terlalu jarang berubah untuk sepadan dibangun jadi form admin; mencabut sebagian Success Criteria 'profil dapat diubah admin' (koreksi PM); keahlian & info kontak tetap dinamis lewat tabel skill/contactinfo tersendiri; butir lain tidak terdampak — validasi dijalankan ulang seluruhnya",
+      time: "2026-07-16" }
+  - { id: D-009, decision: "Migrasi sumber v1.4 → v1.5; Project & Tulisan mendapat status tayang Draf/Terbit/Arsip (G-011/A-010) — F-06.2/F-06.3 diperluas, AC-010-1/AC-012-1 direvisi (pilih status saat simpan), AC-011-3/4 & AC-013-3/4 baru (transisi status), AC-003-1/2 & AC-005-1/2 diperjelas (hanya Terbit tampil publik); F-06.7 diperluas dengan status baca otomatis + arsip pesan (G-012/A-011), AC-018-3/4 baru; 'peran saya' Project digabung ke deskripsi bebas, bukan field terpisah (G-013/A-012, AC-004-1 direvisi); tag Project/Tulisan diisi bebas tanpa halaman kelola tersendiri (G-014/A-013, revisi G-003/A-002 'tanpa kategori'); penghapusan permanen tetap ada terpisah dari Arsip (revisi G-004/A-003); set dokumen naik ke v5.0",
+      reason: "pm_01_project.md v1.5 (D008 PM) — keputusan lanjutan perancangan skema database: admin butuh cara menyimpan konten belum selesai tanpa mengotori halaman publik (draf), dan menyembunyikan konten lama tanpa menghapus permanen (arsip); pesan butuh penanda baca/belum agar admin tidak kehilangan peluang, dan cara merapikan kotak pesan tanpa kehilangan riwayat (arsip); butir lain tidak terdampak — validasi dijalankan ulang seluruhnya",
+      time: "2026-07-16" }
+  - { id: D-010, decision: "Migrasi sumber v1.5 → v1.6; client memberi referensi desain halaman admin (docs/ui/cms/) — F-06.8 Mengelola tag baru (CRUD penuh, mencabut G-014 lama 'inline-only', US-021/AC-021-1/2); F-06.9 Mengelola media baru (galeri + upload halaman tersendiri, US-022/AC-022-1/2/3); F-06.10 Mengubah kata sandi baru (US-023/AC-023-1/2); Glossary 'Halaman admin' direvisi — larangan sinonim 'dashboard' DICABUT untuk layar beranda admin (istilah Inggris dari referensi client); set dokumen naik ke v6.0",
+      reason: "pm_01_project.md v1.6 (D009 PM) — referensi desain eksplisit dari client, bukan tebakan tim; kesalahan framework lama (uiux-agent) yang menyamakan bahasa SELURUH UI termasuk admin dengan bahasa konten publik sudah diperbaiki (07_WIREFRAME_RULES.md §2 aturan 6 baru); kata sandi awal dari developer perlu bisa diganti mandiri oleh pemilik; butir lain tidak terdampak — validasi dijalankan ulang seluruhnya",
+      time: "2026-07-16" }
+
+validation_result:
+  traceability: PASS   # semua F ber-source; semua as = Target Users pm_01_project.md
+  coverage: PASS       # 7/7 Core Feature terbedah; 2/2 Target User ber-story; constraints → AC-001-2/3
+  consistency: PASS
+  testability: PASS
+  scope: PASS          # komentar/dua bahasa/newsletter tidak disentuh; AC-006-2 penjaga eksplisit
+  completeness: PASS   # rantai F→US→AC utuh, tidak ada yatim; G-001 resolved
+  missing: []
+  requirement_complete: true
