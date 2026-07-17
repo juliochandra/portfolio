@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", "prisma/**/*.test.ts"],
     exclude: ["**/e2e/**"],
   },
   resolve: {
