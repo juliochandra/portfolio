@@ -38,6 +38,8 @@ model Project {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
+  tags Tag[]
+
   @@index([slug])
   @@index([status, publishedAt])
 }
@@ -55,6 +57,18 @@ model Post {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
+  tags Tag[]
+
   @@index([slug])
   @@index([status, publishedAt])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique @db.VarChar(50)
+  slug      String   @unique @db.VarChar(60)
+  createdAt DateTime @default(now())
+
+  posts    Post[]
+  projects Project[]
 }
