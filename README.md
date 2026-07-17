@@ -21,7 +21,8 @@ React Hook Form 7 · Vitest 4 · Playwright 1 · Biome 2.
 ```bash
 npm install
 cp .env.example .env
-# isi DATABASE_URL, R2_*, ADMIN_USERNAME & ADMIN_PASSWORD di .env dengan nilai Anda sendiri
+# isi DATABASE_URL, R2_*, ADMIN_USERNAME, ADMIN_PASSWORD, JWT_ACCESS_SECRET
+# & JWT_REFRESH_SECRET di .env dengan nilai Anda sendiri
 npx prisma migrate dev
 npx prisma db seed
 ```
@@ -51,8 +52,11 @@ npx prisma db seed
 src/
 ├── app/        # route App Router
 ├── features/   # fitur (domain/application/infrastructure/presentation)
-├── core/       # shared lintas fitur (UI dasar, klien Prisma, dsb.)
-└── shared/     # util lintas aplikasi (mis. validasi env)
+├── core/       # UI dasar lintas fitur (design system)
+└── shared/     # util lintas aplikasi (env, klien Prisma, auth/JWT)
+
+test/                # unit test (Vitest), struktur mengikuti path src/
+e2e/                 # E2E test (Playwright)
 ```
 
 Detail lengkap: `docs/techlead_04_folder_structure.md`.
