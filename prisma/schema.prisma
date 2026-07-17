@@ -41,3 +41,20 @@ model Project {
   @@index([slug])
   @@index([status, publishedAt])
 }
+
+model Post {
+  id             String        @id @default(cuid())
+  title          String        @db.VarChar(200)
+  slug           String        @unique @db.VarChar(220)
+  description    String?       @db.VarChar(300)
+  content        String        @db.Text
+  readingTime    Int
+  thumbnailImage String?       @db.VarChar(255)
+  status         PublishStatus @default(DRAFT)
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status, publishedAt])
+}
