@@ -13,15 +13,17 @@
 Fondasi data halaman Blog: menambahkan model `Post` (ENT-02) ke skema
 Prisma — entitas inti yang dilayani sorotan Home (F-01.2), daftar &
 baca tulisan Blog (F-04), dan pengelolaan tulisan oleh admin (F-06.3).
-Seluruh endpoint & layar Tulisan (ISS-014, ISS-033 dst.) menunggu tabel
-ini tersedia. Issue ini **tidak** membuat endpoint atau seed data apa
-pun — murni skema & migrasi.
+Seluruh endpoint publik (ISS-014), Server Action kelola (ISS-018), dan
+layar Tulisan (ISS-033 dst.) menunggu tabel ini tersedia. Issue ini
+**tidak** membuat endpoint, Server Action, atau seed data apa pun —
+murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint di issue ini — murni migrasi skema database. Endpoint
-baca/kelola Tulisan yang memakai tabel ini dikerjakan terpisah (fase
-backend berikutnya).
+Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
+database. Endpoint baca publik (EP-03, EP-04 — ISS-014), endpoint baca
+admin & Server Action kelola create/update/delete (EP-10, SA-04/05/06 —
+ISS-018) yang memakai tabel ini dikerjakan terpisah.
 
 ## Aturan Validasi
 
@@ -63,9 +65,12 @@ dicatat di sini sebagai referensi skema:
 ## Auth & Permission
 
 Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint baca Tulisan bersifat publik untuk `status: Terbit`; endpoint
-kelola (tambah/ubah/hapus) hanya `admin` ber-sesi — diterapkan di issue
-endpoint terkait, mengikuti matriks akses `docs/techlead_03_api_contract.md`.
+Endpoint baca Tulisan (EP-03/04 publik, EP-10 admin) bersifat publik
+untuk `status: Terbit`, admin untuk daftar kelola; Server Action
+tambah/ubah/hapus (SA-04/05/06) hanya `admin` ber-sesi — mutasi admin
+selalu Server Action, bukan endpoint REST (D-012,
+`docs/techlead_01_architecture.md`). Diterapkan di issue endpoint
+terkait, mengikuti matriks akses `docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
 
@@ -99,6 +104,14 @@ model Post {
 `enum PublishStatus` dipakai bersama `Project` (ENT-01) — sudah dibuat
 di ISS-005; issue ini hanya memakainya ulang, tidak membuat lagi.
 
+**Catatan urutan kerja:** field relasi `tags` mensyaratkan model `Tag`
+(ISS-007) juga ada di `schema.prisma` — Prisma memvalidasi seluruh file
+sekaligus. Kedelapan migrasi entitas *tidak* saling `blocked_by`
+(G-006/A-006 `docs/memory/issue.yaml`): model boleh ditulis mengikuti
+nomor issue masing-masing, tetapi `prisma migrate dev` yang sesungguhnya
+baru dijalankan setelah entitas-entitas yang saling berelasi (Post, Tag)
+lengkap di file — bukan satu migrate terpisah per issue.
+
 ## Catatan Performa
 
 - Index `slug` (lookup detail Tulisan via URL).
@@ -122,11 +135,12 @@ terbentuk.*
 - [ ] Migrasi dijalankan; index `slug` dan `status, publishedAt` aktif.
 
 **Out of Scope**
-- Endpoint baca/kelola Tulisan — issue backend berikutnya.
+- Endpoint baca Tulisan (EP-03, EP-04, EP-10) & Server Action kelola
+  create/update/delete (SA-04/05/06) — issue backend berikutnya.
 - Layar Blog (daftar/detail) & form kelola — issue frontend.
 - Model `Tag` (sisi lain relasi m-n) — migrasi tersendiri.
 - Perhitungan `readingTime` di kode aplikasi — logika kalkulasi bagian
-  issue endpoint kelola Tulisan, bukan migrasi ini.
+  Server Action kelola Tulisan (ISS-018), bukan migrasi ini.
 - Seed data Tulisan — tidak ada Data Awal untuk entitas ini (beda dari
   `User`, ISS-004).
 
@@ -151,7 +165,9 @@ terbentuk.*
 
 ## Referensi
 
-- **Kontrak endpoint:** Tidak ada — issue ini tanpa endpoint.
+- **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-014 untuk
+  EP-03/04, ISS-018 untuk EP-10 & Server Action SA-04/05/06) —
+  `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-02 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-01.2, F-04, F-06.3 —
   `docs/ba_01_feature.md`

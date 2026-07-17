@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Tanggal** | 2026-07-17 |
-| **Versi** | 2.6 |
+| **Versi** | 2.8 |
 | **Sumber** | Set BA v6.0 + Set UI/UX v1.8 |
 | **Konteks** | docs/pm_01_project.md v1.6 (+ techlead-agent/TEAM_STACK.md sebagai sumber stack & struktur) |
 | **Disusun oleh** | Tech Lead Agent |
@@ -15,8 +15,9 @@
 
 Kelas proyek: **CMS ringan** (monolith server-rendered) — bukan situs statis,
 karena Objective menuntut pemilik memiliki kendali penuh memperbarui seluruh
-isinya sendiri (pemilik = Admin = Target User). **Delapan entitas**, 17 Route
-Handler (baca publik + baca admin + auth) + 21 Server Action (mutasi admin),
+isinya sendiri (pemilik = Admin = Target User). **Delapan entitas**, 15 Route
+Handler (baca publik + baca admin, EP-01..EP-17 dengan EP-07/EP-08 pensiun —
+D-021) + 23 Server Action (mutasi admin + autentikasi masuk/keluar, SA-01..SA-23),
 tanpa integrasi pihak ketiga transaksional. Stack diambil apa adanya dari
 `TEAM_STACK.md` untuk **seluruh layer, termasuk penyimpanan berkas** — sejak
 v2.4, TEAM_STACK.md mencakup Cloudflare R2 sebagai object storage baku,
@@ -39,7 +40,7 @@ client (pm_01 D009).
 | Styling | Tailwind CSS 4 | TEAM_STACK.md | Stack baku tim | — |
 | Icon | react-icons/si | TEAM_STACK.md | Stack baku tim | — |
 | Runtime | Node.js 22 (LTS) | TEAM_STACK.md | Stack baku tim | — |
-| API Layer | Route Handlers + Server Actions | TEAM_STACK.md | Stack baku tim; v2.0: Route Handler untuk baca (publik & admin) + auth, **Server Action untuk seluruh mutasi admin** (D-012) — permintaan eksplisit user | — |
+| API Layer | Route Handlers + Server Actions | TEAM_STACK.md | Stack baku tim; v2.0: Route Handler untuk baca (publik & admin), **Server Action untuk seluruh mutasi admin** (D-012) — permintaan eksplisit user. v2.8 (D-021): login/keluar turut pindah ke Server Action (SA-22/SA-23, menggantikan EP-07/EP-08) — Route Handler kini murni baca, tanpa pengecualian | — |
 | Database | PostgreSQL 18 (Neon) | TEAM_STACK.md | Stack baku tim | — |
 | ORM | Prisma 7 | TEAM_STACK.md | Stack baku tim; skema deklaratif = kontrak techlead_02 (07 §3.1) | — |
 | Auth | JWT (Access + Refresh Token) + Bcrypt | TEAM_STACK.md | Stack baku tim; cukup untuk 1 akun admin (F-06.1) | — |
@@ -139,6 +140,8 @@ dua produk berbeda (CDN/proxy vs object storage).
 | D-017 | Penyimpanan berkas pindah dari filesystem lokal (volume Docker) ke Cloudflare R2 (S3-compatible object storage); mencabut D-002 — TEAM_STACK.md kini mencakup layer ini sebagai stack baku, bukan lagi penyimpangan per-proyek. Alur unggah TETAP lewat Server Action (D-012 tidak berubah): file dikirim `FormData` ke Server Action yang sama (`createProject`/`createPost`/`uploadMedia`), Server Action-nya yang mengunggah ke R2 lewat S3 SDK di lapisan `infrastructure` — tanpa endpoint/kontrak API baru, tanpa presigned URL client-langsung (opsi itu dipertimbangkan & ditolak user demi kesederhanaan skala kecil, satu admin) | Perubahan kapabilitas tim (bukan requirement proyek) — user memperbarui TEAM_STACK.md; R2 menghapus kebutuhan volume Docker terpisah untuk berkas (lebih sederhana dikelola, tanpa biaya egress, terintegrasi dengan Cloudflare yang sudah dipakai sebagai CDN) |
 | D-018 | Kelima layar publik (SCR-01..07) dibungkus route group `app/(public)/` (techlead_04) — satu `layout.tsx` bersama (Navbar/MenuUtama C-02 + Footer) tanpa mengubah URL; `admin/` TETAP folder biasa (bukan route group) karena memang perlu tampil di path `/admin/*` yang sebenarnya, dan SCR-08 Masuk sengaja tidak ikut berbagi layout admin | Permintaan user: navbar & footer kemungkinan sama di seluruh halaman publik — route group Next.js adalah mekanisme baku untuk itu tanpa duplikasi kode per halaman; murni keputusan struktur folder (implementasi), tidak mengubah wireframe/kontrak API mana pun |
 | D-019 | SCR-08 Masuk Admin (`login/`) dipindah keluar dari `admin/` jadi `app/login/` tersendiri (techlead_04 v2.6) — `admin/layout.tsx` (MenuAdmin) kini berlaku utuh ke seluruh `admin/*` tanpa pengecualian; `middleware.ts` yang menjaga `/admin/*` otomatis tidak lagi menyentuh rute login | Permintaan user: SCR-08 punya UI form sendiri, berbeda dari SCR-09..19 yang seluruhnya berbagi UI Dashboard/MenuAdmin — dicek ke wireframe uiux_02, SCR-08 memang satu-satunya layar kelola tanpa bagian "Header Admin"; murni keputusan struktur folder, tidak mengubah wireframe/kontrak API |
+| D-020 | Folder lintas fitur `core/` diganti nama jadi `shared/` (techlead_04 v2.7) — isi & aturan penempatan sama sekali tidak berubah (komponen UI dasar, config, klien Prisma, util JWT, util penyimpanan R2), murni rename. Perubahan permanen di `techlead-agent/TEAM_STACK.md` (Struktur Folder Baku) — berlaku untuk proyek ini dan seluruh proyek berikutnya | Permintaan user: nama `core/` kurang jelas menjelaskan isinya sendiri; `shared/` langsung menyatakan maksud ("dipakai bersama lintas fitur") tanpa perlu buka dokumen — konvensi umum di arsitektur feature-based/DDD |
+| D-021 | `EP-07` (`POST /api/admin/login`) & `EP-08` (`POST /api/admin/logout`) dicabut sebagai Route Handler, digantikan Server Action `SA-22` (`login`) & `SA-23` (`logout`) — techlead_03 v2.8. Route Handler kini murni baca (publik & admin), tanpa pengecualian; `SA-22` jadi satu-satunya Server Action yang **tidak** memverifikasi sesi yang sudah ada (justru membuat sesi baru) — pengecualian eksplisit dari pola "setiap Server Action verifikasi sesi ulang" (D-012). `EP-07`/`EP-08` tidak dipakai ulang untuk ID lain (slot pensiun); `EP-09` dst. tidak berubah nomor | Permintaan eksplisit user: login & keluar dipanggil langsung dari form (React Hook Form + action), konsisten dengan seluruh form admin lain yang sudah memakai pola Server Action, bukan `fetch` ke endpoint REST terpisah. Next.js Server Action tidak mengharuskan pemanggilnya sudah admin ber-sesi — itu cuma pola mayoritas D-012 sejauh ini, bukan batasan teknis; halaman `/login` (D-019, di luar `admin/`) tetap publik, formnya sah memanggil Server Action |
 
 ## Assumptions
 

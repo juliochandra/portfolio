@@ -13,15 +13,17 @@
 Fondasi data halaman Contact: menambahkan model `ContactInfo` (ENT-07)
 ke skema Prisma — menampung saluran kontak (email, LinkedIn, dst.) yang
 tampil ke pengunjung (F-05.1) dan dikelola admin (F-06.5). Entitas
-terakhir dari 8 migrasi backlog ini; seluruh endpoint & layar Info
-Kontak (SCR-15) menunggu tabel ini tersedia. Issue ini **tidak** membuat
-endpoint apa pun — murni skema & migrasi.
+terakhir dari 8 migrasi backlog ini; endpoint publik (ISS-015), endpoint
+baca admin & Server Action kelola (ISS-020), dan layar Info Kontak
+(SCR-15) menunggu tabel ini tersedia. Issue ini **tidak** membuat
+endpoint atau Server Action apa pun — murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint di issue ini — murni migrasi skema database. Endpoint
-baca (publik) & kelola (admin) Info Kontak yang memakai tabel ini
-dikerjakan terpisah (fase backend berikutnya).
+Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
+database. Endpoint baca publik (EP-05 — ISS-015); endpoint baca admin &
+Server Action kelola create/update/delete (EP-12, SA-10/11/12 —
+ISS-020) yang memakai tabel ini dikerjakan terpisah.
 
 ## Aturan Validasi
 
@@ -39,9 +41,10 @@ dicatat di sini sebagai referensi skema:
 - Tabel **flat multi-baris** — setiap saluran (termasuk email) adalah
   baris biasa, tanpa field email khusus; mencabut desain singleton lama
   yang memisahkan `ContactInfo`+`ContactLink`.
-- CRUD penuh lewat SCR-15 (tambah/ubah/hapus per baris) — menggantikan
-  pola "replace-all sekaligus" lama; halaman Contact publik menampilkan
-  versi terbaru setelah admin menyimpan perubahan apa pun (AC-015-1).
+- CRUD penuh lewat SCR-15 (Server Action tambah/ubah/hapus per baris,
+  SA-10/11/12) — menggantikan pola "replace-all sekaligus" lama;
+  halaman Contact publik menampilkan versi terbaru setelah admin
+  menyimpan perubahan apa pun (AC-015-1).
 - Tanpa kolom `createdAt`/`updatedAt` pada `ContactInfo` (D-009,
   `docs/techlead_02_database.md`) — beda dari 5 model lain proyek ini
   (sama seperti `User`, ISS-004): skala kecil, tidak ada kebutuhan
@@ -50,10 +53,12 @@ dicatat di sini sebagai referensi skema:
 ## Auth & Permission
 
 Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint baca Info Kontak bersifat publik tanpa sesi; endpoint kelola
-(tambah/ubah/hapus baris) hanya `admin` ber-sesi — diterapkan di issue
-endpoint terkait, mengikuti matriks akses
-`docs/techlead_03_api_contract.md`.
+Endpoint baca Info Kontak (EP-05) bersifat publik tanpa sesi; endpoint
+baca daftar kelola (EP-12) & Server Action tambah/ubah/hapus
+(SA-10/11/12) hanya `admin` ber-sesi — mutasi admin selalu Server
+Action, bukan endpoint REST (D-012,
+`docs/techlead_01_architecture.md`). Diterapkan di ISS-015/ISS-020,
+mengikuti matriks akses `docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
 
@@ -98,8 +103,9 @@ terbentuk.*
 - [ ] Migrasi dijalankan.
 
 **Out of Scope**
-- Endpoint baca (publik) & kelola (admin) Info Kontak — issue backend
-  berikutnya.
+- Endpoint baca publik (EP-05) — ISS-015.
+- Endpoint baca admin & Server Action kelola create/update/delete
+  (EP-12, SA-10/11/12) — ISS-020.
 - Layar Contact publik & halaman kelola (SCR-15) — issue frontend.
 - Seed data Info Kontak — tidak ada Data Awal untuk entitas ini.
 
@@ -122,6 +128,8 @@ terbentuk.*
 
 ## Referensi
 
-- **Kontrak endpoint:** Tidak ada — issue ini tanpa endpoint.
+- **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-015 untuk
+  EP-05, ISS-020 untuk EP-12 & Server Action SA-10/11/12) —
+  `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-07 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-05.1, F-06.5 — `docs/ba_01_feature.md`

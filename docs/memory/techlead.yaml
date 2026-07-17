@@ -4,7 +4,7 @@ project:
   source: "set BA (FEATURE + USER_STORY + ACCEPTANCE_CRITERIA) + set UI/UX (USER_FLOW + WIREFRAME + DESIGN_SYSTEM)"
   source_versions: { ba: "6.0", uiux: "1.8" }
   context: "docs/pm_01_project.md v1.6"
-  status: done   # v2.6 — v2.0: revisi total dari v1.0 (perancangan skema lanjutan, pm_01 D008): 8 entitas, Server Action untuk mutasi admin, Profil dihapus total. v2.1: skema Prisma tanpa @map/@@map (D-014). v2.2: referensi desain admin client (pm_01 D009) — Tag & Media dapat CRUD/kelola penuh, changePassword baru, dashboard stats endpoint (D-015), tanpa tabel baru. v2.3: EP-17 GET /api/skills (publik) — celah kontrak ditemukan Issue Planner (D-016). v2.4: penyimpanan berkas pindah filesystem-lokal → Cloudflare R2 (D-017) — perubahan kapabilitas tim (TEAM_STACK.md diperbarui), tanpa endpoint/kontrak baru. v2.5: 5 layar publik dibungkus route group app/(public)/ (D-018) — layout Navbar+Footer bersama; sekalian fix referensi EP-01..EP-16 basi → EP-01..EP-17. v2.6: login/ dipindah keluar dari admin/ ke app/login/ (D-019) — UI sendiri, admin/layout.tsx (MenuAdmin) kini berlaku utuh tanpa pengecualian. 4 dokumen diserahkan ke Issue Planner / FE & BE — Tech Lead berhenti
+  status: done   # v2.7 — v2.0: revisi total dari v1.0 (perancangan skema lanjutan, pm_01 D008): 8 entitas, Server Action untuk mutasi admin, Profil dihapus total. v2.1: skema Prisma tanpa @map/@@map (D-014). v2.2: referensi desain admin client (pm_01 D009) — Tag & Media dapat CRUD/kelola penuh, changePassword baru, dashboard stats endpoint (D-015), tanpa tabel baru. v2.3: EP-17 GET /api/skills (publik) — celah kontrak ditemukan Issue Planner (D-016). v2.4: penyimpanan berkas pindah filesystem-lokal → Cloudflare R2 (D-017) — perubahan kapabilitas tim (TEAM_STACK.md diperbarui), tanpa endpoint/kontrak baru. v2.5: 5 layar publik dibungkus route group app/(public)/ (D-018) — layout Navbar+Footer bersama; sekalian fix referensi EP-01..EP-16 basi → EP-01..EP-17. v2.6: login/ dipindah keluar dari admin/ ke app/login/ (D-019) — UI sendiri, admin/layout.tsx (MenuAdmin) kini berlaku utuh tanpa pengecualian. v2.7: folder core/ diganti nama jadi shared/ (D-020) — rename murni, permanen di TEAM_STACK.md. v2.8: EP-07 (login) & EP-08 (logout) dicabut sebagai Route Handler, digantikan SA-22/SA-23 (Server Action) — D-021, permintaan eksplisit user; Route Handler kini murni baca (publik & admin), tanpa pengecualian auth; ISS-012 & ISS-004 di docs/issues/ disesuaikan manual. 4 dokumen diserahkan ke Issue Planner / FE & BE — Tech Lead berhenti
 
 system_inventory:
   - { screen: SCR-01, kind: dynamic,
@@ -89,11 +89,11 @@ tech_stack:
   - { layer: bahasa, choice: "TypeScript 7 (strict mode)", source: team_stack, reason: "Stack baku tim", constraints: [] }
   - { layer: styling, choice: "Tailwind CSS 4", source: team_stack, reason: "Stack baku tim", constraints: [] }
   - { layer: runtime, choice: "Node.js 22 (LTS)", source: team_stack, reason: "Stack baku tim", constraints: [] }
-  - { layer: api, choice: "Route Handlers (baca + auth) + Server Actions (seluruh mutasi admin)", source: team_stack,
-      reason: "Stack baku tim; v2.0 membagi jelas: Route Handler untuk GET publik/admin & POST login/logout, Server Action untuk create/update/delete/transisi-status admin (D-012) — permintaan eksplisit user", constraints: [] }
+  - { layer: api, choice: "Route Handlers (baca) + Server Actions (seluruh mutasi admin + autentikasi)", source: team_stack,
+      reason: "Stack baku tim; v2.0 membagi jelas: Route Handler untuk GET publik/admin, Server Action untuk create/update/delete/transisi-status admin (D-012) — permintaan eksplisit user. v2.8 (D-021): login/logout turut pindah dari Route Handler (EP-07/EP-08 lama) ke Server Action (SA-22/SA-23) — dipanggil langsung dari form SCR-08/tombol SCR-09, konsisten pola form→action seluruh admin lain; Route Handler kini murni baca (publik & admin), tanpa pengecualian", constraints: [] }
   - { layer: database, choice: "PostgreSQL 18 (Neon)", source: team_stack, reason: "Stack baku tim", constraints: [] }
   - { layer: orm, choice: "Prisma 7", source: team_stack, reason: "Stack baku tim; skema deklaratif = kontrak techlead_02 (07 §3.1); id String cuid() di seluruh model (D-008)", constraints: [] }
-  - { layer: auth, choice: "JWT (Access + Refresh Token) + Bcrypt", source: team_stack, reason: "Stack baku tim; cukup untuk 1 akun admin (F-06.1); sesi diverifikasi ulang di tiap Server Action (D-012)", constraints: [] }
+  - { layer: auth, choice: "JWT (Access + Refresh Token) + Bcrypt", source: team_stack, reason: "Stack baku tim; cukup untuk 1 akun admin (F-06.1); sesi diverifikasi ulang di tiap Server Action (D-012) — kecuali login (SA-22, D-021) yang justru membuat sesi baru, bukan memverifikasi yang sudah ada", constraints: [] }
   - { layer: validasi, choice: "Zod 4", source: team_stack, reason: "Stack baku tim; schema diturunkan 1:1 dari shape techlead_03 (Route Handler & Server Action)", constraints: [] }
   - { layer: form, choice: "React Hook Form 7", source: team_stack, reason: "Stack baku tim; form admin memanggil Server Action lewat action prop", constraints: [] }
   - { layer: test, choice: "Vitest 4 (unit) + Playwright 1 (E2E)", source: team_stack, reason: "Stack baku tim", constraints: [] }
@@ -102,7 +102,7 @@ tech_stack:
   - { layer: container, choice: "Docker Engine 29 + Docker Compose 2", source: team_stack, reason: "Stack baku tim", constraints: [] }
   - { layer: hosting, choice: "Ubuntu LTS 22/24 + Caddy 2 (reverse proxy) + Cloudflare (CDN & security)", source: team_stack, reason: "Stack baku tim; Caddy = HTTPS otomatis, menopang kebutuhan kualitas 'mudah ditemukan Google' (AC-001-4)", constraints: [] }
   - { layer: storage, choice: "Cloudflare R2 (S3-compatible object storage)", source: team_stack,
-      reason: "v2.4 (D-017) — TEAM_STACK.md diperbarui user, kini mencakup penyimpanan berkas; mencabut penyimpangan filesystem-lokal v2.0-v2.3 (D-002). Alur unggah tetap lewat Server Action (createProject/createPost/uploadMedia, D-012 tidak berubah) — Server Action yang memanggil S3 SDK ke R2 di lapisan infrastructure/core, bukan endpoint/presigned-URL terpisah (opsi itu dipertimbangkan & ditolak user demi kesederhanaan skala 1 admin). v2.0: hanya gambar unggahan admin (thumbnail project/tulisan) — CV TIDAK lewat R2, ditempel developer ke public/ (pm_01 D007)",
+      reason: "v2.4 (D-017) — TEAM_STACK.md diperbarui user, kini mencakup penyimpanan berkas; mencabut penyimpangan filesystem-lokal v2.0-v2.3 (D-002). Alur unggah tetap lewat Server Action (createProject/createPost/uploadMedia, D-012 tidak berubah) — Server Action yang memanggil S3 SDK ke R2 di lapisan infrastructure/shared (v2.7 D-020: rename dari core), bukan endpoint/presigned-URL terpisah (opsi itu dipertimbangkan & ditolak user demi kesederhanaan skala 1 admin). v2.0: hanya gambar unggahan admin (thumbnail project/tulisan) — CV TIDAK lewat R2, ditempel developer ke public/ (pm_01 D007)",
       constraints: ["Kebutuhan Aset uiux_03_design_system.md: thumbnail project, thumbnail tulisan"] }
 
 architecture:
@@ -126,7 +126,7 @@ architecture:
       - { path: "src/app/(public)", layer: "presentation — route group Next.js (tanpa efek URL), layout.tsx bersama Navbar+Footer, v2.5 D-018", serves: ["SCR-01..SCR-07"] }
       - { path: "src/app/login", layer: "presentation — halaman berdiri sendiri, UI form sendiri, dipindah keluar dari admin/ v2.6 D-019", serves: ["SCR-08"] }
       - { path: "src/app/admin", layer: "presentation — layout.tsx MenuAdmin (C-10) berlaku utuh tanpa pengecualian sejak login dipindah, v2.6 D-019", serves: ["SCR-09..SCR-19"] }
-      - { path: "src/core", layer: "shared lintas fitur (ui dasar, config, klien Prisma, util auth, util penyimpanan berkas — S3 SDK ke Cloudflare R2, v2.4)", serves: ["lintas fitur"] }
+      - { path: "src/shared", layer: "shared lintas fitur (ui dasar, config, klien Prisma, util auth, util penyimpanan berkas — S3 SDK ke Cloudflare R2, v2.4)", serves: ["lintas fitur"] }  # v2.7 D-020: rename dari src/core
       - { path: "src/middleware.ts", layer: "penjaga route /admin/* (verifikasi JWT)", serves: ["F-06 (semua sub-fitur)"] }
       - { path: "public/", layer: "aset statis (termasuk CV)", serves: ["F-07"] }
 
@@ -258,10 +258,6 @@ endpoints:
       serves: [SCR-07, FLOW-08], covers: [AC-007-1], auth: public, entity: ENT-07 }
   - { id: EP-06, method: POST, path: "/api/contact/messages",      purpose: "Kirim pesan lewat formulir",
       serves: [SCR-07, FLOW-09], covers: [AC-008-1, AC-008-2], auth: public, entity: ENT-06 }
-  - { id: EP-07, method: POST, path: "/api/admin/login",           purpose: "Masuk admin",
-      serves: [SCR-08, FLOW-10], covers: [AC-009-1, AC-009-2], auth: public, entity: ENT-08 }
-  - { id: EP-08, method: POST, path: "/api/admin/logout",          purpose: "Keluar",
-      serves: [SCR-09, FLOW-17], covers: [AC-016-1], auth: admin, entity: ENT-08 }
   - { id: EP-09, method: GET,  path: "/api/admin/projects",        purpose: "Daftar project kelola (semua status)",
       serves: [SCR-10, FLOW-11, FLOW-12], covers: [], auth: admin, entity: ENT-01 }
   - { id: EP-10, method: GET,  path: "/api/admin/posts",           purpose: "Daftar tulisan kelola (semua status)",
@@ -324,6 +320,10 @@ server_actions:
       serves: [SCR-18, FLOW-22], covers: [AC-022-3], auth: admin, entity: ENT-05 }
   - { id: SA-21, name: "changePassword",      purpose: "Ubah kata sandi sendiri (oldPassword*, newPassword*, confirmPassword*) — wajib verifikasi oldPassword",
       serves: [SCR-19, FLOW-23], covers: [AC-023-1, AC-023-2], auth: admin, entity: ENT-08 }
+  - { id: SA-22, name: "login",                purpose: "Masuk admin (username*, password*) — menggantikan EP-07 (D-021)",
+      serves: [SCR-08, FLOW-10], covers: [AC-009-1, AC-009-2], auth: public, entity: ENT-08 }
+  - { id: SA-23, name: "logout",               purpose: "Keluar, akhiri sesi — menggantikan EP-08 (D-021)",
+      serves: [SCR-09, FLOW-17], covers: [AC-016-1], auth: admin, entity: ENT-08 }
 
 gap_list:
   - { id: G-001, question: "Berkas CV belum tentu tersedia saat AC-017-1 dituntut (tombol Unduh CV) — apa yang terjadi bila kosong?",
@@ -428,7 +428,7 @@ decision_log:
   - { id: D-016, decision: "GET /api/skills (EP-17, publik) ditambahkan v2.3",
       reason: "Celah kontrak ditemukan Issue Planner saat memecah backlog FE Home (SCR-01): bagian Keahlian tampil ke publik (AC-019-1) tapi satu-satunya endpoint baca Skill yang ada (EP-11) khusus admin — gap blocking, diperbaiki di sini sebelum Issue Planner lanjut. Juga memicu perbaikan bug terkait di UI/UX (uiux_02 v1.8 D-015 — leftover tautan 'Selengkapnya di About' pada SCR-01 Keahlian)",
       time: "2026-07-16" }
-  - { id: D-017, decision: "Penyimpanan berkas pindah dari filesystem lokal (volume Docker) ke Cloudflare R2 (S3-compatible object storage); mencabut D-002. Alur unggah TETAP lewat Server Action (D-012 tidak berubah) — file dikirim FormData ke Server Action yang sama (createProject/createPost/uploadMedia), Server Action-nya yang mengunggah ke R2 lewat S3 SDK di lapisan infrastructure/core — tanpa endpoint/kontrak API baru, tanpa presigned URL client-langsung (dipertimbangkan & ditolak user demi kesederhanaan skala 1 admin)",
+  - { id: D-017, decision: "Penyimpanan berkas pindah dari filesystem lokal (volume Docker) ke Cloudflare R2 (S3-compatible object storage); mencabut D-002. Alur unggah TETAP lewat Server Action (D-012 tidak berubah) — file dikirim FormData ke Server Action yang sama (createProject/createPost/uploadMedia), Server Action-nya yang mengunggah ke R2 lewat S3 SDK di lapisan infrastructure/shared (v2.7 D-020: rename dari core) — tanpa endpoint/kontrak API baru, tanpa presigned URL client-langsung (dipertimbangkan & ditolak user demi kesederhanaan skala 1 admin)",
       reason: "Perubahan kapabilitas tim (bukan requirement proyek) — user memperbarui TEAM_STACK.md menambah Penyimpanan Berkas: Cloudflare R2; R2 menghapus kebutuhan volume Docker terpisah, tanpa biaya egress, terintegrasi dengan Cloudflare yang sudah dipakai sebagai CDN",
       time: "2026-07-17" }
   - { id: D-018, decision: "Kelima layar publik (SCR-01..07) dibungkus route group app/(public)/ (techlead_04 v2.5) — satu layout.tsx bersama (MenuUtama C-02 + Footer) tanpa mengubah URL; admin/ TETAP folder biasa (path /admin/* nyata, dilindungi middleware.ts); SCR-08 Masuk sengaja tidak ikut berbagi layout admin (wireframe-nya tidak punya bagian Header Admin). Turut diperbaiki: referensi EP-01..EP-16 basi di techlead_04 (seharusnya EP-01..EP-17 sejak v2.3) — leftover yang lolos cascade sebelumnya",
@@ -436,6 +436,12 @@ decision_log:
       time: "2026-07-17" }
   - { id: D-019, decision: "SCR-08 Masuk Admin (login/) dipindah keluar dari admin/ jadi app/login/ tersendiri (techlead_04 v2.6) — admin/layout.tsx (MenuAdmin) kini berlaku utuh ke seluruh admin/* tanpa pengecualian; middleware.ts yang menjaga /admin/* otomatis tidak lagi menyentuh rute login",
       reason: "Permintaan user: SCR-08 punya UI form sendiri, berbeda dari SCR-09..19 yang seluruhnya berbagi UI Dashboard/MenuAdmin — dicek ke wireframe uiux_02, SCR-08 memang satu-satunya layar kelola tanpa bagian Header Admin; EP-07 POST /api/admin/login tidak berubah (jalur API terpisah dari path halaman FE)",
+      time: "2026-07-17" }
+  - { id: D-020, decision: "Folder lintas fitur core/ diganti nama jadi shared/ (techlead_04 v2.7) — isi & aturan penempatan sama sekali tidak berubah, murni rename. Perubahan permanen di techlead-agent/TEAM_STACK.md (Struktur Folder Baku) — berlaku proyek ini dan seluruh proyek berikutnya; techlead-agent/07_CONTRACT_RULES.md & 12_EXAMPLES/04_toko-online.md ikut disinkron demi konsistensi contoh framework",
+      reason: "Permintaan user: nama core/ kurang jelas menjelaskan isinya; shared/ langsung menyatakan maksud (dipakai bersama lintas fitur) tanpa perlu buka dokumen — konvensi umum arsitektur feature-based/DDD",
+      time: "2026-07-17" }
+  - { id: D-021, decision: "EP-07 (POST /api/admin/login) & EP-08 (POST /api/admin/logout) dicabut sebagai Route Handler, digantikan Server Action SA-22 (login) & SA-23 (logout) — techlead_03 v2.8. Route Handler kini murni baca (publik & admin), tanpa pengecualian untuk auth; SA-22 satu-satunya Server Action yang TIDAK memverifikasi sesi yang sudah ada (justru membuat sesi baru) — pengecualian eksplisit dari pola 'setiap Server Action memverifikasi sesi ulang' (D-012). EP-07/EP-08 TIDAK dipakai ulang untuk ID lain (slot pensiun, bukan gap yang perlu ditambal) — EP-09 dst. tidak berubah nomor. Matriks Akses & Konvensi Auth techlead_03 disesuaikan; docs/issues/ISS-012 (belum dikerjakan) & ISS-004 (referensi EP-07/EP-08 di teks) disesuaikan manual",
+      reason: "Permintaan eksplisit user: login & logout dipanggil langsung dari form (React Hook Form + action), konsisten dengan seluruh form admin lain yang sudah memakai pola Server Action — bukan fetch ke endpoint REST terpisah. Next.js Server Action tidak mengharuskan pemanggilnya sudah admin ber-sesi (itu cuma pola mayoritas D-012 sejauh ini, bukan batasan teknis) — halaman /login (D-019, di luar admin/) tetap publik, formnya sah memanggil Server Action",
       time: "2026-07-17" }
 
 validation_result:

@@ -6,7 +6,7 @@
 |---|---|
 | **Tanggal** | 2026-07-17 |
 | **Status** | Disetujui client |
-| **Versi** | 2.6 |
+| **Versi** | 2.8 |
 | **Sumber** | Set BA v6.0 + Set UI/UX v1.8 |
 | **Konteks** | docs/pm_01_project.md v1.6 |
 | **Disusun oleh** | Tech Lead Agent |
@@ -67,6 +67,17 @@ Versi dibump mengikuti "versi sama, dibaca bersama" set Tech Lead.
 **v2.6** (D-019 techlead_01, `login/` dipindah keluar dari `admin/`):
 dokumen ini juga sama sekali tidak tersentuh — perubahan murni struktur
 folder presentation, tidak menyentuh skema/entitas/data.
+
+**v2.7** (D-020 techlead_01, folder `core/` diganti nama jadi `shared/`):
+dokumen ini juga sama sekali tidak tersentuh — murni rename folder
+presentation/shared, tidak menyentuh skema/entitas/data.
+
+**v2.8** (D-021 techlead_01, `EP-07`/`EP-08` dicabut sebagai Route Handler
+digantikan `SA-22`/`SA-23` sebagai Server Action): dokumen ini juga sama
+sekali tidak tersentuh — perubahan murni permukaan API (techlead_03),
+tidak menambah/mengubah kolom `User` (ENT-08) atau entitas mana pun; `User`
+tetap dibaca & diperbarui lewat mekanisme yang sama (Bcrypt compare/hash),
+hanya jalur pemanggilannya yang berubah.
 
 ## Konvensi
 

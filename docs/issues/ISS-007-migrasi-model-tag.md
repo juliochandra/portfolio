@@ -16,13 +16,14 @@ Fondasi data pengelompokan Project & Tulisan: menambahkan model `Tag`
 "inline-only tanpa halaman kelola" (G-014 BA). Saat ini Tag berfungsi
 sebagai metadata pendukung Project/Tulisan (belum ada story/AC yang
 menuntut tampilan filter aktif di sisi publik). Issue ini **tidak**
-membuat endpoint apa pun — murni skema & migrasi.
+membuat endpoint atau Server Action apa pun — murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint di issue ini — murni migrasi skema database. Endpoint
-kelola Tag (SCR-17) yang memakai tabel ini dikerjakan terpisah (fase
-backend berikutnya).
+Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
+database. Endpoint baca daftar kelola (EP-14) & Server Action
+create/update/delete (SA-16/17/18) Tag (SCR-17) yang memakai tabel ini
+dikerjakan terpisah (ISS-022).
 
 ## Aturan Validasi
 
@@ -37,8 +38,9 @@ dicatat di sini sebagai referensi skema:
 
 ## Aturan Bisnis
 
-- CRUD penuh lewat SCR-17 (tambah/ubah/hapus) — pola sama `Skill`,
-  selalu konfirmasi sebelum hapus (AC-021-2).
+- CRUD penuh lewat SCR-17 (Server Action tambah/ubah/hapus,
+  SA-16/17/18) — pola sama `Skill`, selalu konfirmasi sebelum hapus
+  (AC-021-2).
 - Menghapus tag yang masih dipakai `Project`/`Post` hanya melepas baris
   di tabel penghubung implisit (`_ProjectToTag`/`_PostToTag`) — Prisma
   menangani ini otomatis lewat `disconnect`, **tidak** menghapus
@@ -51,8 +53,10 @@ dicatat di sini sebagai referensi skema:
 ## Auth & Permission
 
 Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint kelola Tag (tambah/ubah/hapus) hanya `admin` ber-sesi —
-diterapkan di issue endpoint terkait, mengikuti matriks akses
+Endpoint baca daftar kelola (EP-14) & Server Action tambah/ubah/hapus
+(SA-16/17/18) hanya `admin` ber-sesi — mutasi admin selalu Server
+Action, bukan endpoint REST (D-012, `docs/techlead_01_architecture.md`).
+Diterapkan di ISS-022, mengikuti matriks akses
 `docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
@@ -106,7 +110,8 @@ terbentuk.*
 - [ ] Migrasi dijalankan (setelah Project & Post juga ada di skema).
 
 **Out of Scope**
-- Endpoint kelola Tag (SCR-17) — issue backend berikutnya.
+- Endpoint baca (EP-14) & Server Action kelola create/update/delete
+  (SA-16/17/18) Tag (SCR-17) — ISS-022.
 - Layar kelola Tag & form — issue frontend.
 - Model `Project`/`Post` (sisi lain relasi m-n) — migrasi masing-masing
   (ISS-005, ISS-006).
@@ -135,6 +140,8 @@ terbentuk.*
 
 ## Referensi
 
-- **Kontrak endpoint:** Tidak ada — issue ini tanpa endpoint.
+- **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-022 untuk
+  EP-14 & Server Action SA-16/17/18) —
+  `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-03 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-06.8 — `docs/ba_01_feature.md`
