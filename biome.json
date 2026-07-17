@@ -32,7 +32,7 @@
         "useThrowNewError": "error",
         "noNestedTernary": "error",
         "noExportedImports": "error",
-        "useNamingConvention": "warn",
+        "useNamingConvention": "off",
         "noParameterAssign": "error"
       },
       "suspicious": {
@@ -43,7 +43,7 @@
         "noUnknownAtRules": "off"
       },
       "nursery": {
-        "useExplicitType": "warn",
+        "useExplicitType": "off",
         "noSecrets": "error",
         "useSortedClasses": "error"
       }

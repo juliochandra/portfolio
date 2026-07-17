@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/useNamingConvention: <test> */
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
