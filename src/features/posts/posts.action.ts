@@ -1,20 +1,44 @@
 "use server";
 
-import { type GetPostsParams, getPostsParamsSchema, postSlugSchema } from "@/features/posts/posts.schema";
 import {
+	type CreatePostInput,
+	createPostSchema,
+	type GetPostsParams,
+	getPostsParamsSchema,
+	postIdSchema,
+	postSlugSchema,
+	type UpdatePostInput,
+	updatePostSchema,
+} from "@/features/posts/posts.schema";
+import {
+	createAdminPost,
+	deleteAdminPost,
+	getPostsAdmin as getAdminPosts,
 	getPublishedPostBySlug,
 	getPublishedPosts,
 	type PublicPostDetail,
 	type PublicPostListItem,
+	updateAdminPost,
 } from "@/features/posts/posts.services";
+import { getServerSession } from "@/shared/auth/server-session";
 import { validateWithZod } from "@/shared/validation/zod";
 
 const INVALID_POST_PARAMS_MESSAGE = "Parameter tulisan tidak valid.";
 const POST_NOT_FOUND_MESSAGE = "Tulisan tidak ditemukan.";
+const UNAUTHORIZED = { error: { message: "UNAUTHORIZED" } } as const;
 
 type GetPostsResult = { data: PublicPostListItem[] };
 
 type GetPostBySlugResult = { data: PublicPostDetail } | { error: { message: string } };
+
+type GetPostsAdminResult = { data: Awaited<ReturnType<typeof getAdminPosts>> } | { error: { message: "UNAUTHORIZED" } };
+
+type PostMutationResult =
+	| { data: { id: string; slug: string } }
+	| { error: { fields: Record<string, string> } }
+	| { error: { message: "UNAUTHORIZED" } };
+
+type DeletePostResult = { data: { id: string } } | { error: { message: "Tulisan tidak ditemukan." | "UNAUTHORIZED" } };
 
 export async function getPosts(params?: GetPostsParams): Promise<GetPostsResult> {
 	const validation = validateWithZod(getPostsParamsSchema, params);
@@ -34,5 +58,55 @@ export async function getPostBySlug(slug: string): Promise<GetPostBySlugResult> 
 	}
 
 	const post = await getPublishedPostBySlug(validation.data);
+	return post ? { data: post } : { error: { message: POST_NOT_FOUND_MESSAGE } };
+}
+
+export async function getPostsAdmin(): Promise<GetPostsAdminResult> {
+	if (!(await getServerSession())) {
+		return UNAUTHORIZED;
+	}
+
+	return { data: await getAdminPosts() };
+}
+
+export async function createPost(data: unknown): Promise<PostMutationResult> {
+	if (!(await getServerSession())) {
+		return UNAUTHORIZED;
+	}
+
+	const validation = validateWithZod(createPostSchema, data);
+	if (!validation.success) {
+		return { error: { fields: validation.fields } };
+	}
+
+	return { data: await createAdminPost(validation.data as CreatePostInput) };
+}
+
+export async function updatePost(id: string, data: unknown): Promise<PostMutationResult> {
+	if (!(await getServerSession())) {
+		return UNAUTHORIZED;
+	}
+	if (!validateWithZod(postIdSchema, id).success) {
+		return { error: { fields: { _form: POST_NOT_FOUND_MESSAGE } } };
+	}
+
+	const validation = validateWithZod(updatePostSchema, data);
+	if (!validation.success) {
+		return { error: { fields: validation.fields } };
+	}
+
+	const post = await updateAdminPost(id, validation.data as UpdatePostInput);
+	return post ? { data: post } : { error: { fields: { _form: POST_NOT_FOUND_MESSAGE } } };
+}
+
+export async function deletePost(id: string): Promise<DeletePostResult> {
+	if (!(await getServerSession())) {
+		return UNAUTHORIZED;
+	}
+	if (!validateWithZod(postIdSchema, id).success) {
+		return { error: { message: POST_NOT_FOUND_MESSAGE } };
+	}
+
+	const post = await deleteAdminPost(id);
 	return post ? { data: post } : { error: { message: POST_NOT_FOUND_MESSAGE } };
 }
