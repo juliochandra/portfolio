@@ -1,23 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/shared/auth/cookies";
-import { hashPassword } from "@/shared/auth/password";
 import { createSessionTokens } from "@/shared/auth/session";
 
 const mocks = vi.hoisted(() => ({
+	authenticateUser: vi.fn(),
+	changeUserPassword: vi.fn(),
 	cookies: vi.fn(),
-	findUserById: vi.fn(),
-	findUserByUsername: vi.fn(),
-	updateUserPassword: vi.fn(),
 }));
 
 vi.mock("next/headers", () => ({ cookies: mocks.cookies }));
-vi.mock("@/features/auth/infrastructure/user-repository", () => ({
-	findUserById: mocks.findUserById,
-	findUserByUsername: mocks.findUserByUsername,
-	updateUserPassword: mocks.updateUserPassword,
+vi.mock("@/features/auth/auth.services", () => ({
+	authenticateUser: mocks.authenticateUser,
+	changeUserPassword: mocks.changeUserPassword,
 }));
 
-import { changePassword, login, logout } from "@/features/auth/application/actions";
+import { changePassword, login, logout } from "@/features/auth/auth.action";
 
 type StoredCookie = {
 	options?: { httpOnly?: boolean; maxAge?: number };
@@ -47,23 +44,17 @@ function createCookieStore(): {
 }
 
 describe("auth Server Actions", () => {
-	const authUser = {
-		id: "user-1",
-		passwordHash: "",
-		username: "admin",
-	};
+	const authUser = { id: "user-1", username: "admin" };
 	let cookieFixture: ReturnType<typeof createCookieStore>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		vi.clearAllMocks();
 		process.env.JWT_ACCESS_SECRET = "test-access-secret-with-sufficient-entropy";
 		process.env.JWT_REFRESH_SECRET = "test-refresh-secret-with-sufficient-entropy";
 		cookieFixture = createCookieStore();
 		mocks.cookies.mockResolvedValue(cookieFixture.store);
-		authUser.passwordHash = await hashPassword("old-password");
-		mocks.findUserByUsername.mockResolvedValue(authUser);
-		mocks.findUserById.mockResolvedValue(authUser);
-		mocks.updateUserPassword.mockResolvedValue(undefined);
+		mocks.authenticateUser.mockResolvedValue(authUser);
+		mocks.changeUserPassword.mockResolvedValue({ success: true });
 	});
 
 	async function addValidSession(): Promise<void> {
@@ -79,25 +70,33 @@ describe("auth Server Actions", () => {
 		const result = await login({ username: "admin", password: "old-password" });
 
 		expect(result).toEqual({ data: { username: "admin" } });
+		expect(mocks.authenticateUser).toHaveBeenCalledWith({
+			password: "old-password",
+			username: "admin",
+		});
 		expect(cookieFixture.cookies.get(ACCESS_TOKEN_COOKIE)?.options?.httpOnly).toBe(true);
 		expect(cookieFixture.cookies.get(REFRESH_TOKEN_COOKIE)?.options?.httpOnly).toBe(true);
 	});
 
-	it("returns the same generic error for invalid or incomplete credentials", async () => {
-		const wrongPassword = await login({ username: "admin", password: "wrong" });
-		const missingUsername = await login({ username: "", password: "old-password" });
+	it("returns a generic error for incomplete credentials without calling the service", async () => {
+		const result = await login({ username: "", password: "old-password" });
 
-		expect(wrongPassword).toEqual({
+		expect(result).toEqual({ error: { message: "Username atau kata sandi salah." } });
+		expect(mocks.authenticateUser).not.toHaveBeenCalled();
+		expect(cookieFixture.cookies).toHaveLength(0);
+	});
+
+	it("returns the same generic error when authentication fails", async () => {
+		mocks.authenticateUser.mockResolvedValue(null);
+
+		await expect(login({ username: "admin", password: "wrong" })).resolves.toEqual({
 			error: { message: "Username atau kata sandi salah." },
 		});
-		expect(missingUsername).toEqual(wrongPassword);
 		expect(cookieFixture.cookies).toHaveLength(0);
 	});
 
 	it("rejects logout without a valid session", async () => {
-		await expect(logout()).resolves.toEqual({
-			error: { message: "UNAUTHORIZED" },
-		});
+		await expect(logout()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 	});
 
 	it("logs out a valid session by expiring both cookies", async () => {
@@ -114,7 +113,7 @@ describe("auth Server Actions", () => {
 		});
 	});
 
-	it("changes the password when the old password and confirmation are valid", async () => {
+	it("changes the password through the service for a valid session", async () => {
 		await addValidSession();
 
 		await expect(
@@ -124,43 +123,61 @@ describe("auth Server Actions", () => {
 				confirmPassword: "new-password",
 			}),
 		).resolves.toEqual({ data: { success: true } });
-
-		expect(mocks.updateUserPassword).toHaveBeenCalledOnce();
-		const updatedHash = mocks.updateUserPassword.mock.calls[0][1] as string;
-		await expect(compareHash("new-password", updatedHash)).resolves.toBe(true);
+		expect(mocks.changeUserPassword).toHaveBeenCalledWith({
+			newPassword: "new-password",
+			oldPassword: "old-password",
+			userId: authUser.id,
+		});
 	});
 
-	it("returns a field error for a wrong old password without ending the session", async () => {
+	it("maps an old-password mismatch to a field error without ending the session", async () => {
 		await addValidSession();
-
-		const result = await changePassword({
-			oldPassword: "wrong",
-			newPassword: "new-password",
-			confirmPassword: "new-password",
+		mocks.changeUserPassword.mockResolvedValue({
+			reason: "OLD_PASSWORD_MISMATCH",
+			success: false,
 		});
 
-		expect(result).toEqual({
+		await expect(
+			changePassword({
+				oldPassword: "wrong",
+				newPassword: "new-password",
+				confirmPassword: "new-password",
+			}),
+		).resolves.toEqual({
 			error: { fields: { oldPassword: "Kata sandi lama tidak cocok." } },
 		});
-		expect(mocks.updateUserPassword).not.toHaveBeenCalled();
 		expect(cookieFixture.cookies.get(ACCESS_TOKEN_COOKIE)?.value).not.toBe("");
+	});
+
+	it("returns unauthorized when the session user no longer exists", async () => {
+		await addValidSession();
+		mocks.changeUserPassword.mockResolvedValue({
+			reason: "USER_NOT_FOUND",
+			success: false,
+		});
+
+		await expect(
+			changePassword({
+				oldPassword: "old-password",
+				newPassword: "new-password",
+				confirmPassword: "new-password",
+			}),
+		).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 	});
 
 	it("returns a field error when confirmation differs", async () => {
 		await addValidSession();
 
-		const result = await changePassword({
-			oldPassword: "old-password",
-			newPassword: "new-password",
-			confirmPassword: "different-password",
+		await expect(
+			changePassword({
+				oldPassword: "old-password",
+				newPassword: "new-password",
+				confirmPassword: "different-password",
+			}),
+		).resolves.toEqual({
+			error: { fields: { confirmPassword: "Konfirmasi kata sandi tidak cocok." } },
 		});
-
-		expect(result).toEqual({
-			error: {
-				fields: { confirmPassword: "Konfirmasi kata sandi tidak cocok." },
-			},
-		});
-		expect(mocks.updateUserPassword).not.toHaveBeenCalled();
+		expect(mocks.changeUserPassword).not.toHaveBeenCalled();
 	});
 
 	it("checks authorization before changing a password", async () => {
@@ -171,11 +188,6 @@ describe("auth Server Actions", () => {
 				confirmPassword: "new-password",
 			}),
 		).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		expect(mocks.findUserById).not.toHaveBeenCalled();
+		expect(mocks.changeUserPassword).not.toHaveBeenCalled();
 	});
 });
-
-async function compareHash(password: string, hash: string): Promise<boolean> {
-	const { comparePassword } = await import("@/shared/auth/password");
-	return comparePassword(password, hash);
-}

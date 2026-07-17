@@ -7,6 +7,8 @@ export const loginSchema = z.object({
 	username: z.string().trim().min(1, "Wajib diisi."),
 });
 
+export type LoginInput = z.infer<typeof loginSchema>;
+
 export const changePasswordSchema = z
 	.object({
 		confirmPassword: requiredPassword,
@@ -19,14 +21,4 @@ export const changePasswordSchema = z
 		path: ["confirmPassword"],
 	});
 
-export function validationFields(error: z.ZodError): Record<string, string> {
-	const fields: Record<string, string> = {};
-	for (const issue of error.issues) {
-		const field = issue.path[0];
-		if (typeof field === "string" && !fields[field]) {
-			fields[field] = issue.message;
-		}
-	}
-
-	return fields;
-}
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

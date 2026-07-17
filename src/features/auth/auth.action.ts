@@ -1,21 +1,18 @@
 "use server";
 
 import {
+	type ChangePasswordInput,
 	changePasswordSchema,
+	type LoginInput,
 	loginSchema,
-	validationFields,
-} from "@/features/auth/domain/validation";
-import {
-	findUserById,
-	findUserByUsername,
-	updateUserPassword,
-} from "@/features/auth/infrastructure/user-repository";
-import { comparePassword, hashPassword } from "@/shared/auth/password";
+} from "@/features/auth/auth.schema";
+import { authenticateUser, changeUserPassword } from "@/features/auth/auth.services";
 import {
 	clearServerSession,
 	getServerSession,
 	setServerSession,
 } from "@/shared/auth/server-session";
+import { validateWithZod } from "@/shared/validation/zod";
 
 const INVALID_CREDENTIALS_MESSAGE = "Username atau kata sandi salah.";
 const UNAUTHORIZED = { error: { message: "UNAUTHORIZED" } } as const;
@@ -29,14 +26,14 @@ type ChangePasswordResult =
 	| { error: { fields: Record<string, string> } }
 	| { error: { message: "UNAUTHORIZED" } };
 
-export async function login(data: { password: string; username: string }): Promise<LoginResult> {
-	const parsed = loginSchema.safeParse(data);
-	if (!parsed.success) {
+export async function login(data: LoginInput): Promise<LoginResult> {
+	const validation = validateWithZod(loginSchema, data);
+	if (!validation.success) {
 		return { error: { message: INVALID_CREDENTIALS_MESSAGE } };
 	}
 
-	const user = await findUserByUsername(parsed.data.username);
-	if (!user || !(await comparePassword(parsed.data.password, user.passwordHash))) {
+	const user = await authenticateUser(validation.data);
+	if (!user) {
 		return { error: { message: INVALID_CREDENTIALS_MESSAGE } };
 	}
 
@@ -54,34 +51,31 @@ export async function logout(): Promise<LogoutResult> {
 	return { data: { success: true } };
 }
 
-export async function changePassword(data: {
-	confirmPassword: string;
-	newPassword: string;
-	oldPassword: string;
-}): Promise<ChangePasswordResult> {
+export async function changePassword(data: ChangePasswordInput): Promise<ChangePasswordResult> {
 	const session = await getServerSession();
 	if (!session) {
 		return UNAUTHORIZED;
 	}
 
-	const parsed = changePasswordSchema.safeParse(data);
-	if (!parsed.success) {
-		return { error: { fields: validationFields(parsed.error) } };
+	const validation = validateWithZod(changePasswordSchema, data);
+	if (!validation.success) {
+		return { error: { fields: validation.fields } };
 	}
 
-	const user = await findUserById(session.userId);
-	if (!user) {
-		return UNAUTHORIZED;
-	}
+	const result = await changeUserPassword({
+		newPassword: validation.data.newPassword,
+		oldPassword: validation.data.oldPassword,
+		userId: session.userId,
+	});
+	if (!result.success) {
+		if (result.reason === "USER_NOT_FOUND") {
+			return UNAUTHORIZED;
+		}
 
-	const oldPasswordMatches = await comparePassword(parsed.data.oldPassword, user.passwordHash);
-	if (!oldPasswordMatches) {
 		return {
 			error: { fields: { oldPassword: "Kata sandi lama tidak cocok." } },
 		};
 	}
 
-	const passwordHash = await hashPassword(parsed.data.newPassword);
-	await updateUserPassword(user.id, passwordHash);
 	return { data: { success: true } };
 }
