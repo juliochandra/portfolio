@@ -21,8 +21,9 @@ React Hook Form 7 · Vitest 4 · Playwright 1 · Biome 2.
 ```bash
 npm install
 cp .env.example .env
-# isi DATABASE_URL & R2_* di .env dengan nilai proyek Anda sendiri
+# isi DATABASE_URL, R2_*, ADMIN_USERNAME & ADMIN_PASSWORD di .env dengan nilai Anda sendiri
 npx prisma migrate dev
+npx prisma db seed
 ```
 
 ## Perintah
@@ -40,6 +41,7 @@ npx prisma migrate dev
 | `npx prisma migrate dev` | Menjalankan migrasi database |
 | `npx prisma generate` | Meng-generate Prisma Client (otomatis lewat `postinstall`) |
 | `npx prisma studio` | Membuka GUI database |
+| `npx prisma db seed` | Membuat akun admin awal (sekali, aman diulang) |
 | `npm run r2:verify` | Verifikasi upload & baca berkas percobaan ke bucket R2 |
 | `npm run r2:cleanup` | Menghapus berkas percobaan `r2:verify` dari bucket |
 

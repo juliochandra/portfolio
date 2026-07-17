@@ -11,3 +11,9 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id           String @id @default(cuid())
+  username     String @unique @db.VarChar(50)
+  passwordHash String
+}
