@@ -83,3 +83,14 @@ model Skill {
 
   projects Project[]
 }
+
+model Media {
+  id        String   @id @default(cuid())
+  fileName  String   @db.VarChar(255)
+  objectKey String   @unique @db.VarChar(255)
+  url       String   @db.VarChar(500)
+  mimeType  String   @db.VarChar(100)
+  extension String   @db.VarChar(20)
+  size      Int
+  createdAt DateTime @default(now())
+}
