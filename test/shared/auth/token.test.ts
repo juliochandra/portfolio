@@ -1,11 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveSessionTokens } from "@/shared/auth/session";
-import {
-	signAccessToken,
-	signRefreshToken,
-	verifyAccessToken,
-	verifyRefreshToken,
-} from "@/shared/auth/token";
+import { signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken } from "@/shared/auth/token";
 
 describe("JWT auth tokens", () => {
 	const originalEnv = process.env;
