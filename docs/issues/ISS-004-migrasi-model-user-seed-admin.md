@@ -20,9 +20,12 @@ foto/dst., yang statis di kode, pm_01 D007).
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint di issue ini — murni migrasi skema database & seed
-data. Endpoint autentikasi (masuk, keluar, ubah kata sandi) yang memakai
-tabel ini dikerjakan terpisah di ISS-012.
+Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
+database & seed data. Autentikasi (SA-22 masuk, SA-23 keluar, SA-21
+ubah kata sandi) yang memakai tabel ini dikerjakan terpisah di ISS-012
+— seluruhnya Server Action, termasuk masuk & keluar (v2.8, D-021
+`docs/techlead_01_architecture.md`; sebelum v2.8, masuk/keluar sempat
+berupa Route Handler EP-07/EP-08, kini dicabut).
 
 ## Aturan Validasi
 
@@ -97,7 +100,8 @@ terbentuk.*
       `passwordHash` ter-hash Bcrypt.
 
 **Out of Scope**
-- Endpoint masuk/keluar/verifikasi sesi/ubah kata sandi — ISS-012.
+- Server Action masuk/keluar/ubah kata sandi (SA-22, SA-23, SA-21) &
+  pelindung sesi (`middleware.ts`) — ISS-012.
 - Halaman Masuk & Password (SCR-08, SCR-19) — ISS-031, ISS-040.
 - Registrasi akun publik/mandiri — tidak ada di kontrak (Assumption BA
   A-005).
@@ -126,8 +130,8 @@ terbentuk.*
 
 ## Referensi
 
-- **Kontrak endpoint:** Tidak ada — issue ini tanpa endpoint (lihat
-  ISS-012 untuk kontrak Auth EP-07/EP-08).
+- **Kontrak endpoint:** Tidak ada — issue ini tanpa endpoint/Server
+  Action (lihat ISS-012 untuk kontrak Server Action SA-21/SA-22/SA-23).
 - **Skema & aturan data:** ENT-08 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** Assumption BA A-005, F-06.10 —
   `docs/ba_01_feature.md`

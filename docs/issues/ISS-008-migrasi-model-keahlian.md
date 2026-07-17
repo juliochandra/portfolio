@@ -13,15 +13,17 @@
 Fondasi data Keahlian: menambahkan model `Skill` (ENT-04) ke skema
 Prisma — dilayani sorotan Home (F-01.2, ringkasan keahlian ke pengunjung)
 dan pengelolaan oleh admin (F-06.4, tambah/ubah/hapus nama + ikon).
-Seluruh endpoint & layar Keahlian (baca publik lewat EP-17, kelola lewat
-SCR-14) menunggu tabel ini tersedia. Issue ini **tidak** membuat endpoint
-apa pun — murni skema & migrasi.
+Seluruh endpoint publik (ISS-016), endpoint baca admin & Server Action
+kelola (ISS-019), dan layar Keahlian (SCR-14) menunggu tabel ini
+tersedia. Issue ini **tidak** membuat endpoint atau Server Action apa
+pun — murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint di issue ini — murni migrasi skema database. Endpoint
-baca publik (EP-17) & kelola Keahlian (SCR-14) yang memakai tabel ini
-dikerjakan terpisah (fase backend berikutnya).
+Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
+database. Endpoint baca publik (EP-17 — ISS-016), endpoint baca admin &
+Server Action kelola create/update/delete (EP-11, SA-07/08/09 —
+ISS-019) yang memakai tabel ini dikerjakan terpisah.
 
 ## Aturan Validasi
 
@@ -39,11 +41,12 @@ dicatat di sini sebagai referensi skema:
 
 ## Aturan Bisnis
 
-- CRUD penuh lewat SCR-14 (tambah/ubah/hapus), selalu konfirmasi sebelum
-  hapus (AC-014-2).
+- CRUD penuh lewat SCR-14 (Server Action tambah/ubah/hapus,
+  SA-07/08/09), selalu konfirmasi sebelum hapus (AC-014-2).
 - Dibaca publik lewat EP-17 — bagian Keahlian di Home (SCR-01)
-  menampilkan seluruh baris ke pengunjung, terpisah dari EP-11 yang
-  khusus admin. Endpoint itu sendiri di luar cakupan issue ini.
+  menampilkan seluruh baris ke pengunjung, terpisah dari EP-11 (baca
+  daftar kelola) yang khusus admin. Kedua endpoint di luar cakupan
+  issue ini.
 - Relasi ke `Project` adalah m-n implisit Prisma (tabel penghubung
   otomatis) — tanpa model join manual.
 - Data identitas pemilik (About Hero, Engineering Principles,
@@ -53,9 +56,12 @@ dicatat di sini sebagai referensi skema:
 ## Auth & Permission
 
 Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint kelola Keahlian (tambah/ubah/hapus) hanya `admin` ber-sesi;
-endpoint baca (EP-17) publik tanpa sesi — diterapkan di issue endpoint
-terkait, mengikuti matriks akses `docs/techlead_03_api_contract.md`.
+Endpoint baca daftar kelola (EP-11) & Server Action tambah/ubah/hapus
+(SA-07/08/09) hanya `admin` ber-sesi — mutasi admin selalu Server
+Action, bukan endpoint REST (D-012,
+`docs/techlead_01_architecture.md`); endpoint baca publik (EP-17) tanpa
+sesi. Diterapkan di ISS-016/ISS-019, mengikuti matriks akses
+`docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
 
@@ -108,8 +114,8 @@ terbentuk.*
 - [ ] Migrasi dijalankan (setelah Project juga ada di skema).
 
 **Out of Scope**
-- Endpoint baca publik (EP-17) & kelola Keahlian (SCR-14) — issue
-  backend berikutnya.
+- Endpoint baca publik (EP-17 — ISS-016), endpoint baca admin & Server
+  Action kelola create/update/delete (EP-11, SA-07/08/09 — ISS-019).
 - Layar kelola Keahlian & form — issue frontend.
 - Model `Project` (sisi lain relasi m-n) — migrasi tersendiri (ISS-005).
 - Data identitas pemilik (About Hero dst.) — statis di kode (pm_01 D007).
@@ -137,6 +143,8 @@ terbentuk.*
 
 ## Referensi
 
-- **Kontrak endpoint:** Tidak ada — issue ini tanpa endpoint.
+- **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-016 untuk
+  EP-17, ISS-019 untuk EP-11 & Server Action SA-07/08/09) —
+  `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-04 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-01.2, F-06.4 — `docs/ba_01_feature.md`

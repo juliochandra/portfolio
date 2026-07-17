@@ -13,15 +13,17 @@
 Fondasi data halaman Portfolio: menambahkan model `Project` (ENT-01) ke
 skema Prisma — entitas inti yang dilayani sorotan Home (F-01.2), daftar &
 detail Portfolio (F-03), dan pengelolaan project oleh admin (F-06.2).
-Seluruh endpoint & layar Project (ISS-013, ISS-032 dst.) menunggu tabel
-ini tersedia. Issue ini **tidak** membuat endpoint atau seed data apa
-pun — murni skema & migrasi.
+Seluruh endpoint publik (ISS-013), Server Action kelola (ISS-017), dan
+layar Project (ISS-032 dst.) menunggu tabel ini tersedia. Issue ini
+**tidak** membuat endpoint, Server Action, atau seed data apa pun —
+murni skema & migrasi.
 
 ## Spesifikasi Endpoint
 
-Tidak ada endpoint di issue ini — murni migrasi skema database. Endpoint
-baca/kelola Project yang memakai tabel ini dikerjakan terpisah (fase
-backend berikutnya).
+Tidak ada endpoint/Server Action di issue ini — murni migrasi skema
+database. Endpoint baca publik (EP-01, EP-02 — ISS-013), endpoint baca
+admin & Server Action kelola create/update/delete (EP-09, SA-01/02/03 —
+ISS-017) yang memakai tabel ini dikerjakan terpisah.
 
 ## Aturan Validasi
 
@@ -62,9 +64,12 @@ dicatat di sini sebagai referensi skema:
 ## Auth & Permission
 
 Tidak ada — issue ini tidak membuka endpoint apa pun (murni skema).
-Endpoint baca Project bersifat publik untuk `status: Terbit`; endpoint
-kelola (tambah/ubah/hapus) hanya `admin` ber-sesi — diterapkan di issue
-endpoint terkait, mengikuti matriks akses `docs/techlead_03_api_contract.md`.
+Endpoint baca Project (EP-01/02 publik, EP-09 admin) bersifat publik
+untuk `status: Terbit`, admin untuk daftar kelola; Server Action
+tambah/ubah/hapus (SA-01/02/03) hanya `admin` ber-sesi — mutasi admin
+selalu Server Action, bukan endpoint REST (D-012,
+`docs/techlead_01_architecture.md`). Diterapkan di issue endpoint
+terkait, mengikuti matriks akses `docs/techlead_03_api_contract.md`.
 
 ## Perubahan Database
 
@@ -100,6 +105,15 @@ model Project {
 Termasuk `enum PublishStatus` (`DRAFT`/`PUBLISHED`/`ARCHIVED`) bila belum
 ada dari migrasi lain — dipakai bersama `Post` (ISS-006).
 
+**Catatan urutan kerja:** field relasi `tags`/`skills` mensyaratkan model
+`Tag` (ISS-007) & `Skill` (ISS-008) juga ada di `schema.prisma` — Prisma
+memvalidasi seluruh file sekaligus. Kedelapan migrasi entitas *tidak*
+saling `blocked_by` (G-006/A-006 `docs/memory/issue.yaml`): model boleh
+ditulis mengikuti nomor issue masing-masing, tetapi `prisma migrate dev`
+yang sesungguhnya baru dijalankan setelah entitas-entitas yang saling
+berelasi (Project, Post, Tag, Skill) lengkap di file — bukan satu migrate
+terpisah per issue.
+
 ## Catatan Performa
 
 - Index `slug` (lookup detail Portfolio via URL).
@@ -124,7 +138,8 @@ terbentuk.*
 - [ ] Migrasi dijalankan; index `slug` dan `status, publishedAt` aktif.
 
 **Out of Scope**
-- Endpoint baca/kelola Project — issue backend berikutnya.
+- Endpoint baca Project (EP-01, EP-02, EP-09) & Server Action kelola
+  create/update/delete (SA-01/02/03) — issue backend berikutnya.
 - Layar Portfolio (daftar/detail) & form kelola — issue frontend.
 - Model `Tag`/`Skill` (sisi lain relasi m-n) — migrasi masing-masing.
 - Seed data Project — tidak ada Data Awal untuk entitas ini (beda dari
@@ -152,7 +167,9 @@ terbentuk.*
 
 ## Referensi
 
-- **Kontrak endpoint:** Tidak ada — issue ini tanpa endpoint.
+- **Kontrak endpoint:** Tidak ada di issue ini (lihat ISS-013 untuk
+  EP-01/02, ISS-017 untuk EP-09 & Server Action SA-01/02/03) —
+  `docs/techlead_03_api_contract.md`
 - **Skema & aturan data:** ENT-01 — `docs/techlead_02_database.md`
 - **Perilaku yang ditopang:** F-01.2, F-03, F-06.2 —
   `docs/ba_01_feature.md`

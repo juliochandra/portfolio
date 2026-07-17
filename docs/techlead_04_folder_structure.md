@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Tanggal** | 2026-07-17 |
-| **Versi** | 2.6 |
+| **Versi** | 2.8 |
 | **Sumber** | Set BA v6.0 + Set UI/UX v1.8 |
 | **Konteks** | docs/pm_01_project.md v1.6 (+ techlead-agent/TEAM_STACK.md sebagai sumber struktur) |
 | **Disusun oleh** | Tech Lead Agent |
@@ -47,6 +47,23 @@ dari `admin/` jadi `app/login/` tersendiri (D-019) — `admin/layout.tsx`
 `middleware.ts` yang menjaga `/admin/*` otomatis tidak lagi menyentuh rute
 login. Pemetaan fitur→folder tidak berubah (SCR-08 tetap dilayani
 `features/auth/`).
+**Revisi v2.7** (permintaan user — nama folder lintas fitur kurang jelas
+maksudnya): `core/` diganti nama jadi **`shared/`** (D-020) — isi & aturan
+penempatan sama sekali tidak berubah (tetap komponen UI dasar, config,
+klien Prisma, util JWT, util penyimpanan R2), murni penggantian nama agar
+langsung menjelaskan diri sendiri ("dipakai bersama lintas fitur") tanpa
+perlu buka dokumen untuk tahu maksudnya. Perubahan permanen di
+`techlead-agent/TEAM_STACK.md` (Struktur Folder Baku) — berlaku untuk
+proyek ini dan seluruh proyek berikutnya yang memakai TEAM_STACK.md.
+**Revisi v2.8** (permintaan user — login/keluar dipanggil dari form,
+konsisten pola Server Action seluruh admin lain): `EP-07`/`EP-08` (Route
+Handler `login`/`logout`) pensiun, digantikan `SA-22`/`SA-23` di
+`features/auth/` (D-021 techlead_01) — `app/api/` kehilangan 2 rute
+(`admin/login`, `admin/logout`), pemetaan folder lain tidak berubah. Turut
+ditemukan & diperbaiki: bullet Aturan Penempatan yang keliru menyebut util
+verifikasi JWT hidup di `features/auth/` (seharusnya `shared/`, konsisten
+Pohon Folder & Pemetaan Folder yang dari awal sudah benar — leftover yang
+baru ketahuan saat meninjau folder ini untuk revisi EP-07/08).
 
 ## Prinsip & Sumber Struktur
 
@@ -55,7 +72,7 @@ login. Pemetaan fitur→folder tidak berubah (SCR-08 tetap dilayani
   tanpa merancang kerangka baru.
 - **Aturan dependensi:** presentation → application → domain; infrastructure
   mengimplementasi kebutuhan domain/application. Tidak ada import antar-fitur
-  langsung — yang lintas fitur naik ke `core/`. `middleware.ts` menjaga route
+  langsung — yang lintas fitur naik ke `shared/`. `middleware.ts` menjaga route
   `/admin/*` lewat verifikasi JWT sebelum halaman dirender (AC-009-3) — sejak
   v2.6, `login/` (SCR-08) dipindah keluar dari `admin/` ke `app/login/`
   sehingga TIDAK lagi tercakup pola `/admin/*` sama sekali; matcher
@@ -90,7 +107,8 @@ src/
 │   │   ├── contact/               ← SCR-15 (Contact Info, list CRUD)
 │   │   ├── messages/              ← SCR-16 (Messages, tab Active/Archived)
 │   │   └── password/              ← SCR-19 (Password — ubah kata sandi sendiri)
-│   └── api/                     ← Route Handlers (baca publik/admin + auth, EP-01..EP-17)
+│   └── api/                     ← Route Handlers (baca publik/admin, EP-01..EP-17 —
+│                                   EP-07/EP-08 pensiun v2.8, D-021, kini SA-22/SA-23)
 ├── features/
 │   ├── projects/                ← F-01.2, F-03, F-06.2 (ENT-01, EP-01, EP-02, EP-09, SA-01..03)
 │   ├── posts/                    ← F-01.2, F-04, F-06.3 (ENT-02, EP-03, EP-04, EP-10, SA-04..06)
@@ -99,11 +117,12 @@ src/
 │   ├── media/                    ← F-06.9 (ENT-05, EP-15, SA-19..20) — folder baru v2.2
 │   ├── contact/                  ← F-05.1, F-06.5 (ENT-07, EP-05, EP-12, SA-10..12)
 │   ├── messages/                 ← F-05.2, F-06.7 (ENT-06, EP-06, EP-13, SA-13..15)
-│   ├── auth/                     ← F-06.1, F-06.6, F-06.10 (ENT-08, EP-07, EP-08, SA-21 changePassword)
+│   ├── auth/                     ← F-06.1, F-06.6, F-06.10 (ENT-08, SA-21 changePassword,
+│   │                                SA-22 login, SA-23 logout — v2.8, D-021)
 │   └── dashboard/                ← ringkasan lintas fitur (EP-16) — SCR-09; query agregat saja, tanpa entitas sendiri
 │       (tiap fitur: domain/ · application/ · infrastructure/ · presentation/;
 │        Server Action fitur itu hidup di application/actions.ts, ditandai "use server")
-├── core/                        ← lintas fitur: komponen UI dasar (C-01..C-21 design system),
+├── shared/                      ← lintas fitur: komponen UI dasar (C-01..C-21 design system),
 │                                   config, klien Prisma, util verifikasi JWT,
 │                                   util penyimpanan berkas — S3 SDK ke Cloudflare R2, v2.4 (dipakai projects/posts/media saat unggah)
 └── middleware.ts                ← penjaga route /admin/* (JWT)
@@ -128,7 +147,7 @@ public/                          ← aset statis termasuk berkas CV (pm_01 D007)
 | `app/(public)/` | presentation — route group, layout bersama tanpa mengubah URL | SCR-01..SCR-07 (5 halaman publik) |
 | `app/login/` | presentation — halaman berdiri sendiri, UI sendiri (v2.6) | SCR-08 |
 | `app/admin/` | presentation — layout bersama MenuAdmin (C-10), berlaku utuh tanpa pengecualian sejak login dipindah (v2.6) | SCR-09..SCR-19 |
-| `core/` | shared lintas fitur (ui dasar, config, klien Prisma, util auth, util penyimpanan berkas — S3 SDK ke R2, v2.4) | lintas fitur |
+| `shared/` | shared lintas fitur (ui dasar, config, klien Prisma, util auth, util penyimpanan berkas — S3 SDK ke R2, v2.4) | lintas fitur |
 | `middleware.ts` | penjaga route terlindung | F-06 (semua sub-fitur) |
 | `prisma/` | skema data & seed | ENT-01..ENT-08 |
 | `public/` | aset statis (termasuk CV) | F-07 |
@@ -172,18 +191,18 @@ public/                          ← aset statis termasuk berkas CV (pm_01 D007)
 - **Tag** (v2.2): CRUD penuh kini milik `features/tags/domain` &
   `application` (SA-16..18) — mencabut aturan lama "upsert-by-name inline"
   (G-014 BA). `features/projects` & `features/posts` hanya **membaca** daftar
-  Tag yang ada (via `core/` atau memanggil query baca `features/tags`
+  Tag yang ada (via `shared/` atau memanggil query baca `features/tags`
   lewat lapisan `application`, bukan import langsung antar-fitur) untuk
   mengisi pemilih `tagIds` di form — pola identik `skillIds`.
 - **Media** (v2.2): `features/media/domain` & `application` memiliki
   kapabilitas kelola galeri (list, `uploadMedia` mandiri, `deleteMedia` —
   SA-19..20). Unggahan **inline** dari form Project/Tulisan tetap memanggil
-  util penyimpanan berkas bersama di `core/` (mengunggah ke R2 + mencatat
-  baris `Media`, v2.4) — `core/` menampung mekanisme berbagi, `features/media`
+  util penyimpanan berkas bersama di `shared/` (mengunggah ke R2 + mencatat
+  baris `Media`, v2.4) — `shared/` menampung mekanisme berbagi, `features/media`
   menampung kapabilitas admin-facing (galeri) di atasnya.
 - **Akses berkas** (baca/tulis gambar unggahan) hanya dari `infrastructure/`
   fitur `projects`, `posts`, dan `media`, lewat util penyimpanan bersama di
-  `core/` — util ini membungkus S3 SDK ke Cloudflare R2 (v2.4, D-017
+  `shared/` — util ini membungkus S3 SDK ke Cloudflare R2 (v2.4, D-017
   techlead_01; sebelumnya operasi filesystem lokal v2.0-v2.3), dipanggil
   dari dalam Server Action masing-masing fitur, tidak pernah langsung dari
   komponen UI. CV **tidak** melalui jalur ini — berkas statis di `public/`,
@@ -192,14 +211,21 @@ public/                          ← aset statis termasuk berkas CV (pm_01 D007)
   agregat lintas `Project`/`Post`/`Tag`/`Skill`) + `presentation` — tanpa
   `domain` sendiri karena tidak ada aturan bisnis, murni pemanis tampilan
   non-blocking (pm_01 D009, G-009 uiux).
-- **Verifikasi JWT** (masuk, keluar, decode token) hidup di
-  `features/auth/domain` & `application` — `middleware.ts` dan **setiap
-  Server Action** memanggilnya untuk verifikasi sesi independen (D-012),
-  tidak menduplikasi logika.
+- **Verifikasi JWT** (sign, verify, decode token) adalah util generik di
+  `shared/` (bukan `features/auth/`, diperbaiki v2.8 — sebelumnya keliru
+  menyebut `features/auth/domain`/`application`, padahal fitur lain tidak
+  boleh mengimpor `features/auth/` langsung, lihat aturan di bawah)
+  — `middleware.ts` dan **setiap Server Action** (lintas fitur)
+  memanggilnya untuk verifikasi sesi independen (D-012), tidak
+  menduplikasi logika. `features/auth/` sendiri hanya berisi logika
+  spesifik fitur Auth (`login`/`logout`/`changePassword`, SA-21..23) yang
+  turut memakai util `shared/` ini.
 - Komponen UI dari design system (C-01..C-21) yang dipakai ≥ 2 fitur →
-  `core/`; komponen yang khas satu fitur tetap di `presentation/` fitur itu.
+  `shared/`; komponen yang khas satu fitur tetap di `presentation/` fitur itu.
 - Tidak ada import antar-fitur langsung (mis. `features/posts` tidak mengimpor
-  dari `features/projects`) — kebutuhan lintas fitur naik ke `core/`.
+  dari `features/projects`) — kebutuhan lintas fitur naik ke `shared/`.
+- **`core/` → `shared/`** (v2.7, D-020): rename murni, tanpa perubahan isi/
+  aturan penempatan — nama lama sengaja tidak dipertahankan sebagai alias.
 
 ## Handoff
 

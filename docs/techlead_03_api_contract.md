@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Tanggal** | 2026-07-17 |
-| **Versi** | 2.6 |
+| **Versi** | 2.8 |
 | **Sumber** | Set BA v6.0 + Set UI/UX v1.8 |
 | **Konteks** | docs/pm_01_project.md v1.6 |
 | **Disusun oleh** | Tech Lead Agent |
@@ -13,8 +13,9 @@
 
 ## Ringkasan
 
-**17 Route Handler** (9 publik, 8 baca admin) + **21 Server Action** (mutasi
-admin) — revisi total dari v1.0 (21 Route Handler, tanpa Server Action).
+**15 Route Handler** (baca publik & baca admin) + **23 Server Action**
+(mutasi admin + autentikasi masuk/keluar) — revisi total dari v1.0 (21
+Route Handler, tanpa Server Action).
 **v2.2** (referensi desain admin client, pm_01 D009) menambah 3 Route
 Handler (EP-14 Tags, EP-15 Media, EP-16 Dashboard) + 6 Server Action
 (Tag CRUD, Media unggah/hapus, ubah kata sandi) — tanpa tabel baru, lihat
@@ -62,6 +63,21 @@ dokumen ini juga sama sekali tidak tersentuh — `EP-07 POST /api/admin/login`
 tidak berubah (jalur API terpisah dari path halaman FE); murni struktur
 folder presentation.
 
+**v2.7** (D-020 techlead_01, folder `core/` diganti nama jadi `shared/`):
+dokumen ini juga sama sekali tidak tersentuh — tidak ada endpoint/Server
+Action yang berubah; murni rename folder presentation/shared.
+
+**v2.8** (D-021 techlead_01, permintaan eksplisit user): `EP-07` (`POST
+/api/admin/login`) & `EP-08` (`POST /api/admin/logout`) **dicabut** sebagai
+Route Handler, digantikan **`SA-22` (`login`)** & **`SA-23` (`logout`)**
+sebagai Server Action — dipanggil langsung dari form (React Hook Form +
+action), konsisten dengan seluruh form admin lain. Route Handler kini
+murni baca (publik & admin), tanpa pengecualian untuk autentikasi. `SA-22`
+jadi satu-satunya Server Action yang **tidak** memverifikasi sesi yang
+sudah ada — ia justru membuat sesi baru (lihat Konvensi § Auth).
+`EP-07`/`EP-08` tidak dipakai ulang untuk ID lain; `EP-09` dst. tidak
+berubah nomor.
+
 ## Konvensi
 
 - **Route Handler (baca & auth):** respons JSON `{ data }` / `{ error }` —
@@ -77,12 +93,15 @@ folder presentation.
 - **Auth:** JWT access token (httpOnly cookie) untuk seluruh operasi admin;
   tanpa token valid → `401` (Route Handler) / `{ error: { message:
   "UNAUTHORIZED" } }` (Server Action). Refresh token (httpOnly cookie
-  terpisah) memperbarui access token; keduanya dihapus saat keluar. Middleware
-  `/admin/*` menolak akses tanpa sesi sebelum halaman dirender (AC-009-3);
-  **setiap Server Action tetap memverifikasi sesi ulang secara independen**
-  di dalam fungsinya (tidak semata mengandalkan middleware — praktik baku
-  Next.js Server Actions, karena action dapat dipanggil langsung tanpa lewat
-  render halaman).
+  terpisah) memperbarui access token; keduanya diset oleh `SA-22` (`login`)
+  dan dihapus oleh `SA-23` (`logout`) — v2.8, D-021. Middleware `/admin/*`
+  menolak akses tanpa sesi sebelum halaman dirender (AC-009-3); **setiap
+  Server Action tetap memverifikasi sesi ulang secara independen** di dalam
+  fungsinya (tidak semata mengandalkan middleware — praktik baku Next.js
+  Server Actions, karena action dapat dipanggil langsung tanpa lewat render
+  halaman) — **kecuali `SA-22` (`login`)**, satu-satunya pengecualian: ia
+  dipanggil justru untuk *membuat* sesi baru, bukan memverifikasi yang sudah
+  ada, sehingga tidak ada sesi untuk diverifikasi ulang saat dipanggil.
 - **Bentuk error validasi:** `{ error: { fields: Record<string, string> } }`
   (Route Handler: HTTP `422`; Server Action: dikembalikan sebagai nilai
   `Result` biasa, bukan exception) — konsisten dengan state error-validasi
@@ -108,10 +127,10 @@ folder presentation.
 |-----------|:------:|:-----:|
 | Baca publik: EP-01 s.d. EP-05, EP-17 | ✅ | ✅ |
 | Kirim pesan: EP-06 | ✅ | ✅ |
-| Masuk: EP-07 | ✅ | — |
-| Keluar: EP-08 | — | ✅ |
 | Baca admin: EP-09 s.d. EP-16 | — | ✅ |
-| Seluruh Server Action: SA-01 s.d. SA-21 | — | ✅ |
+| Masuk: SA-22 (`login`) | ✅ | — |
+| Keluar: SA-23 (`logout`) | — | ✅ |
+| Server Action lain: SA-01 s.d. SA-21 | — | ✅ |
 
 ## Route Handlers — Publik
 
@@ -233,48 +252,6 @@ kotak pesan admin (AC-008-1, EP-11).
 
 **Respons gagal:**
 - `422` — bagian wajib kosong, per bagian (AC-008-2): bentuk error Konvensi.
-
-## Route Handlers — Autentikasi
-
-### EP-07 — Masuk admin
-
-| | |
-|---|---|
-| **Method & Path** | `POST /api/admin/login` |
-| **Melayani** | SCR-08 · FLOW-10 |
-| **Menopang** | AC-009-1, AC-009-2 |
-| **Akses** | public |
-| **Entitas** | ENT-08 |
-
-**Request:**
-
-```ts
-{ username: string; password: string }
-```
-
-**Respons sukses `200`:** access & refresh token diset sebagai httpOnly
-cookie; admin diarahkan ke Dashboard (SCR-09, AC-009-1).
-
-```ts
-{ data: { username: string } }
-```
-
-**Respons gagal:**
-- `401` — data masuk salah, pesan generik tanpa merinci bagian mana yang
-  salah (AC-009-2): `{ error: { message: string } }`.
-
-### EP-08 — Keluar
-
-| | |
-|---|---|
-| **Method & Path** | `POST /api/admin/logout` |
-| **Melayani** | SCR-09 · FLOW-17 |
-| **Menopang** | AC-016-1 |
-| **Akses** | admin |
-| **Entitas** | ENT-08 |
-
-**Respons sukses `200`:** cookie access & refresh token dihapus; sesi
-berakhir (AC-016-1).
 
 ## Route Handlers — Baca Admin
 
@@ -435,6 +412,55 @@ disembunyikan bersama sorotan lain saat kosong (AC-019-3).
 ```ts
 { data: { id: string; name: string; icon: string | null }[] }
 ```
+
+## Server Actions — Autentikasi (F-06.1, F-06.6)
+
+*v2.8 (D-021): menggantikan `EP-07`/`EP-08` (Route Handler, dicabut).*
+
+### SA-22 — `login`
+
+| | |
+|---|---|
+| **Melayani** | SCR-08 · FLOW-10 |
+| **Menopang** | AC-009-1, AC-009-2 |
+| **Entitas** | ENT-08 |
+
+```ts
+async function login(data: {
+  username: string
+  password: string
+}): Promise<
+  | { data: { username: string } }
+  | { error: { message: string } }
+>
+```
+
+**Sukses:** `username`/`password` cocok dengan `User` tersimpan (Bcrypt
+compare) → access & refresh token diset sebagai httpOnly cookie; admin
+diarahkan ke Dashboard (AC-009-1).
+
+**Gagal:** data masuk salah → `{ error: { message: string } }`, pesan
+generik tanpa merinci bagian mana yang salah (AC-009-2).
+
+> **Pengecualian sesi:** berbeda dari seluruh Server Action lain di
+> dokumen ini, `login` **tidak** memverifikasi sesi yang sudah ada — ia
+> dipanggil justru untuk membuat sesi baru, dari halaman `/login` yang
+> memang publik (D-019).
+
+### SA-23 — `logout`
+
+| | |
+|---|---|
+| **Melayani** | SCR-09 · FLOW-17 |
+| **Menopang** | AC-016-1 |
+| **Entitas** | ENT-08 |
+
+```ts
+async function logout(): Promise<{ data: { success: true } }>
+```
+
+**Sukses:** cookie access & refresh token dihapus; sesi berakhir, halaman
+admin tidak lagi dapat diakses tanpa masuk kembali (AC-016-1).
 
 ## Server Actions — Kelola Project (F-06.2)
 
