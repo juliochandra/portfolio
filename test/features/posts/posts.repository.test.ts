@@ -1,0 +1,54 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PublishStatus } from "@/generated/prisma/client";
+
+const mocks = vi.hoisted(() => ({
+	findFirst: vi.fn(),
+	findMany: vi.fn(),
+}));
+
+vi.mock("@/shared/database/prisma", () => ({
+	prisma: {
+		post: {
+			findFirst: mocks.findFirst,
+			findMany: mocks.findMany,
+		},
+	},
+}));
+
+import { findPostBySlug, findPosts } from "@/features/posts/posts.repository";
+
+describe("post repository", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mocks.findMany.mockResolvedValue([]);
+		mocks.findFirst.mockResolvedValue(null);
+	});
+
+	it("filters, orders, and limits post list queries", async () => {
+		await findPosts({ limit: 3, status: PublishStatus.PUBLISHED });
+
+		expect(mocks.findMany).toHaveBeenCalledWith(
+			expect.objectContaining({
+				orderBy: { publishedAt: "desc" },
+				take: 3,
+				where: { status: PublishStatus.PUBLISHED },
+			}),
+		);
+	});
+
+	it("queries post detail by slug and status together", async () => {
+		await findPostBySlug({
+			slug: "memahami-server-actions",
+			status: PublishStatus.PUBLISHED,
+		});
+
+		expect(mocks.findFirst).toHaveBeenCalledWith(
+			expect.objectContaining({
+				where: {
+					slug: "memahami-server-actions",
+					status: PublishStatus.PUBLISHED,
+				},
+			}),
+		);
+	});
+});
