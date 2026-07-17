@@ -31,16 +31,17 @@ describe("auth services", () => {
 	});
 
 	it("authenticates valid credentials without exposing the password hash", async () => {
-		await expect(authenticateUser({ username: "admin", password: "old-password" })).resolves.toEqual({
-			id: authUser.id,
-			username: authUser.username,
-		});
+		await expect(
+			authenticateUser({ username: "admin", password: "old-password" }),
+		).resolves.toEqual({ id: authUser.id, username: authUser.username });
 	});
 
 	it("rejects unknown users and wrong passwords", async () => {
 		mocks.findUserByUsername.mockResolvedValueOnce(null);
 
-		await expect(authenticateUser({ username: "unknown", password: "old-password" })).resolves.toBeNull();
+		await expect(
+			authenticateUser({ username: "unknown", password: "old-password" }),
+		).resolves.toBeNull();
 		await expect(authenticateUser({ username: "admin", password: "wrong" })).resolves.toBeNull();
 	});
 

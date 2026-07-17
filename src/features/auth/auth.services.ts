@@ -1,4 +1,8 @@
-import { findUserById, findUserByUsername, updateUserPassword } from "@/features/auth/auth.repository";
+import {
+	findUserById,
+	findUserByUsername,
+	updateUserPassword,
+} from "@/features/auth/auth.repository";
 import type { LoginInput } from "@/features/auth/auth.schema";
 import { comparePassword, hashPassword } from "@/shared/auth/password";
 

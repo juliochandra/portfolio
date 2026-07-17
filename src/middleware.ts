@@ -1,5 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { ACCESS_TOKEN_COOKIE, accessCookieOptions, expiredCookieOptions, REFRESH_TOKEN_COOKIE } from "@/shared/auth/cookies";
+import {
+	ACCESS_TOKEN_COOKIE,
+	accessCookieOptions,
+	expiredCookieOptions,
+	REFRESH_TOKEN_COOKIE,
+} from "@/shared/auth/cookies";
 import { resolveSessionTokens } from "@/shared/auth/session";
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {

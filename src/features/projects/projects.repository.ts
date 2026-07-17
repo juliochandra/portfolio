@@ -22,7 +22,10 @@ export type ProjectListRecord = Prisma.ProjectGetPayload<{ select: typeof projec
 
 export type ProjectDetailRecord = Prisma.ProjectGetPayload<{ select: typeof projectDetailSelect }>;
 
-export function findProjects(params: { limit?: number; status: PublishStatus }): Promise<ProjectListRecord[]> {
+export function findProjects(params: {
+	limit?: number;
+	status: PublishStatus;
+}): Promise<ProjectListRecord[]> {
 	return prisma.project.findMany({
 		orderBy: { publishedAt: "desc" },
 		select: projectListSelect,
@@ -31,7 +34,10 @@ export function findProjects(params: { limit?: number; status: PublishStatus }):
 	});
 }
 
-export function findProjectBySlug(params: { slug: string; status: PublishStatus }): Promise<ProjectDetailRecord | null> {
+export function findProjectBySlug(params: {
+	slug: string;
+	status: PublishStatus;
+}): Promise<ProjectDetailRecord | null> {
 	return prisma.project.findFirst({
 		select: projectDetailSelect,
 		where: { slug: params.slug, status: params.status },

@@ -1,6 +1,8 @@
 import type { z } from "zod";
 
-export type ZodValidationResult<T> = { data: T; success: true } | { fields: Record<string, string>; success: false };
+export type ZodValidationResult<T> =
+	| { data: T; success: true }
+	| { fields: Record<string, string>; success: false };
 
 export function validateWithZod<TSchema extends z.ZodType>(
 	schema: TSchema,

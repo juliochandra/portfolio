@@ -1,5 +1,10 @@
 /** biome-ignore-all lint/suspicious/noConsole: <console> */
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+	DeleteObjectCommand,
+	GetObjectCommand,
+	PutObjectCommand,
+	S3Client,
+} from "@aws-sdk/client-s3";
 import { env } from "../src/shared/env.ts";
 
 const key = "verify-r2/smoke-test.txt";

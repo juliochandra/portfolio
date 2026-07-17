@@ -13,7 +13,9 @@ async function main(): Promise<void> {
 			password: env.ADMIN_PASSWORD,
 		});
 		console.log(
-			result === "created" ? `Akun admin awal dibuat: ${env.ADMIN_USERNAME}` : "Akun admin sudah ada, seed dilewati.",
+			result === "created"
+				? `Akun admin awal dibuat: ${env.ADMIN_USERNAME}`
+				: "Akun admin sudah ada, seed dilewati.",
 		);
 	} finally {
 		await prisma.$disconnect();

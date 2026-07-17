@@ -13,8 +13,14 @@ export type ResolvedSession = {
 	};
 };
 
-export async function createSessionTokens(session: { userId: string; username: string }): Promise<SessionTokens> {
-	const [accessToken, refreshToken] = await Promise.all([signAccessToken(session), signRefreshToken(session)]);
+export async function createSessionTokens(session: {
+	userId: string;
+	username: string;
+}): Promise<SessionTokens> {
+	const [accessToken, refreshToken] = await Promise.all([
+		signAccessToken(session),
+		signRefreshToken(session),
+	]);
 
 	return { accessToken, refreshToken };
 }

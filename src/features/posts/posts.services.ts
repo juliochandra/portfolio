@@ -1,4 +1,9 @@
-import { findPostBySlug, findPosts, type PostDetailRecord, type PostListRecord } from "@/features/posts/posts.repository";
+import {
+	findPostBySlug,
+	findPosts,
+	type PostDetailRecord,
+	type PostListRecord,
+} from "@/features/posts/posts.repository";
 import { PublishStatus } from "@/generated/prisma/client";
 
 export type PublicPostListItem = {
@@ -18,7 +23,9 @@ export type PublicPostDetail = PublicPostListItem & {
 
 type PostWithPublishedAt<TPost extends PostListRecord> = TPost & { publishedAt: Date };
 
-function hasPublishedAt<TPost extends PostListRecord>(post: TPost): post is PostWithPublishedAt<TPost> {
+function hasPublishedAt<TPost extends PostListRecord>(
+	post: TPost,
+): post is PostWithPublishedAt<TPost> {
 	return post.publishedAt !== null;
 }
 
@@ -42,7 +49,9 @@ function toPublicPostDetail(post: PostWithPublishedAt<PostDetailRecord>): Public
 	};
 }
 
-export async function getPublishedPosts(params?: { limit?: number }): Promise<PublicPostListItem[]> {
+export async function getPublishedPosts(params?: {
+	limit?: number;
+}): Promise<PublicPostListItem[]> {
 	const posts = await findPosts({
 		limit: params?.limit,
 		status: PublishStatus.PUBLISHED,
