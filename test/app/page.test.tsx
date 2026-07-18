@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Page from "@/app/page";
+import Page from "@/app/(public)/page";
 
 describe("Home page", () => {
 	it("renders without crashing", () => {
