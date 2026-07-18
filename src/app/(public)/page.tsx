@@ -1,5 +1,5 @@
-import { Section } from "@/shared/components/Section";
 import type { Metadata } from "next";
+import { Section } from "@/shared/components/Section";
 export const metadata: Metadata = { title: "Home", description: "Portfolio developer profesional." };
 export default function Home() {
 	return (
