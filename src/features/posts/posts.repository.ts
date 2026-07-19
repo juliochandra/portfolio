@@ -5,7 +5,9 @@ const postListSelect = {
 	description: true,
 	id: true,
 	publishedAt: true,
+	readingTime: true,
 	slug: true,
+	tags: { select: { name: true } },
 	thumbnailImage: true,
 	title: true,
 } satisfies Prisma.PostSelect;
@@ -13,8 +15,6 @@ const postListSelect = {
 const postDetailSelect = {
 	...postListSelect,
 	content: true,
-	readingTime: true,
-	tags: { select: { name: true } },
 } satisfies Prisma.PostSelect;
 
 const adminPostListSelect = {

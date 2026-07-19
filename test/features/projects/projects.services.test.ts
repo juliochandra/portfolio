@@ -14,8 +14,10 @@ vi.mock("@/features/projects/projects.repository", () => ({
 import { getPublishedProjectBySlug, getPublishedProjects } from "@/features/projects/projects.services";
 
 const projectRecord = {
+	demoUrl: "https://demo.example.com",
 	description: "Gambaran project",
 	id: "project-1",
+	repositoryUrl: null,
 	skills: [
 		{ icon: "SiNextdotjs", name: "Next.js" },
 		{ icon: null, name: "Incomplete legacy skill" },
@@ -50,7 +52,7 @@ describe("project public services", () => {
 		mocks.findProjectBySlug.mockResolvedValue({
 			...projectRecord,
 			content: "Deskripsi lengkap dan peran saya.",
-			demoUrl: null,
+			demoUrl: "https://demo.example.com",
 			repositoryUrl: "https://github.com/example/project",
 			tags: [{ name: "Portfolio" }],
 		});

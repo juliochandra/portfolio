@@ -20,8 +20,10 @@ export type ProjectSkill = {
 };
 
 export type PublicProjectListItem = {
+	demoUrl: string | null;
 	description: string | null;
 	id: string;
+	repositoryUrl: string | null;
 	skills: ProjectSkill[];
 	slug: string;
 	thumbnailImage: string | null;
@@ -30,8 +32,6 @@ export type PublicProjectListItem = {
 
 export type PublicProjectDetail = PublicProjectListItem & {
 	content: string;
-	demoUrl: string | null;
-	repositoryUrl: string | null;
 	tags: { name: string }[];
 };
 
@@ -48,8 +48,10 @@ function completeSkills(skills: ProjectListRecord["skills"]): ProjectSkill[] {
 
 function toPublicProjectListItem(project: ProjectListRecord): PublicProjectListItem {
 	return {
+		demoUrl: project.demoUrl,
 		description: project.description,
 		id: project.id,
+		repositoryUrl: project.repositoryUrl,
 		skills: completeSkills(project.skills),
 		slug: project.slug,
 		thumbnailImage: project.thumbnailImage,
@@ -61,8 +63,6 @@ function toPublicProjectDetail(project: ProjectDetailRecord): PublicProjectDetai
 	return {
 		...toPublicProjectListItem(project),
 		content: project.content,
-		demoUrl: project.demoUrl,
-		repositoryUrl: project.repositoryUrl,
 		tags: project.tags,
 	};
 }

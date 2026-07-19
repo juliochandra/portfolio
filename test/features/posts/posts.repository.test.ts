@@ -30,6 +30,7 @@ describe("post repository", () => {
 		expect(mocks.findMany).toHaveBeenCalledWith(
 			expect.objectContaining({
 				orderBy: { publishedAt: "desc" },
+				select: expect.objectContaining({ readingTime: true, tags: { select: { name: true } } }),
 				take: 3,
 				where: { status: PublishStatus.PUBLISHED },
 			}),
