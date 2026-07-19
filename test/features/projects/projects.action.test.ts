@@ -13,8 +13,10 @@ vi.mock("@/features/projects/projects.services", () => ({
 import { getProjectBySlug, getProjects } from "@/features/projects/projects.action";
 
 const projectListItem = {
+	demoUrl: "https://demo.example.com",
 	description: "Gambaran project",
 	id: "project-1",
+	repositoryUrl: null,
 	skills: [{ icon: "SiNextdotjs", name: "Next.js" }],
 	slug: "portfolio-developer",
 	thumbnailImage: null,
@@ -24,7 +26,7 @@ const projectListItem = {
 const projectDetail = {
 	...projectListItem,
 	content: "Deskripsi lengkap dan peran saya.",
-	demoUrl: "https://example.com",
+	demoUrl: "https://demo.example.com",
 	repositoryUrl: null,
 	tags: [{ name: "Portfolio" }],
 };

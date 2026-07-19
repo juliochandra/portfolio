@@ -16,7 +16,9 @@ const postListItem = {
 	description: "Ringkasan tulisan",
 	id: "post-1",
 	publishedAt: "2026-07-17T02:00:00.000Z",
+	readingTime: 7,
 	slug: "memahami-server-actions",
+	tags: [{ name: "Next.js" }],
 	thumbnailImage: null,
 	title: "Memahami Server Actions",
 };
@@ -24,8 +26,6 @@ const postListItem = {
 const postDetail = {
 	...postListItem,
 	content: "Isi lengkap tulisan.",
-	readingTime: 7,
-	tags: [{ name: "Next.js" }],
 };
 
 describe("post public Server Actions", () => {

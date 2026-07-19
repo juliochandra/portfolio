@@ -31,7 +31,7 @@ export function Navbar() {
 	};
 	return (
 		<header className="navbar sticky top-0 z-50 border-border border-b shadow-lg">
-			<nav className="mx-auto flex min-h-14 items-center px-6 lg:px-16">
+			<nav className="mx-auto flex min-h-16 max-w-7xl items-center px-6 lg:px-8">
 				<Link href="/" className="font-bold text-2xl tracking-[-0.08em] sm:text-3xl" onClick={closeMenu}>
 					JULIO.
 				</Link>

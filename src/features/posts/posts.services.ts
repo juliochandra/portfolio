@@ -18,15 +18,15 @@ export type PublicPostListItem = {
 	description: string | null;
 	id: string;
 	publishedAt: string;
+	readingTime: number;
 	slug: string;
+	tags: { name: string }[];
 	thumbnailImage: string | null;
 	title: string;
 };
 
 export type PublicPostDetail = PublicPostListItem & {
 	content: string;
-	readingTime: number;
-	tags: { name: string }[];
 };
 
 export type AdminPostListItem = {
@@ -47,7 +47,9 @@ function toPublicPostListItem(post: PostWithPublishedAt<PostListRecord>): Public
 		description: post.description,
 		id: post.id,
 		publishedAt: post.publishedAt.toISOString(),
+		readingTime: post.readingTime,
 		slug: post.slug,
+		tags: post.tags,
 		thumbnailImage: post.thumbnailImage,
 		title: post.title,
 	};
@@ -57,8 +59,6 @@ function toPublicPostDetail(post: PostWithPublishedAt<PostDetailRecord>): Public
 	return {
 		...toPublicPostListItem(post),
 		content: post.content,
-		readingTime: post.readingTime,
-		tags: post.tags,
 	};
 }
 

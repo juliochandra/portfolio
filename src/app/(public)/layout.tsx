@@ -6,7 +6,7 @@ export default function PublicLayout({ children }: Readonly<{ children: React.Re
 		<div id="top" className="min-h-screen">
 			<Navbar />
 			<main>{children}</main>
-			<div className="min-h-[200vh]"></div>
+			{/* <div className="min-h-[200vh]"></div> */}
 			<Footer />
 		</div>
 	);

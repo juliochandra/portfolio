@@ -2,8 +2,10 @@ import type { Prisma, PublishStatus } from "@/generated/prisma/client";
 import { prisma } from "@/shared/database/prisma";
 
 const projectListSelect = {
+	demoUrl: true,
 	description: true,
 	id: true,
+	repositoryUrl: true,
 	skills: { select: { icon: true, name: true } },
 	slug: true,
 	thumbnailImage: true,
@@ -13,8 +15,6 @@ const projectListSelect = {
 const projectDetailSelect = {
 	...projectListSelect,
 	content: true,
-	demoUrl: true,
-	repositoryUrl: true,
 	tags: { select: { name: true } },
 } satisfies Prisma.ProjectSelect;
 

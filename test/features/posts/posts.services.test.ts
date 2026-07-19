@@ -18,7 +18,9 @@ const postRecord = {
 	description: "Ringkasan tulisan",
 	id: "post-1",
 	publishedAt,
+	readingTime: 7,
 	slug: "memahami-server-actions",
+	tags: [{ name: "Next.js" }],
 	thumbnailImage: null,
 	title: "Memahami Server Actions",
 };
@@ -54,8 +56,6 @@ describe("post public services", () => {
 		mocks.findPostBySlug.mockResolvedValue({
 			...postRecord,
 			content: "Isi lengkap tulisan.",
-			readingTime: 7,
-			tags: [{ name: "Next.js" }],
 		});
 
 		const post = await getPublishedPostBySlug("memahami-server-actions");
@@ -80,8 +80,6 @@ describe("post public services", () => {
 			...postRecord,
 			content: "Isi lengkap tulisan.",
 			publishedAt: null,
-			readingTime: 7,
-			tags: [],
 		});
 		await expect(getPublishedPostBySlug("inconsistent-post")).resolves.toBeNull();
 	});
