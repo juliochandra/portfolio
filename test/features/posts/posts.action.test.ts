@@ -26,6 +26,8 @@ const postListItem = {
 const postDetail = {
 	...postListItem,
 	content: "Isi lengkap tulisan.",
+	nextPost: null,
+	prevPost: null,
 };
 
 describe("post public Server Actions", () => {

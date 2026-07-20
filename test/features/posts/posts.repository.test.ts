@@ -15,7 +15,7 @@ vi.mock("@/shared/database/prisma", () => ({
 	},
 }));
 
-import { findPostBySlug, findPosts } from "@/features/posts/posts.repository";
+import { findNextPublishedPost, findPostBySlug, findPosts, findPreviousPublishedPost } from "@/features/posts/posts.repository";
 
 describe("post repository", () => {
 	beforeEach(() => {
@@ -49,6 +49,26 @@ describe("post repository", () => {
 					slug: "memahami-server-actions",
 					status: PublishStatus.PUBLISHED,
 				},
+			}),
+		);
+	});
+
+	it("queries adjacent published posts around a publication date", async () => {
+		const publishedAt = new Date("2026-07-17T02:00:00.000Z");
+
+		await findPreviousPublishedPost({ publishedAt });
+		expect(mocks.findFirst).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				orderBy: { publishedAt: "asc" },
+				where: { publishedAt: { gt: publishedAt }, status: PublishStatus.PUBLISHED },
+			}),
+		);
+
+		await findNextPublishedPost({ publishedAt });
+		expect(mocks.findFirst).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				orderBy: { publishedAt: "desc" },
+				where: { publishedAt: { lt: publishedAt }, status: PublishStatus.PUBLISHED },
 			}),
 		);
 	});
