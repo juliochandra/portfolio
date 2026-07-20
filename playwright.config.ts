@@ -13,7 +13,8 @@ export default defineConfig({
 	},
 	projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 	webServer: {
-		command: "npm run build && npm run start",
+		// biome-ignore lint/nursery/noSecrets: Command only clears generated build output before the E2E server starts.
+		command: "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\" && npm run build && npm run start",
 		url: "http://localhost:3000",
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000,
