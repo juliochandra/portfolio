@@ -1,10 +1,12 @@
 import {
 	createPostRecord,
 	deletePostRecord,
+	findNextPublishedPost,
 	findPostBySlug,
 	findPostForAdmin,
 	findPosts,
 	findPostsAdmin,
+	findPreviousPublishedPost,
 	isPostSlugAvailable,
 	type PostDetailRecord,
 	type PostListRecord,
@@ -27,6 +29,13 @@ export type PublicPostListItem = {
 
 export type PublicPostDetail = PublicPostListItem & {
 	content: string;
+	nextPost: PublicPostNavigationItem | null;
+	prevPost: PublicPostNavigationItem | null;
+};
+
+export type PublicPostNavigationItem = {
+	slug: string;
+	title: string;
 };
 
 export type AdminPostListItem = {
@@ -55,10 +64,20 @@ function toPublicPostListItem(post: PostWithPublishedAt<PostListRecord>): Public
 	};
 }
 
-function toPublicPostDetail(post: PostWithPublishedAt<PostDetailRecord>): PublicPostDetail {
+function toPublicPostNavigationItem(post: { slug: string; title: string } | null): PublicPostNavigationItem | null {
+	return post ? { slug: post.slug, title: post.title } : null;
+}
+
+function toPublicPostDetail(
+	post: PostWithPublishedAt<PostDetailRecord>,
+	previousPost: PublicPostNavigationItem | null,
+	nextPost: PublicPostNavigationItem | null,
+): PublicPostDetail {
 	return {
 		...toPublicPostListItem(post),
 		content: post.content,
+		nextPost,
+		prevPost: previousPost,
 	};
 }
 
@@ -72,7 +91,15 @@ export async function getPublishedPosts(params?: { limit?: number }): Promise<Pu
 
 export async function getPublishedPostBySlug(slug: string): Promise<PublicPostDetail | null> {
 	const post = await findPostBySlug({ slug, status: PublishStatus.PUBLISHED });
-	return post && hasPublishedAt(post) ? toPublicPostDetail(post) : null;
+	if (!post || !hasPublishedAt(post)) {
+		return null;
+	}
+
+	const [previousPost, nextPost] = await Promise.all([
+		findPreviousPublishedPost({ publishedAt: post.publishedAt }),
+		findNextPublishedPost({ publishedAt: post.publishedAt }),
+	]);
+	return toPublicPostDetail(post, toPublicPostNavigationItem(previousPost), toPublicPostNavigationItem(nextPost));
 }
 
 export async function getPostsAdmin(): Promise<AdminPostListItem[]> {

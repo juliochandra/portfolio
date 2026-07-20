@@ -1,4 +1,4 @@
-import type { Prisma, PublishStatus } from "@/generated/prisma/client";
+import { type Prisma, PublishStatus } from "@/generated/prisma/client";
 import { prisma } from "@/shared/database/prisma";
 
 const postListSelect = {
@@ -17,6 +17,11 @@ const postDetailSelect = {
 	content: true,
 } satisfies Prisma.PostSelect;
 
+const postNavigationSelect = {
+	slug: true,
+	title: true,
+} satisfies Prisma.PostSelect;
+
 const adminPostListSelect = {
 	createdAt: true,
 	id: true,
@@ -33,6 +38,8 @@ const adminPostSelect = {
 export type PostListRecord = Prisma.PostGetPayload<{ select: typeof postListSelect }>;
 
 export type PostDetailRecord = Prisma.PostGetPayload<{ select: typeof postDetailSelect }>;
+
+export type PostNavigationRecord = Prisma.PostGetPayload<{ select: typeof postNavigationSelect }>;
 
 export type AdminPostListRecord = Prisma.PostGetPayload<{ select: typeof adminPostListSelect }>;
 
@@ -63,6 +70,28 @@ export function findPostBySlug(params: { slug: string; status: PublishStatus }):
 	return prisma.post.findFirst({
 		select: postDetailSelect,
 		where: { slug: params.slug, status: params.status },
+	});
+}
+
+export function findPreviousPublishedPost(params: { publishedAt: Date }): Promise<PostNavigationRecord | null> {
+	return prisma.post.findFirst({
+		orderBy: { publishedAt: "asc" },
+		select: postNavigationSelect,
+		where: {
+			publishedAt: { gt: params.publishedAt },
+			status: PublishStatus.PUBLISHED,
+		},
+	});
+}
+
+export function findNextPublishedPost(params: { publishedAt: Date }): Promise<PostNavigationRecord | null> {
+	return prisma.post.findFirst({
+		orderBy: { publishedAt: "desc" },
+		select: postNavigationSelect,
+		where: {
+			publishedAt: { lt: params.publishedAt },
+			status: PublishStatus.PUBLISHED,
+		},
 	});
 }
 

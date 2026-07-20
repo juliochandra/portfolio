@@ -3,11 +3,15 @@ import { PublishStatus } from "@/generated/prisma/client";
 
 const mocks = vi.hoisted(() => ({
 	findPostBySlug: vi.fn(),
+	findNextPublishedPost: vi.fn(),
+	findPreviousPublishedPost: vi.fn(),
 	findPosts: vi.fn(),
 }));
 
 vi.mock("@/features/posts/posts.repository", () => ({
 	findPostBySlug: mocks.findPostBySlug,
+	findNextPublishedPost: mocks.findNextPublishedPost,
+	findPreviousPublishedPost: mocks.findPreviousPublishedPost,
 	findPosts: mocks.findPosts,
 }));
 
@@ -29,6 +33,8 @@ describe("post public services", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.findPosts.mockResolvedValue([postRecord]);
+		mocks.findNextPublishedPost.mockResolvedValue(null);
+		mocks.findPreviousPublishedPost.mockResolvedValue(null);
 	});
 
 	it("queries published posts and serializes their publication date", async () => {
@@ -66,9 +72,24 @@ describe("post public services", () => {
 		});
 		expect(post).toMatchObject({
 			content: "Isi lengkap tulisan.",
+			nextPost: null,
 			publishedAt: publishedAt.toISOString(),
+			prevPost: null,
 			readingTime: 7,
 			tags: [{ name: "Next.js" }],
+		});
+		expect(mocks.findPreviousPublishedPost).toHaveBeenCalledWith({ publishedAt });
+		expect(mocks.findNextPublishedPost).toHaveBeenCalledWith({ publishedAt });
+	});
+
+	it("includes the adjacent published posts in detail navigation", async () => {
+		mocks.findPostBySlug.mockResolvedValue({ ...postRecord, content: "Isi lengkap tulisan." });
+		mocks.findPreviousPublishedPost.mockResolvedValue({ slug: "tulisan-baru", title: "Tulisan Baru" });
+		mocks.findNextPublishedPost.mockResolvedValue({ slug: "tulisan-lama", title: "Tulisan Lama" });
+
+		await expect(getPublishedPostBySlug(postRecord.slug)).resolves.toMatchObject({
+			nextPost: { slug: "tulisan-lama", title: "Tulisan Lama" },
+			prevPost: { slug: "tulisan-baru", title: "Tulisan Baru" },
 		});
 	});
 
