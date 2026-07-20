@@ -15,6 +15,7 @@ const projectListSelect = {
 const projectDetailSelect = {
 	...projectListSelect,
 	content: true,
+	publishedAt: true,
 	tags: { select: { name: true } },
 } satisfies Prisma.ProjectSelect;
 

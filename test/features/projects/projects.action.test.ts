@@ -27,6 +27,7 @@ const projectDetail = {
 	...projectListItem,
 	content: "Deskripsi lengkap dan peran saya.",
 	demoUrl: "https://demo.example.com",
+	publishedAt: new Date("2026-07-20T00:00:00.000Z"),
 	repositoryUrl: null,
 	tags: [{ name: "Portfolio" }],
 };

@@ -53,6 +53,7 @@ describe("project public services", () => {
 			...projectRecord,
 			content: "Deskripsi lengkap dan peran saya.",
 			demoUrl: "https://demo.example.com",
+			publishedAt: new Date("2026-07-20T00:00:00.000Z"),
 			repositoryUrl: "https://github.com/example/project",
 			tags: [{ name: "Portfolio" }],
 		});
@@ -65,6 +66,7 @@ describe("project public services", () => {
 		});
 		expect(project).toMatchObject({
 			content: "Deskripsi lengkap dan peran saya.",
+			publishedAt: new Date("2026-07-20T00:00:00.000Z"),
 			repositoryUrl: "https://github.com/example/project",
 			tags: [{ name: "Portfolio" }],
 		});
