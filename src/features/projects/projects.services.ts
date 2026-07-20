@@ -32,6 +32,7 @@ export type PublicProjectListItem = {
 
 export type PublicProjectDetail = PublicProjectListItem & {
 	content: string;
+	publishedAt: Date | null;
 	tags: { name: string }[];
 };
 
@@ -63,6 +64,7 @@ function toPublicProjectDetail(project: ProjectDetailRecord): PublicProjectDetai
 	return {
 		...toPublicProjectListItem(project),
 		content: project.content,
+		publishedAt: project.publishedAt,
 		tags: project.tags,
 	};
 }

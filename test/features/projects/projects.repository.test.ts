@@ -45,6 +45,7 @@ describe("project repository", () => {
 
 		expect(mocks.findFirst).toHaveBeenCalledWith(
 			expect.objectContaining({
+				select: expect.objectContaining({ publishedAt: true }),
 				where: {
 					slug: "portfolio-developer",
 					status: PublishStatus.PUBLISHED,
