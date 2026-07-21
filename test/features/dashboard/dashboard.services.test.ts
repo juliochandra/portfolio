@@ -15,7 +15,14 @@ describe("dashboard service", () => {
 			skills: 4,
 			tags: 5,
 			recentPosts: [
-				{ createdAt: new Date("2026-07-18T00:00:00.000Z"), id: "p", status: "DRAFT", thumbnailImage: null, title: "Post" },
+				{
+					createdAt: new Date("2026-07-18T00:00:00.000Z"),
+					id: "p",
+					status: "DRAFT",
+					tags: [{ name: "react" }],
+					thumbnailImage: null,
+					title: "Post",
+				},
 			],
 			recentProjects: [],
 		});
@@ -28,5 +35,7 @@ describe("dashboard service", () => {
 				recentPosts: [expect.objectContaining({ createdAt: "2026-07-18T00:00:00.000Z" })],
 			}),
 		);
+
+		expect((await getDashboardSummary()).recentPosts[0]?.tags).toEqual([{ name: "react" }]);
 	});
 });
