@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createPostRecord, findPostsAdmin, isPostSlugAvailable, updatePostRecord } from "@/features/posts/posts.repository";
 import { PublishStatus } from "@/generated/prisma/client";
 
 const mocks = vi.hoisted(() => ({
@@ -20,8 +21,6 @@ vi.mock("@/shared/database/prisma", () => ({
 		},
 	},
 }));
-
-import { createPostRecord, findPostsAdmin, isPostSlugAvailable, updatePostRecord } from "@/features/posts/posts.repository";
 
 const input = {
 	content: "Isi tulisan",
