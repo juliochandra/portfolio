@@ -2,16 +2,34 @@ import type { Prisma } from "@/generated/prisma/client";
 import { PublishStatus } from "@/generated/prisma/client";
 import { prisma } from "@/shared/database/prisma";
 
-const recentSelect = { createdAt: true, id: true, status: true, thumbnailImage: true, title: true } satisfies Prisma.PostSelect;
-export type RecentRecord = Prisma.PostGetPayload<{ select: typeof recentSelect }>;
+const recentPostSelect = {
+	createdAt: true,
+	id: true,
+	status: true,
+	tags: { select: { name: true } },
+	thumbnailImage: true,
+	title: true,
+} satisfies Prisma.PostSelect;
+
+const recentProjectSelect = {
+	createdAt: true,
+	id: true,
+	skills: { select: { name: true } },
+	status: true,
+	thumbnailImage: true,
+	title: true,
+} satisfies Prisma.ProjectSelect;
+
+export type RecentPostRecord = Prisma.PostGetPayload<{ select: typeof recentPostSelect }>;
+export type RecentProjectRecord = Prisma.ProjectGetPayload<{ select: typeof recentProjectSelect }>;
 
 export async function getDashboardRecords(): Promise<{
 	posts: number;
 	projects: number;
 	publishedPosts: number;
 	publishedProjects: number;
-	recentPosts: RecentRecord[];
-	recentProjects: RecentRecord[];
+	recentPosts: RecentPostRecord[];
+	recentProjects: RecentProjectRecord[];
 	skills: number;
 	tags: number;
 }> {
@@ -22,8 +40,8 @@ export async function getDashboardRecords(): Promise<{
 		prisma.project.count({ where: { status: PublishStatus.PUBLISHED } }),
 		prisma.tag.count(),
 		prisma.skill.count(),
-		prisma.post.findMany({ orderBy: { createdAt: "desc" }, select: recentSelect, take: 5 }),
-		prisma.project.findMany({ orderBy: { createdAt: "desc" }, select: recentSelect, take: 5 }),
+		prisma.post.findMany({ orderBy: { createdAt: "desc" }, select: recentPostSelect, take: 5 }),
+		prisma.project.findMany({ orderBy: { createdAt: "desc" }, select: recentProjectSelect, take: 5 }),
 	]);
 	return { posts, projects, publishedPosts, publishedProjects, recentPosts, recentProjects, skills, tags };
 }
