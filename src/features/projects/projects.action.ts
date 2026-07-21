@@ -15,6 +15,7 @@ import {
 	createAdminProject,
 	deleteAdminProject,
 	getProjectsAdmin as getAdminProjects,
+	getProjectAdminById,
 	getPublishedProjectBySlug,
 	getPublishedProjects,
 	type PublicProjectDetail,
@@ -33,6 +34,10 @@ type GetProjectsResult = { data: PublicProjectListItem[] };
 type GetProjectBySlugResult = { data: PublicProjectDetail } | { error: { message: string } };
 
 type GetProjectsAdminResult = { data: Awaited<ReturnType<typeof getAdminProjects>> } | { error: { message: "UNAUTHORIZED" } };
+
+type GetProjectAdminResult =
+	| { data: NonNullable<Awaited<ReturnType<typeof getProjectAdminById>>> }
+	| { error: { message: "Project tidak ditemukan." | "UNAUTHORIZED" } };
 
 type ProjectMutationResult =
 	| { data: { id: string; slug: string } }
@@ -68,6 +73,18 @@ export async function getProjectsAdmin(): Promise<GetProjectsAdminResult> {
 	}
 
 	return { data: await getAdminProjects() };
+}
+
+export async function getProjectAdmin(id: string): Promise<GetProjectAdminResult> {
+	if (!(await getServerSession())) {
+		return UNAUTHORIZED;
+	}
+	if (!validateWithZod(projectIdSchema, id).success) {
+		return { error: { message: PROJECT_NOT_FOUND_MESSAGE } };
+	}
+
+	const project = await getProjectAdminById(id);
+	return project ? { data: project } : { error: { message: PROJECT_NOT_FOUND_MESSAGE } };
 }
 
 export async function createProject(formData: FormData): Promise<ProjectMutationResult> {

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
 	createAdminProject: vi.fn(),
 	deleteAdminProject: vi.fn(),
+	getProjectAdminById: vi.fn(),
 	getProjectsAdmin: vi.fn(),
 	getServerSession: vi.fn(),
 	updateAdminProject: vi.fn(),
@@ -14,13 +15,20 @@ vi.mock("@/shared/auth/server-session", () => ({
 vi.mock("@/features/projects/projects.services", () => ({
 	createAdminProject: mocks.createAdminProject,
 	deleteAdminProject: mocks.deleteAdminProject,
+	getProjectAdminById: mocks.getProjectAdminById,
 	getProjectsAdmin: mocks.getProjectsAdmin,
 	getPublishedProjectBySlug: vi.fn(),
 	getPublishedProjects: vi.fn(),
 	updateAdminProject: mocks.updateAdminProject,
 }));
 
-import { createProject, deleteProject, getProjectsAdmin, updateProject } from "@/features/projects/projects.action";
+import {
+	createProject,
+	deleteProject,
+	getProjectAdmin,
+	getProjectsAdmin,
+	updateProject,
+} from "@/features/projects/projects.action";
 import { PublishStatus } from "@/generated/prisma/client";
 
 function projectFormData(values: Partial<Record<string, string>> = {}): FormData {
@@ -44,6 +52,18 @@ describe("project admin Server Actions", () => {
 		vi.clearAllMocks();
 		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getProjectsAdmin.mockResolvedValue([]);
+		mocks.getProjectAdminById.mockResolvedValue({
+			content: "Isi project",
+			demoUrl: null,
+			description: "Deskripsi project",
+			id: "project-1",
+			repositoryUrl: null,
+			skillIds: ["skill-1"],
+			status: PublishStatus.DRAFT,
+			tagIds: ["tag-1"],
+			thumbnailImage: null,
+			title: "Project Baru",
+		});
 		mocks.createAdminProject.mockResolvedValue({ id: "project-1", slug: "project-baru" });
 		mocks.updateAdminProject.mockResolvedValue({ id: "project-1", slug: "project-baru" });
 		mocks.deleteAdminProject.mockResolvedValue({ id: "project-1" });
@@ -53,6 +73,7 @@ describe("project admin Server Actions", () => {
 		mocks.getServerSession.mockResolvedValue(null);
 
 		await expect(getProjectsAdmin()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
+		await expect(getProjectAdmin("project-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		await expect(createProject(projectFormData())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		await expect(updateProject("project-1", projectFormData({ status: "DRAFT" }))).resolves.toEqual({
 			error: { message: "UNAUTHORIZED" },
@@ -69,6 +90,13 @@ describe("project admin Server Actions", () => {
 		await expect(getProjectsAdmin()).resolves.toEqual({
 			data: [{ description: null, id: "project-1", status: "ARCHIVED", title: "Project Lama" }],
 		});
+	});
+
+	it("returns the complete project data required by the edit form", async () => {
+		await expect(getProjectAdmin("project-1")).resolves.toEqual({
+			data: expect.objectContaining({ id: "project-1", skillIds: ["skill-1"], tagIds: ["tag-1"] }),
+		});
+		expect(mocks.getProjectAdminById).toHaveBeenCalledWith("project-1");
 	});
 
 	it("validates form data and creates a draft by default", async () => {

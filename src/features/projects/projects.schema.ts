@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/nursery/noSecrets: <> */
 import { z } from "zod";
-import { PublishStatus } from "@/generated/prisma/client";
+import { publishStatuses } from "@/shared/publish-status";
 
 export const getProjectsParamsSchema = z
 	.object({
@@ -44,11 +44,11 @@ const projectInputSchema = z.object({
 });
 
 export const createProjectSchema = projectInputSchema.extend({
-	status: z.nativeEnum(PublishStatus).default(PublishStatus.DRAFT),
+	status: z.enum(publishStatuses).default("DRAFT"),
 });
 
 export const updateProjectSchema = projectInputSchema.extend({
-	status: z.nativeEnum(PublishStatus),
+	status: z.enum(publishStatuses),
 });
 
 export type CreateProjectInput = z.output<typeof createProjectSchema>;

@@ -4,6 +4,7 @@ import { PublishStatus } from "@/generated/prisma/client";
 const mocks = vi.hoisted(() => ({
 	createProjectRecord: vi.fn(),
 	deleteProjectRecord: vi.fn(),
+	findProjectDetailForAdmin: vi.fn(),
 	findProjectForAdmin: vi.fn(),
 	findProjectsAdmin: vi.fn(),
 	isProjectSlugAvailable: vi.fn(),
@@ -14,6 +15,7 @@ vi.mock("@/features/projects/projects.repository", () => ({
 	createProjectRecord: mocks.createProjectRecord,
 	deleteProjectRecord: mocks.deleteProjectRecord,
 	findProjectBySlug: vi.fn(),
+	findProjectDetailForAdmin: mocks.findProjectDetailForAdmin,
 	findProjectForAdmin: mocks.findProjectForAdmin,
 	findProjects: vi.fn(),
 	findProjectsAdmin: mocks.findProjectsAdmin,
@@ -24,6 +26,7 @@ vi.mock("@/features/projects/projects.repository", () => ({
 import {
 	createAdminProject,
 	deleteAdminProject,
+	getProjectAdminById,
 	getProjectsAdmin,
 	updateAdminProject,
 } from "@/features/projects/projects.services";
@@ -63,6 +66,25 @@ describe("project admin services", () => {
 		await expect(getProjectsAdmin()).resolves.toEqual([
 			{ description: null, id: "project-1", status: PublishStatus.DRAFT, title: "Project Baru" },
 		]);
+	});
+
+	it("maps project relations to selected IDs for the edit form", async () => {
+		mocks.findProjectDetailForAdmin.mockResolvedValue({
+			content: "Isi project",
+			demoUrl: null,
+			description: "Deskripsi project",
+			id: "project-1",
+			repositoryUrl: null,
+			skills: [{ id: "skill-1" }],
+			status: PublishStatus.DRAFT,
+			tags: [{ id: "tag-1" }],
+			thumbnailImage: null,
+			title: "Project Baru",
+		});
+
+		await expect(getProjectAdminById("project-1")).resolves.toEqual(
+			expect.objectContaining({ skillIds: ["skill-1"], tagIds: ["tag-1"] }),
+		);
 	});
 
 	it("creates a unique slug and publication timestamp for a published project", async () => {
