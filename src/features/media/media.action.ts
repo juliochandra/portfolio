@@ -1,9 +1,10 @@
 "use server";
 
-import { createMediaFolderSchema, mediaIdSchema, mediaUploadSchema } from "@/features/media/media.schema";
+import { createMediaFolderSchema, mediaFolderIdSchema, mediaIdSchema, mediaUploadSchema } from "@/features/media/media.schema";
 import {
 	createAdminMediaFolder,
 	deleteAdminMedia,
+	deleteAdminMediaFolder,
 	getMediaFolders as getFolders,
 	getMediaGallery as getGallery,
 	uploadAdminMedia,
@@ -19,6 +20,9 @@ type CreateFolderResult =
 	| { data: { id: string; name: string } }
 	| { error: { fields: Record<string, string> } }
 	| { error: { message: "UNAUTHORIZED" } };
+type DeleteFolderResult =
+	| { data: { id: string } }
+	| { error: { message: "Folder tidak ditemukan." | "Folder hanya dapat dihapus jika kosong." | "UNAUTHORIZED" } };
 type UploadResult =
 	| { data: { id: string; url: string } }
 	| { error: { fields: Record<string, string> } }
@@ -41,6 +45,15 @@ export async function createMediaFolder(data: unknown): Promise<CreateFolderResu
 	if (!validation.success) return { error: { fields: validation.fields } };
 	const folder = await createAdminMediaFolder(validation.data);
 	return folder === "name_taken" ? { error: { fields: { name: "Nama folder sudah digunakan." } } } : { data: folder };
+}
+
+export async function deleteMediaFolder(id: string): Promise<DeleteFolderResult> {
+	if (!(await getServerSession())) return UNAUTHORIZED;
+	if (!validateWithZod(mediaFolderIdSchema, id).success) return { error: { message: "Folder tidak ditemukan." } };
+	const folder = await deleteAdminMediaFolder(id);
+	if (folder === "folder_not_found") return { error: { message: "Folder tidak ditemukan." } };
+	if (folder === "folder_not_empty") return { error: { message: "Folder hanya dapat dihapus jika kosong." } };
+	return { data: folder };
 }
 
 export async function uploadMedia(formData: FormData): Promise<UploadResult> {

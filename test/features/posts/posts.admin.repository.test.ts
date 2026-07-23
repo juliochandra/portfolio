@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	countPostsAdmin,
 	createPostRecord,
 	findPostDetailForAdmin,
 	findPostsAdmin,
@@ -10,6 +11,7 @@ import { PublishStatus } from "@/generated/prisma/client";
 
 const mocks = vi.hoisted(() => ({
 	create: vi.fn(),
+	count: vi.fn(),
 	delete: vi.fn(),
 	findMany: vi.fn(),
 	findUnique: vi.fn(),
@@ -19,6 +21,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/shared/database/prisma", () => ({
 	prisma: {
 		post: {
+			count: mocks.count,
 			create: mocks.create,
 			delete: mocks.delete,
 			findMany: mocks.findMany,
@@ -44,6 +47,7 @@ describe("post admin repository", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.findMany.mockResolvedValue([]);
+		mocks.count.mockResolvedValue(0);
 		mocks.create.mockResolvedValue({ id: "post-1", slug: "tulisan-baru" });
 		mocks.update.mockResolvedValue({ id: "post-1", slug: "tulisan-baru" });
 	});
@@ -52,6 +56,20 @@ describe("post admin repository", () => {
 		await findPostsAdmin();
 
 		expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: "desc" } }));
+	});
+
+	it("counts posts for pagination", async () => {
+		await countPostsAdmin();
+
+		expect(mocks.count).toHaveBeenCalledWith();
+	});
+
+	it("applies pagination to the admin post list", async () => {
+		await findPostsAdmin({ skip: 10, take: 10 });
+
+		expect(mocks.findMany).toHaveBeenCalledWith(
+			expect.objectContaining({ orderBy: { createdAt: "desc" }, skip: 10, take: 10 }),
+		);
 	});
 
 	it("gets an admin post detail with tag IDs for the edit form", async () => {

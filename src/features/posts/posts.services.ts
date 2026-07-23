@@ -1,4 +1,5 @@
 import {
+	countPostsAdmin,
 	createPostRecord,
 	deletePostRecord,
 	findNextPublishedPost,
@@ -15,6 +16,7 @@ import {
 } from "@/features/posts/posts.repository";
 import type { CreatePostInput, UpdatePostInput } from "@/features/posts/posts.schema";
 import { PublishStatus } from "@/generated/prisma/client";
+import { richTextToPlainText, sanitizeRichText } from "@/shared/rich-text";
 import { generateUniqueSlug } from "@/shared/slug";
 
 export type PublicPostListItem = {
@@ -121,6 +123,33 @@ export async function getPostsAdmin(): Promise<AdminPostListItem[]> {
 	}));
 }
 
+export const ADMIN_POSTS_PER_PAGE = 10;
+
+export type AdminPostListPage = {
+	currentPage: number;
+	posts: AdminPostListItem[];
+	totalPages: number;
+};
+
+export async function getPostsAdminPage(page: number): Promise<AdminPostListPage> {
+	const totalPosts = await countPostsAdmin();
+	const totalPages = Math.max(1, Math.ceil(totalPosts / ADMIN_POSTS_PER_PAGE));
+	const currentPage = Math.min(page, totalPages);
+	const posts = await findPostsAdmin({
+		skip: (currentPage - 1) * ADMIN_POSTS_PER_PAGE,
+		take: ADMIN_POSTS_PER_PAGE,
+	});
+
+	return {
+		currentPage,
+		posts: posts.map((post) => ({
+			...post,
+			createdAt: post.createdAt.toISOString(),
+		})),
+		totalPages,
+	};
+}
+
 export async function getPostAdminById(id: string): Promise<AdminPostDetail | null> {
 	const post = await findPostDetailForAdmin(id);
 	if (!post) {
@@ -142,11 +171,13 @@ export function calculateReadingTime(content: string): number {
 export async function createAdminPost(input: CreatePostInput): Promise<{ id: string; slug: string }> {
 	const slug = await generateUniqueSlug(input.title, isPostSlugAvailable);
 	const publishedAt = input.status === PublishStatus.PUBLISHED ? new Date() : null;
+	const content = sanitizeRichText(input.content);
 
 	return createPostRecord({
 		...input,
+		content,
 		publishedAt,
-		readingTime: calculateReadingTime(input.content),
+		readingTime: calculateReadingTime(richTextToPlainText(content)),
 		slug,
 	});
 }
@@ -162,11 +193,13 @@ export async function updateAdminPost(id: string, input: UpdatePostInput): Promi
 			? existing.slug
 			: await generateUniqueSlug(input.title, (candidate) => isPostSlugAvailable(candidate, id));
 	const publishedAt = existing.publishedAt ?? (input.status === PublishStatus.PUBLISHED ? new Date() : null);
+	const content = sanitizeRichText(input.content);
 
 	return updatePostRecord(id, {
 		...input,
+		content,
 		publishedAt,
-		readingTime: calculateReadingTime(input.content),
+		readingTime: calculateReadingTime(richTextToPlainText(content)),
 		slug,
 	});
 }

@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
 	deleteAdminPost: vi.fn(),
 	getPostAdminById: vi.fn(),
 	getPostsAdmin: vi.fn(),
+	getPostsAdminPage: vi.fn(),
 	getServerSession: vi.fn(),
 	updateAdminPost: vi.fn(),
 }));
@@ -18,12 +19,20 @@ vi.mock("@/features/posts/posts.services", () => ({
 	deleteAdminPost: mocks.deleteAdminPost,
 	getPostAdminById: mocks.getPostAdminById,
 	getPostsAdmin: mocks.getPostsAdmin,
+	getPostsAdminPage: mocks.getPostsAdminPage,
 	getPublishedPostBySlug: vi.fn(),
 	getPublishedPosts: vi.fn(),
 	updateAdminPost: mocks.updateAdminPost,
 }));
 
-import { createPost, deletePost, getPostAdmin, getPostsAdmin, updatePost } from "@/features/posts/posts.action";
+import {
+	createPost,
+	deletePost,
+	getPostAdmin,
+	getPostsAdmin,
+	getPostsAdminPage,
+	updatePost,
+} from "@/features/posts/posts.action";
 
 function postInput(values: Record<string, unknown> = {}): Record<string, unknown> {
 	return {
@@ -39,6 +48,7 @@ describe("post admin Server Actions", () => {
 		vi.clearAllMocks();
 		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getPostsAdmin.mockResolvedValue([]);
+		mocks.getPostsAdminPage.mockResolvedValue({ currentPage: 1, posts: [], totalPages: 1 });
 		mocks.getPostAdminById.mockResolvedValue({
 			content: "Isi tulisan",
 			description: null,
@@ -72,6 +82,15 @@ describe("post admin Server Actions", () => {
 		await expect(getPostsAdmin()).resolves.toEqual({
 			data: [{ createdAt: "2026-07-17T10:00:00.000Z", id: "post-1", status: "ARCHIVED", title: "Tulisan Lama" }],
 		});
+	});
+
+	it("gets a validated page of posts for an authenticated admin", async () => {
+		mocks.getPostsAdminPage.mockResolvedValue({ currentPage: 2, posts: [], totalPages: 2 });
+
+		await expect(getPostsAdminPage(2)).resolves.toEqual({
+			data: { currentPage: 2, posts: [], totalPages: 2 },
+		});
+		expect(mocks.getPostsAdminPage).toHaveBeenCalledWith(2);
 	});
 
 	it("gets a post detail for an authenticated admin", async () => {

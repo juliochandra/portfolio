@@ -3,6 +3,7 @@ import { PublishStatus } from "@/generated/prisma/client";
 
 const mocks = vi.hoisted(() => ({
 	createPostRecord: vi.fn(),
+	countPostsAdmin: vi.fn(),
 	deletePostRecord: vi.fn(),
 	findPostDetailForAdmin: vi.fn(),
 	findPostForAdmin: vi.fn(),
@@ -13,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/features/posts/posts.repository", () => ({
 	createPostRecord: mocks.createPostRecord,
+	countPostsAdmin: mocks.countPostsAdmin,
 	deletePostRecord: mocks.deletePostRecord,
 	findPostBySlug: vi.fn(),
 	findPostDetailForAdmin: mocks.findPostDetailForAdmin,
@@ -29,6 +31,7 @@ import {
 	deleteAdminPost,
 	getPostAdminById,
 	getPostsAdmin,
+	getPostsAdminPage,
 	updateAdminPost,
 } from "@/features/posts/posts.services";
 
@@ -49,6 +52,7 @@ describe("post admin services", () => {
 		mocks.isPostSlugAvailable.mockResolvedValue(true);
 		mocks.createPostRecord.mockResolvedValue({ id: "post-1", slug: "tulisan-baru" });
 		mocks.updatePostRecord.mockResolvedValue({ id: "post-1", slug: "tulisan-baru" });
+		mocks.countPostsAdmin.mockResolvedValue(0);
 		mocks.deletePostRecord.mockResolvedValue({ id: "post-1" });
 	});
 
@@ -64,6 +68,20 @@ describe("post admin services", () => {
 		await expect(getPostsAdmin()).resolves.toEqual([
 			{ createdAt: "2026-07-16T10:00:00.000Z", id: "post-1", status: PublishStatus.DRAFT, title: "Tulisan Baru" },
 		]);
+	});
+
+	it("returns one page of posts and its pagination metadata", async () => {
+		mocks.countPostsAdmin.mockResolvedValue(11);
+		mocks.findPostsAdmin.mockResolvedValue([
+			{ createdAt: new Date("2026-07-16T10:00:00.000Z"), id: "post-11", status: PublishStatus.DRAFT, title: "Tulisan 11" },
+		]);
+
+		await expect(getPostsAdminPage(2)).resolves.toEqual({
+			currentPage: 2,
+			posts: [{ createdAt: "2026-07-16T10:00:00.000Z", id: "post-11", status: PublishStatus.DRAFT, title: "Tulisan 11" }],
+			totalPages: 2,
+		});
+		expect(mocks.findPostsAdmin).toHaveBeenCalledWith({ skip: 10, take: 10 });
 	});
 
 	it("returns an admin post detail with selected tag IDs", async () => {

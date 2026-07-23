@@ -1,6 +1,7 @@
 "use server";
 
 import {
+	adminPostsPageSchema,
 	type CreatePostInput,
 	createPostSchema,
 	type GetPostsParams,
@@ -14,6 +15,7 @@ import {
 	createAdminPost,
 	deleteAdminPost,
 	getPostsAdmin as getAdminPosts,
+	getPostsAdminPage as getAdminPostsPage,
 	getPostAdminById,
 	getPublishedPostBySlug,
 	getPublishedPosts,
@@ -33,6 +35,8 @@ type GetPostsResult = { data: PublicPostListItem[] };
 type GetPostBySlugResult = { data: PublicPostDetail } | { error: { message: string } };
 
 type GetPostsAdminResult = { data: Awaited<ReturnType<typeof getAdminPosts>> } | { error: { message: "UNAUTHORIZED" } };
+
+type GetPostsAdminPageResult = { data: Awaited<ReturnType<typeof getAdminPostsPage>> } | { error: { message: "UNAUTHORIZED" } };
 
 type GetPostAdminResult =
 	| { data: NonNullable<Awaited<ReturnType<typeof getPostAdminById>>> }
@@ -72,6 +76,15 @@ export async function getPostsAdmin(): Promise<GetPostsAdminResult> {
 	}
 
 	return { data: await getAdminPosts() };
+}
+
+export async function getPostsAdminPage(page: number): Promise<GetPostsAdminPageResult> {
+	const session = await getServerSession();
+	if (!session) return UNAUTHORIZED;
+
+	const validation = validateWithZod(adminPostsPageSchema, page);
+	const currentPage = validation.success ? validation.data : 1;
+	return { data: await getAdminPostsPage(currentPage) };
 }
 
 export async function getPostAdmin(id: string): Promise<GetPostAdminResult> {

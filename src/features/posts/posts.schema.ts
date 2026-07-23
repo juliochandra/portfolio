@@ -9,12 +9,26 @@ export const getPostsParamsSchema = z
 
 export type GetPostsParams = z.infer<typeof getPostsParamsSchema>;
 
+export const adminPostsPageSchema = z.number().int().positive();
+
 export const postSlugSchema = z.string().trim().min(1);
 export const postIdSchema = z.string().trim().min(1);
 
 const REQUIRED_MESSAGE = "Wajib diisi.";
 
 const requiredText = (maxLength: number) => z.string().trim().min(1, REQUIRED_MESSAGE).max(maxLength);
+
+const requiredRichText = z
+	.string()
+	.trim()
+	.refine(
+		(value) =>
+			value
+				.replace(/<[^>]*>/gu, " ")
+				.replace(/&nbsp;/gu, " ")
+				.trim().length > 0,
+		REQUIRED_MESSAGE,
+	);
 
 const optionalText = (maxLength: number) =>
 	z
@@ -34,7 +48,7 @@ const optionalUrl = (maxLength: number) =>
 		.transform((value) => value || null);
 
 const postInputSchema = z.object({
-	content: requiredText(Number.MAX_SAFE_INTEGER),
+	content: requiredRichText,
 	description: optionalText(300),
 	tagIds: z.array(z.string().trim().min(1)).default([]),
 	thumbnailImage: optionalUrl(255),

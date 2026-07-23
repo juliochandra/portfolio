@@ -107,11 +107,17 @@ export function findNextPublishedPost(params: { publishedAt: Date }): Promise<Po
 	});
 }
 
-export function findPostsAdmin(): Promise<AdminPostListRecord[]> {
+export function findPostsAdmin(params?: { skip: number; take: number }): Promise<AdminPostListRecord[]> {
 	return prisma.post.findMany({
 		orderBy: { createdAt: "desc" },
 		select: adminPostListSelect,
+		skip: params?.skip,
+		take: params?.take,
 	});
+}
+
+export function countPostsAdmin(): Promise<number> {
+	return prisma.post.count();
 }
 
 export function findPostForAdmin(id: string): Promise<AdminPostRecord | null> {
