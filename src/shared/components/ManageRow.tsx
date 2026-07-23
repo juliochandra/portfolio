@@ -17,6 +17,7 @@ type ManageRowAction =
 	  };
 
 type ManageRowProps = ManageRowAction & {
+	confirmationDescription?: string;
 	description?: string | null;
 	icon?: ReactNode;
 	itemType?: string;
@@ -36,6 +37,7 @@ function getStatusLabel(status: PublishStatus): string {
 }
 
 export function ManageRow({
+	confirmationDescription,
 	description,
 	editHref,
 	icon,
@@ -83,6 +85,7 @@ export function ManageRow({
 				</Button>
 			</div>
 			<ConfirmDialog
+				description={confirmationDescription}
 				itemName={`${itemType} '${title}'`}
 				open={isConfirmOpen}
 				onCancel={() => setIsConfirmOpen(false)}

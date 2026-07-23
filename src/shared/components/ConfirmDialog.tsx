@@ -1,11 +1,13 @@
 "use client";
 import { Button } from "./Button";
 export function ConfirmDialog({
+	description,
 	itemName,
 	onCancel,
 	onConfirm,
 	open,
 }: {
+	description?: string;
 	itemName: string;
 	onCancel: () => void;
 	onConfirm: () => void;
@@ -16,6 +18,7 @@ export function ConfirmDialog({
 		<div role="dialog" aria-modal="true" className="fixed inset-0 grid place-items-center bg-black/40 p-4">
 			<div className="w-full max-w-sm rounded-lg bg-surface p-6">
 				<p>Hapus {itemName}?</p>
+				{description ? <p className="mt-2 text-sm text-text-mute">{description}</p> : null}
 				<div className="mt-6 flex justify-end gap-2">
 					<Button variant="secondary" onClick={onCancel}>
 						Batal
