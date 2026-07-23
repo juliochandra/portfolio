@@ -4,6 +4,7 @@ import { PublishStatus } from "@/generated/prisma/client";
 const mocks = vi.hoisted(() => ({
 	createPostRecord: vi.fn(),
 	deletePostRecord: vi.fn(),
+	findPostDetailForAdmin: vi.fn(),
 	findPostForAdmin: vi.fn(),
 	findPostsAdmin: vi.fn(),
 	isPostSlugAvailable: vi.fn(),
@@ -14,6 +15,7 @@ vi.mock("@/features/posts/posts.repository", () => ({
 	createPostRecord: mocks.createPostRecord,
 	deletePostRecord: mocks.deletePostRecord,
 	findPostBySlug: vi.fn(),
+	findPostDetailForAdmin: mocks.findPostDetailForAdmin,
 	findPostForAdmin: mocks.findPostForAdmin,
 	findPosts: vi.fn(),
 	findPostsAdmin: mocks.findPostsAdmin,
@@ -25,6 +27,7 @@ import {
 	calculateReadingTime,
 	createAdminPost,
 	deleteAdminPost,
+	getPostAdminById,
 	getPostsAdmin,
 	updateAdminPost,
 } from "@/features/posts/posts.services";
@@ -61,6 +64,28 @@ describe("post admin services", () => {
 		await expect(getPostsAdmin()).resolves.toEqual([
 			{ createdAt: "2026-07-16T10:00:00.000Z", id: "post-1", status: PublishStatus.DRAFT, title: "Tulisan Baru" },
 		]);
+	});
+
+	it("returns an admin post detail with selected tag IDs", async () => {
+		mocks.findPostDetailForAdmin.mockResolvedValue({
+			content: "Isi tulisan",
+			description: null,
+			id: "post-1",
+			status: PublishStatus.DRAFT,
+			tags: [{ id: "tag-1" }],
+			thumbnailImage: null,
+			title: "Tulisan Baru",
+		});
+
+		await expect(getPostAdminById("post-1")).resolves.toEqual({
+			content: "Isi tulisan",
+			description: null,
+			id: "post-1",
+			status: PublishStatus.DRAFT,
+			tagIds: ["tag-1"],
+			thumbnailImage: null,
+			title: "Tulisan Baru",
+		});
 	});
 
 	it("calculates reading time from content word count", () => {

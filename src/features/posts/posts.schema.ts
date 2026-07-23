@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PublishStatus } from "@/generated/prisma/client";
+import { publishStatuses } from "@/shared/publish-status";
 
 export const getPostsParamsSchema = z
 	.object({
@@ -42,12 +42,32 @@ const postInputSchema = z.object({
 });
 
 export const createPostSchema = postInputSchema.extend({
-	status: z.nativeEnum(PublishStatus).default(PublishStatus.DRAFT),
+	status: z.enum(publishStatuses).default("DRAFT"),
 });
 
 export const updatePostSchema = postInputSchema.extend({
-	status: z.nativeEnum(PublishStatus),
+	status: z.enum(publishStatuses),
 });
 
 export type CreatePostInput = z.output<typeof createPostSchema>;
 export type UpdatePostInput = z.output<typeof updatePostSchema>;
+
+function readString(formData: FormData, name: string): unknown {
+	return formData.get(name) ?? "";
+}
+
+function readArray(formData: FormData, name: string): unknown[] {
+	return [...formData.getAll(name), ...formData.getAll(`${name}[]`)];
+}
+
+export function postFormDataToInput(formData: FormData): Record<string, unknown> {
+	return {
+		content: readString(formData, "content"),
+		description: readString(formData, "description"),
+		status: formData.get("status") ?? undefined,
+		tagIds: readArray(formData, "tagIds"),
+		// biome-ignore lint/nursery/noSecrets: Field name mirrors the form and Zod schema.
+		thumbnailImage: readString(formData, "thumbnailImage"),
+		title: readString(formData, "title"),
+	};
+}

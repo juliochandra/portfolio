@@ -4,6 +4,7 @@ import { PublishStatus } from "@/generated/prisma/client";
 const mocks = vi.hoisted(() => ({
 	createAdminPost: vi.fn(),
 	deleteAdminPost: vi.fn(),
+	getPostAdminById: vi.fn(),
 	getPostsAdmin: vi.fn(),
 	getServerSession: vi.fn(),
 	updateAdminPost: vi.fn(),
@@ -15,13 +16,14 @@ vi.mock("@/shared/auth/server-session", () => ({
 vi.mock("@/features/posts/posts.services", () => ({
 	createAdminPost: mocks.createAdminPost,
 	deleteAdminPost: mocks.deleteAdminPost,
+	getPostAdminById: mocks.getPostAdminById,
 	getPostsAdmin: mocks.getPostsAdmin,
 	getPublishedPostBySlug: vi.fn(),
 	getPublishedPosts: vi.fn(),
 	updateAdminPost: mocks.updateAdminPost,
 }));
 
-import { createPost, deletePost, getPostsAdmin, updatePost } from "@/features/posts/posts.action";
+import { createPost, deletePost, getPostAdmin, getPostsAdmin, updatePost } from "@/features/posts/posts.action";
 
 function postInput(values: Record<string, unknown> = {}): Record<string, unknown> {
 	return {
@@ -37,6 +39,15 @@ describe("post admin Server Actions", () => {
 		vi.clearAllMocks();
 		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getPostsAdmin.mockResolvedValue([]);
+		mocks.getPostAdminById.mockResolvedValue({
+			content: "Isi tulisan",
+			description: null,
+			id: "post-1",
+			status: PublishStatus.DRAFT,
+			tagIds: ["tag-1"],
+			thumbnailImage: null,
+			title: "Tulisan Baru",
+		});
 		mocks.createAdminPost.mockResolvedValue({ id: "post-1", slug: "tulisan-baru" });
 		mocks.updateAdminPost.mockResolvedValue({ id: "post-1", slug: "tulisan-baru" });
 		mocks.deleteAdminPost.mockResolvedValue({ id: "post-1" });
@@ -46,6 +57,7 @@ describe("post admin Server Actions", () => {
 		mocks.getServerSession.mockResolvedValue(null);
 
 		await expect(getPostsAdmin()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
+		await expect(getPostAdmin("post-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		await expect(createPost(postInput())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		await expect(updatePost("post-1", postInput())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		await expect(deletePost("post-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
@@ -60,6 +72,13 @@ describe("post admin Server Actions", () => {
 		await expect(getPostsAdmin()).resolves.toEqual({
 			data: [{ createdAt: "2026-07-17T10:00:00.000Z", id: "post-1", status: "ARCHIVED", title: "Tulisan Lama" }],
 		});
+	});
+
+	it("gets a post detail for an authenticated admin", async () => {
+		await expect(getPostAdmin("post-1")).resolves.toMatchObject({
+			data: { id: "post-1", tagIds: ["tag-1"], title: "Tulisan Baru" },
+		});
+		expect(mocks.getPostAdminById).toHaveBeenCalledWith("post-1");
 	});
 
 	it("validates an object input and creates a draft by default", async () => {

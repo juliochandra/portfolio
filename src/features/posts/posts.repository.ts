@@ -35,6 +35,16 @@ const adminPostSelect = {
 	title: true,
 } satisfies Prisma.PostSelect;
 
+const adminPostDetailSelect = {
+	content: true,
+	description: true,
+	id: true,
+	status: true,
+	tags: { select: { id: true } },
+	thumbnailImage: true,
+	title: true,
+} satisfies Prisma.PostSelect;
+
 export type PostListRecord = Prisma.PostGetPayload<{ select: typeof postListSelect }>;
 
 export type PostDetailRecord = Prisma.PostGetPayload<{ select: typeof postDetailSelect }>;
@@ -44,6 +54,8 @@ export type PostNavigationRecord = Prisma.PostGetPayload<{ select: typeof postNa
 export type AdminPostListRecord = Prisma.PostGetPayload<{ select: typeof adminPostListSelect }>;
 
 export type AdminPostRecord = Prisma.PostGetPayload<{ select: typeof adminPostSelect }>;
+
+export type AdminPostDetailRecord = Prisma.PostGetPayload<{ select: typeof adminPostDetailSelect }>;
 
 export type PostWriteInput = {
 	content: string;
@@ -105,6 +117,13 @@ export function findPostsAdmin(): Promise<AdminPostListRecord[]> {
 export function findPostForAdmin(id: string): Promise<AdminPostRecord | null> {
 	return prisma.post.findUnique({
 		select: adminPostSelect,
+		where: { id },
+	});
+}
+
+export function findPostDetailForAdmin(id: string): Promise<AdminPostDetailRecord | null> {
+	return prisma.post.findUnique({
+		select: adminPostDetailSelect,
 		where: { id },
 	});
 }
