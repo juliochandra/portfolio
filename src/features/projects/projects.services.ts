@@ -2,6 +2,7 @@ import {
 	createProjectRecord,
 	deleteProjectRecord,
 	findProjectBySlug,
+	findProjectDetailForAdmin,
 	findProjectForAdmin,
 	findProjects,
 	findProjectsAdmin,
@@ -40,6 +41,19 @@ export type AdminProjectListItem = {
 	description: string | null;
 	id: string;
 	status: PublishStatus;
+	title: string;
+};
+
+export type AdminProjectDetail = {
+	content: string;
+	demoUrl: string | null;
+	description: string | null;
+	id: string;
+	repositoryUrl: string | null;
+	skillIds: string[];
+	status: PublishStatus;
+	tagIds: string[];
+	thumbnailImage: string | null;
 	title: string;
 };
 
@@ -84,6 +98,19 @@ export async function getPublishedProjectBySlug(slug: string): Promise<PublicPro
 
 export function getProjectsAdmin(): Promise<AdminProjectListItem[]> {
 	return findProjectsAdmin();
+}
+
+export async function getProjectAdminById(id: string): Promise<AdminProjectDetail | null> {
+	const project = await findProjectDetailForAdmin(id);
+	if (!project) {
+		return null;
+	}
+
+	return {
+		...project,
+		skillIds: project.skills.map((skill) => skill.id),
+		tagIds: project.tags.map((tag) => tag.id),
+	};
 }
 
 export async function createAdminProject(input: CreateProjectInput): Promise<{ id: string; slug: string }> {

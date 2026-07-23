@@ -32,6 +32,19 @@ const adminProjectSelect = {
 	title: true,
 } satisfies Prisma.ProjectSelect;
 
+const adminProjectDetailSelect = {
+	content: true,
+	demoUrl: true,
+	description: true,
+	id: true,
+	repositoryUrl: true,
+	skills: { select: { id: true } },
+	status: true,
+	tags: { select: { id: true } },
+	thumbnailImage: true,
+	title: true,
+} satisfies Prisma.ProjectSelect;
+
 export type ProjectListRecord = Prisma.ProjectGetPayload<{ select: typeof projectListSelect }>;
 
 export type ProjectDetailRecord = Prisma.ProjectGetPayload<{ select: typeof projectDetailSelect }>;
@@ -39,6 +52,8 @@ export type ProjectDetailRecord = Prisma.ProjectGetPayload<{ select: typeof proj
 export type AdminProjectListRecord = Prisma.ProjectGetPayload<{ select: typeof adminProjectListSelect }>;
 
 export type AdminProjectRecord = Prisma.ProjectGetPayload<{ select: typeof adminProjectSelect }>;
+
+export type AdminProjectDetailRecord = Prisma.ProjectGetPayload<{ select: typeof adminProjectDetailSelect }>;
 
 export type ProjectWriteInput = {
 	content: string;
@@ -80,6 +95,13 @@ export function findProjectsAdmin(): Promise<AdminProjectListRecord[]> {
 export function findProjectForAdmin(id: string): Promise<AdminProjectRecord | null> {
 	return prisma.project.findUnique({
 		select: adminProjectSelect,
+		where: { id },
+	});
+}
+
+export function findProjectDetailForAdmin(id: string): Promise<AdminProjectDetailRecord | null> {
+	return prisma.project.findUnique({
+		select: adminProjectDetailSelect,
 		where: { id },
 	});
 }

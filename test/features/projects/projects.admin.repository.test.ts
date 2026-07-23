@@ -23,6 +23,7 @@ vi.mock("@/shared/database/prisma", () => ({
 
 import {
 	createProjectRecord,
+	findProjectDetailForAdmin,
 	findProjectsAdmin,
 	isProjectSlugAvailable,
 	updateProjectRecord,
@@ -54,6 +55,18 @@ describe("project admin repository", () => {
 		await findProjectsAdmin();
 
 		expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: "desc" } }));
+	});
+
+	it("selects all fields and relations required by the edit form", async () => {
+		mocks.findUnique.mockResolvedValue(null);
+		await findProjectDetailForAdmin("project-1");
+
+		expect(mocks.findUnique).toHaveBeenCalledWith(
+			expect.objectContaining({
+				select: expect.objectContaining({ skills: { select: { id: true } }, tags: { select: { id: true } } }),
+				where: { id: "project-1" },
+			}),
+		);
 	});
 
 	it("creates a project with connected tags and skills", async () => {
