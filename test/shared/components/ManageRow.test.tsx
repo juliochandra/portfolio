@@ -44,4 +44,22 @@ describe("ManageRow", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Hapus" }));
 		expect(screen.getByRole("dialog")).toHaveTextContent("Hapus tulisan 'Tulisan Baru'?");
 	});
+
+	it("supports an icon and local edit action without a status badge", () => {
+		const onEdit = vi.fn();
+		render(
+			<ManageRow
+				icon={<span data-testid="skill-icon">&lt;/&gt;</span>}
+				itemType="keahlian"
+				onDelete={vi.fn()}
+				onEdit={onEdit}
+				title="TypeScript"
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "Ubah" }));
+		expect(onEdit).toHaveBeenCalledOnce();
+		expect(screen.getByTestId("skill-icon")).toBeInTheDocument();
+		expect(screen.queryByText("Draft")).not.toBeInTheDocument();
+	});
 });
