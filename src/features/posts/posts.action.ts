@@ -14,6 +14,7 @@ import {
 	createAdminPost,
 	deleteAdminPost,
 	getPostsAdmin as getAdminPosts,
+	getPostAdminById,
 	getPublishedPostBySlug,
 	getPublishedPosts,
 	type PublicPostDetail,
@@ -32,6 +33,10 @@ type GetPostsResult = { data: PublicPostListItem[] };
 type GetPostBySlugResult = { data: PublicPostDetail } | { error: { message: string } };
 
 type GetPostsAdminResult = { data: Awaited<ReturnType<typeof getAdminPosts>> } | { error: { message: "UNAUTHORIZED" } };
+
+type GetPostAdminResult =
+	| { data: NonNullable<Awaited<ReturnType<typeof getPostAdminById>>> }
+	| { error: { message: "Tulisan tidak ditemukan." | "UNAUTHORIZED" } };
 
 type PostMutationResult =
 	| { data: { id: string; slug: string } }
@@ -67,6 +72,18 @@ export async function getPostsAdmin(): Promise<GetPostsAdminResult> {
 	}
 
 	return { data: await getAdminPosts() };
+}
+
+export async function getPostAdmin(id: string): Promise<GetPostAdminResult> {
+	if (!(await getServerSession())) {
+		return UNAUTHORIZED;
+	}
+	if (!validateWithZod(postIdSchema, id).success) {
+		return { error: { message: POST_NOT_FOUND_MESSAGE } };
+	}
+
+	const post = await getPostAdminById(id);
+	return post ? { data: post } : { error: { message: POST_NOT_FOUND_MESSAGE } };
 }
 
 export async function createPost(data: unknown): Promise<PostMutationResult> {

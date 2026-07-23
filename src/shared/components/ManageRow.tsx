@@ -9,6 +9,7 @@ import type { PublishStatus } from "@/shared/publish-status";
 type ManageRowProps = {
 	description: string | null;
 	editHref: string;
+	itemType?: string;
 	onDelete: () => Promise<void>;
 	status: PublishStatus;
 	title: string;
@@ -24,7 +25,7 @@ function getStatusLabel(status: PublishStatus): string {
 	return `${status.slice(0, 1)}${status.slice(1).toLowerCase()}`;
 }
 
-export function ManageRow({ description, editHref, onDelete, status, title }: ManageRowProps) {
+export function ManageRow({ description, editHref, itemType = "project", onDelete, status, title }: ManageRowProps) {
 	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
 	async function handleDelete() {
@@ -50,7 +51,7 @@ export function ManageRow({ description, editHref, onDelete, status, title }: Ma
 				</Button>
 			</div>
 			<ConfirmDialog
-				itemName={`project '${title}'`}
+				itemName={`${itemType} '${title}'`}
 				open={isConfirmOpen}
 				onCancel={() => setIsConfirmOpen(false)}
 				onConfirm={handleDelete}

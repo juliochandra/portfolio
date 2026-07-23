@@ -3,6 +3,7 @@ import {
 	deletePostRecord,
 	findNextPublishedPost,
 	findPostBySlug,
+	findPostDetailForAdmin,
 	findPostForAdmin,
 	findPosts,
 	findPostsAdmin,
@@ -42,6 +43,16 @@ export type AdminPostListItem = {
 	createdAt: string;
 	id: string;
 	status: PublishStatus;
+	title: string;
+};
+
+export type AdminPostDetail = {
+	content: string;
+	description: string | null;
+	id: string;
+	status: PublishStatus;
+	tagIds: string[];
+	thumbnailImage: string | null;
 	title: string;
 };
 
@@ -108,6 +119,19 @@ export async function getPostsAdmin(): Promise<AdminPostListItem[]> {
 		...post,
 		createdAt: post.createdAt.toISOString(),
 	}));
+}
+
+export async function getPostAdminById(id: string): Promise<AdminPostDetail | null> {
+	const post = await findPostDetailForAdmin(id);
+	if (!post) {
+		return null;
+	}
+
+	const { tags, ...postDetail } = post;
+	return {
+		...postDetail,
+		tagIds: tags.map((tag) => tag.id),
+	};
 }
 
 export function calculateReadingTime(content: string): number {

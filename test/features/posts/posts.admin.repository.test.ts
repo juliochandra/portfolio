@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPostRecord, findPostsAdmin, isPostSlugAvailable, updatePostRecord } from "@/features/posts/posts.repository";
+import {
+	createPostRecord,
+	findPostDetailForAdmin,
+	findPostsAdmin,
+	isPostSlugAvailable,
+	updatePostRecord,
+} from "@/features/posts/posts.repository";
 import { PublishStatus } from "@/generated/prisma/client";
 
 const mocks = vi.hoisted(() => ({
@@ -46,6 +52,16 @@ describe("post admin repository", () => {
 		await findPostsAdmin();
 
 		expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { createdAt: "desc" } }));
+	});
+
+	it("gets an admin post detail with tag IDs for the edit form", async () => {
+		mocks.findUnique.mockResolvedValue(null);
+		await findPostDetailForAdmin("post-1");
+
+		expect(mocks.findUnique).toHaveBeenCalledWith({
+			select: expect.objectContaining({ content: true, tags: { select: { id: true } } }),
+			where: { id: "post-1" },
+		});
 	});
 
 	it("creates a post with connected tags and its thumbnail URL", async () => {
