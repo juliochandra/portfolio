@@ -6,6 +6,7 @@ import { env } from "@/shared/env";
 const mediaGallerySelect = {
 	createdAt: true,
 	fileName: true,
+	folderId: true,
 	id: true,
 	mimeType: true,
 	size: true,
@@ -13,6 +14,7 @@ const mediaGallerySelect = {
 } satisfies Prisma.MediaSelect;
 const mediaDeleteSelect = { id: true, objectKey: true } satisfies Prisma.MediaSelect;
 const mediaMutationSelect = { id: true, url: true } satisfies Prisma.MediaSelect;
+const mediaFolderSelect = { id: true, name: true } satisfies Prisma.MediaFolderSelect;
 const r2 = new S3Client({
 	credentials: { accessKeyId: env.R2_ACCESS_KEY_ID, secretAccessKey: env.R2_SECRET_ACCESS_KEY },
 	endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -21,6 +23,7 @@ const r2 = new S3Client({
 
 export type MediaGalleryRecord = Prisma.MediaGetPayload<{ select: typeof mediaGallerySelect }>;
 export type MediaDeleteRecord = Prisma.MediaGetPayload<{ select: typeof mediaDeleteSelect }>;
+export type MediaFolderRecord = Prisma.MediaFolderGetPayload<{ select: typeof mediaFolderSelect }>;
 
 export function findMediaGallery(): Promise<MediaGalleryRecord[]> {
 	return prisma.media.findMany({ orderBy: { createdAt: "desc" }, select: mediaGallerySelect });
@@ -28,6 +31,18 @@ export function findMediaGallery(): Promise<MediaGalleryRecord[]> {
 
 export function findMediaForDelete(id: string): Promise<MediaDeleteRecord | null> {
 	return prisma.media.findUnique({ select: mediaDeleteSelect, where: { id } });
+}
+
+export function findMediaFolders(): Promise<MediaFolderRecord[]> {
+	return prisma.mediaFolder.findMany({ orderBy: { name: "asc" }, select: mediaFolderSelect });
+}
+
+export function findMediaFolderById(id: string): Promise<{ id: string } | null> {
+	return prisma.mediaFolder.findUnique({ select: { id: true }, where: { id } });
+}
+
+export function createMediaFolderRecord(name: string): Promise<{ id: string; name: string }> {
+	return prisma.mediaFolder.create({ data: { name }, select: mediaFolderSelect });
 }
 
 export async function uploadMediaObject(objectKey: string, file: File): Promise<void> {
@@ -50,10 +65,22 @@ export function createMediaRecord(input: {
 	fileName: string;
 	mimeType: string;
 	objectKey: string;
+	folderId: string | null;
 	size: number;
 	url: string;
 }): Promise<{ id: string; url: string }> {
-	return prisma.media.create({ data: input, select: mediaMutationSelect });
+	return prisma.media.create({
+		data: {
+			extension: input.extension,
+			fileName: input.fileName,
+			folder: input.folderId ? { connect: { id: input.folderId } } : undefined,
+			mimeType: input.mimeType,
+			objectKey: input.objectKey,
+			size: input.size,
+			url: input.url,
+		},
+		select: mediaMutationSelect,
+	});
 }
 
 export function deleteMediaRecord(id: string): Promise<{ id: string }> {

@@ -1,21 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+	createMediaFolderRecord: vi.fn(),
 	createMediaRecord: vi.fn(),
 	deleteMediaObject: vi.fn(),
 	deleteMediaRecord: vi.fn(),
 	findMediaForDelete: vi.fn(),
+	findMediaFolderById: vi.fn(),
+	findMediaFolders: vi.fn(),
 	findMediaGallery: vi.fn(),
 	uploadMediaObject: vi.fn(),
 }));
 vi.mock("@/features/media/media.repository", () => mocks);
 
-import { deleteAdminMedia, getMediaGallery, uploadAdminMedia } from "@/features/media/media.services";
+import { createAdminMediaFolder, deleteAdminMedia, getMediaGallery, uploadAdminMedia } from "@/features/media/media.services";
 
 describe("media services", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.createMediaRecord.mockResolvedValue({ id: "media-1", url: "https://cdn.example/media/x.png" });
+		mocks.createMediaFolderRecord.mockResolvedValue({ id: "folder-1", name: "Portfolio" });
 		mocks.deleteMediaRecord.mockResolvedValue({ id: "media-1" });
 	});
 	it("serializes gallery dates and stores an uploaded image", async () => {
@@ -30,12 +34,21 @@ describe("media services", () => {
 			},
 		]);
 		await expect(getMediaGallery()).resolves.toEqual([expect.objectContaining({ createdAt: "2026-07-18T00:00:00.000Z" })]);
-		await uploadAdminMedia({ file: new File(["x"], "x.png", { type: "image/png" }) });
+		await uploadAdminMedia({ file: new File(["x"], "x.png", { type: "image/png" }), folderId: null });
 		expect(mocks.uploadMediaObject).toHaveBeenCalled();
 	});
 	it("deletes the R2 object before its metadata record", async () => {
 		mocks.findMediaForDelete.mockResolvedValue({ id: "media-1", objectKey: "media/x.png" });
 		await expect(deleteAdminMedia("media-1")).resolves.toEqual({ id: "media-1" });
 		expect(mocks.deleteMediaObject).toHaveBeenCalledWith("media/x.png");
+	});
+	it("creates folders and stores the selected folder on uploads", async () => {
+		mocks.findMediaFolders.mockResolvedValue([]);
+		mocks.findMediaFolderById.mockResolvedValue({ id: "folder-1" });
+
+		await expect(createAdminMediaFolder({ name: "Portfolio" })).resolves.toEqual({ id: "folder-1", name: "Portfolio" });
+		await uploadAdminMedia({ file: new File(["x"], "x.png", { type: "image/png" }), folderId: "folder-1" });
+
+		expect(mocks.createMediaRecord).toHaveBeenCalledWith(expect.objectContaining({ folderId: "folder-1" }));
 	});
 });
