@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
 	createMediaFolderRecord,
 	createMediaRecord,
+	deleteEmptyMediaFolderRecord,
 	deleteMediaObject,
 	deleteMediaRecord,
 	findMediaFolderById,
@@ -42,6 +43,15 @@ export async function createAdminMediaFolder(
 	}
 
 	return createMediaFolderRecord(input.name);
+}
+
+export async function deleteAdminMediaFolder(id: string): Promise<{ id: string } | "folder_not_empty" | "folder_not_found"> {
+	const deletedFolder = await deleteEmptyMediaFolderRecord(id);
+	if (deletedFolder.count > 0) {
+		return { id };
+	}
+
+	return (await findMediaFolderById(id)) ? "folder_not_empty" : "folder_not_found";
 }
 
 export async function uploadAdminMedia(input: MediaUploadInput): Promise<{ id: string; url: string } | "folder_not_found"> {

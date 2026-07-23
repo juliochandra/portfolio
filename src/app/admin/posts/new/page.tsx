@@ -1,12 +1,12 @@
 import { PostForm } from "@/app/admin/posts/_components/PostForm";
-import { getMediaGallery } from "@/features/media/media.action";
+import { getMediaFolders, getMediaGallery } from "@/features/media/media.action";
 import { getTagsAdmin } from "@/features/tags/tags.action";
 
 export default async function NewPostPage() {
-	const [mediaResult, tagsResult] = await Promise.all([getMediaGallery(), getTagsAdmin()]);
-	if ("error" in mediaResult || "error" in tagsResult) {
+	const [foldersResult, mediaResult, tagsResult] = await Promise.all([getMediaFolders(), getMediaGallery(), getTagsAdmin()]);
+	if ("error" in foldersResult || "error" in mediaResult || "error" in tagsResult) {
 		return null;
 	}
 
-	return <PostForm media={mediaResult.data} tags={tagsResult.data} />;
+	return <PostForm folders={foldersResult.data} media={mediaResult.data} tags={tagsResult.data} />;
 }

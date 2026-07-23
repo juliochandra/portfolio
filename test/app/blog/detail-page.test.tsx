@@ -36,8 +36,12 @@ describe("Post detail page", () => {
 	it("renders the post content, share actions, and adjacent posts", async () => {
 		const postPage = render(await PostDetailPage({ params: Promise.resolve({ slug: post.slug }) }));
 
-		expect(postPage.getByRole("heading", { level: 1, name: post.title })).toBeInTheDocument();
+		expect(postPage.getByRole("heading", { level: 1, name: post.title })).toHaveClass("w-full");
+		expect(postPage.getByText(post.description)).toHaveClass("w-full");
 		expect(postPage.getByText(/20 Juli 2026/)).toBeInTheDocument();
+		expect(postPage.getByText(/Isi lengkap tulisan contoh/)).toHaveClass("w-full", "[&_h4]:text-xl", "[&_h5]:text-lg");
+		expect(postPage.getByAltText(`Gambar sampul ${post.title}`)).toHaveClass("max-w-full");
+		expect(postPage.getByAltText(`Gambar sampul ${post.title}`)).not.toHaveClass("w-full", "aspect-video");
 		expect(postPage.getByLabelText(`Tag untuk ${post.title}`)).toHaveTextContent("Next.js");
 		expect(postPage.getByRole("link", { name: /Tulisan Sebelumnya/ })).toHaveAttribute("href", "/blog/tulisan-baru");
 		expect(postPage.getByRole("link", { name: /Tulisan Selanjutnya/ })).toHaveAttribute("href", "/blog/tulisan-lama");

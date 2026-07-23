@@ -1,15 +1,28 @@
 import { PostList } from "@/app/admin/posts/_components/PostList";
-import { getPostsAdmin } from "@/features/posts/posts.action";
+import { getPostsAdminPage } from "@/features/posts/posts.action";
 
 type PostsPageProps = {
-	searchParams: Promise<{ message?: string }>;
+	searchParams: Promise<{ message?: string; page?: string }>;
 };
 
+function getRequestedPage(page: string | undefined): number {
+	const requestedPage = Number(page);
+	return Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+}
+
 export default async function PostsPage({ searchParams }: PostsPageProps) {
-	const [postsResult, { message }] = await Promise.all([getPostsAdmin(), searchParams]);
+	const { message, page } = await searchParams;
+	const postsResult = await getPostsAdminPage(getRequestedPage(page));
 	if ("error" in postsResult) {
 		return null;
 	}
 
-	return <PostList posts={postsResult.data} successMessage={message === "saved" ? "Tulisan tersimpan." : undefined} />;
+	return (
+		<PostList
+			currentPage={postsResult.data.currentPage}
+			posts={postsResult.data.posts}
+			successMessage={message === "saved" ? "Tulisan tersimpan." : undefined}
+			totalPages={postsResult.data.totalPages}
+		/>
+	);
 }

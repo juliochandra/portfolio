@@ -45,6 +45,10 @@ export function createMediaFolderRecord(name: string): Promise<{ id: string; nam
 	return prisma.mediaFolder.create({ data: { name }, select: mediaFolderSelect });
 }
 
+export function deleteEmptyMediaFolderRecord(id: string): Promise<{ count: number }> {
+	return prisma.mediaFolder.deleteMany({ where: { id, media: { none: {} } } });
+}
+
 export async function uploadMediaObject(objectKey: string, file: File): Promise<void> {
 	await r2.send(
 		new PutObjectCommand({

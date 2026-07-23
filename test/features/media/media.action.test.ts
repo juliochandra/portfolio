@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
 	createAdminMediaFolder: vi.fn(),
 	deleteAdminMedia: vi.fn(),
+	deleteAdminMediaFolder: vi.fn(),
 	getMediaFolders: vi.fn(),
 	getMediaGallery: vi.fn(),
 	getServerSession: vi.fn(),
@@ -12,12 +13,20 @@ vi.mock("@/shared/auth/server-session", () => ({ getServerSession: mocks.getServ
 vi.mock("@/features/media/media.services", () => ({
 	createAdminMediaFolder: mocks.createAdminMediaFolder,
 	deleteAdminMedia: mocks.deleteAdminMedia,
+	deleteAdminMediaFolder: mocks.deleteAdminMediaFolder,
 	getMediaFolders: mocks.getMediaFolders,
 	getMediaGallery: mocks.getMediaGallery,
 	uploadAdminMedia: mocks.uploadAdminMedia,
 }));
 
-import { createMediaFolder, deleteMedia, getMediaFolders, getMediaGallery, uploadMedia } from "@/features/media/media.action";
+import {
+	createMediaFolder,
+	deleteMedia,
+	deleteMediaFolder,
+	getMediaFolders,
+	getMediaGallery,
+	uploadMedia,
+} from "@/features/media/media.action";
 
 describe("media admin actions", () => {
 	beforeEach(() => {
@@ -27,6 +36,7 @@ describe("media admin actions", () => {
 		mocks.createAdminMediaFolder.mockResolvedValue({ id: "folder-1", name: "Portfolio" });
 		mocks.uploadAdminMedia.mockResolvedValue({ id: "media-1", url: "https://cdn.example/media/a.jpg" });
 		mocks.deleteAdminMedia.mockResolvedValue({ id: "media-1" });
+		mocks.deleteAdminMediaFolder.mockResolvedValue({ id: "folder-1" });
 	});
 	it("requires a session and validates the uploaded file", async () => {
 		mocks.getServerSession.mockResolvedValue(null);
@@ -52,6 +62,14 @@ describe("media admin actions", () => {
 		mocks.createAdminMediaFolder.mockResolvedValue("name_taken");
 		await expect(createMediaFolder({ name: "Portfolio" })).resolves.toEqual({
 			error: { fields: { name: "Nama folder sudah digunakan." } },
+		});
+	});
+	it("deletes only empty media folders", async () => {
+		await expect(deleteMediaFolder("folder-1")).resolves.toEqual({ data: { id: "folder-1" } });
+
+		mocks.deleteAdminMediaFolder.mockResolvedValue("folder_not_empty");
+		await expect(deleteMediaFolder("folder-1")).resolves.toEqual({
+			error: { message: "Folder hanya dapat dihapus jika kosong." },
 		});
 	});
 });

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
 	createMediaFolderRecord: vi.fn(),
 	createMediaRecord: vi.fn(),
+	deleteEmptyMediaFolderRecord: vi.fn(),
 	deleteMediaObject: vi.fn(),
 	deleteMediaRecord: vi.fn(),
 	findMediaForDelete: vi.fn(),
@@ -13,13 +14,20 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/features/media/media.repository", () => mocks);
 
-import { createAdminMediaFolder, deleteAdminMedia, getMediaGallery, uploadAdminMedia } from "@/features/media/media.services";
+import {
+	createAdminMediaFolder,
+	deleteAdminMedia,
+	deleteAdminMediaFolder,
+	getMediaGallery,
+	uploadAdminMedia,
+} from "@/features/media/media.services";
 
 describe("media services", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.createMediaRecord.mockResolvedValue({ id: "media-1", url: "https://cdn.example/media/x.png" });
 		mocks.createMediaFolderRecord.mockResolvedValue({ id: "folder-1", name: "Portfolio" });
+		mocks.deleteEmptyMediaFolderRecord.mockResolvedValue({ count: 1 });
 		mocks.deleteMediaRecord.mockResolvedValue({ id: "media-1" });
 	});
 	it("serializes gallery dates and stores an uploaded image", async () => {
@@ -50,5 +58,12 @@ describe("media services", () => {
 		await uploadAdminMedia({ file: new File(["x"], "x.png", { type: "image/png" }), folderId: "folder-1" });
 
 		expect(mocks.createMediaRecord).toHaveBeenCalledWith(expect.objectContaining({ folderId: "folder-1" }));
+	});
+	it("deletes only empty folders", async () => {
+		await expect(deleteAdminMediaFolder("folder-1")).resolves.toEqual({ id: "folder-1" });
+
+		mocks.deleteEmptyMediaFolderRecord.mockResolvedValue({ count: 0 });
+		mocks.findMediaFolderById.mockResolvedValue({ id: "folder-1" });
+		await expect(deleteAdminMediaFolder("folder-1")).resolves.toBe("folder_not_empty");
 	});
 });
