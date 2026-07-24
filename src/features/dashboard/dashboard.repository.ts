@@ -1,6 +1,6 @@
-import type { Prisma } from "@/generated/prisma/client";
-import { PublishStatus } from "@/generated/prisma/client";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database/prisma";
+import { PublishStatus } from "@/shared/publish-status";
 
 const recentPostSelect = {
 	createdAt: true,

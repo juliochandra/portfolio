@@ -13,7 +13,7 @@ import {
 	updateProjectRecord,
 } from "@/features/projects/projects.repository";
 import type { CreateProjectInput, UpdateProjectInput } from "@/features/projects/projects.schema";
-import { PublishStatus } from "@/generated/prisma/client";
+import { PublishStatus, toPublishStatus } from "@/shared/publish-status";
 import { generateUniqueSlug } from "@/shared/slug";
 
 export type ProjectSkill = {
@@ -97,8 +97,13 @@ export async function getPublishedProjectBySlug(slug: string): Promise<PublicPro
 	return project ? toPublicProjectDetail(project) : null;
 }
 
-export function getProjectsAdmin(): Promise<AdminProjectListItem[]> {
-	return findProjectsAdmin();
+function toAdminProjectListItem(project: Awaited<ReturnType<typeof findProjectsAdmin>>[number]): AdminProjectListItem {
+	return { ...project, status: toPublishStatus(project.status) };
+}
+
+export async function getProjectsAdmin(): Promise<AdminProjectListItem[]> {
+	const projects = await findProjectsAdmin();
+	return projects.map(toAdminProjectListItem);
 }
 
 export const ADMIN_PROJECTS_PER_PAGE = 10;
@@ -118,7 +123,7 @@ export async function getProjectsAdminPage(page: number): Promise<AdminProjectLi
 		take: ADMIN_PROJECTS_PER_PAGE,
 	});
 
-	return { currentPage, projects, totalPages };
+	return { currentPage, projects: projects.map(toAdminProjectListItem), totalPages };
 }
 
 export async function getProjectAdminById(id: string): Promise<AdminProjectDetail | null> {
@@ -130,6 +135,7 @@ export async function getProjectAdminById(id: string): Promise<AdminProjectDetai
 	return {
 		...project,
 		skillIds: project.skills.map((skill) => skill.id),
+		status: toPublishStatus(project.status),
 		tagIds: project.tags.map((tag) => tag.id),
 	};
 }

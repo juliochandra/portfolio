@@ -1,0 +1,19 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "portfolio",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-07-24",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "PORTFOLIO_DB",
+			"database_name": "portfolio",
+			"database_id": "10e7613b-d101-46e6-8ef3-d0c94e0ba5d3",
+			"migrations_dir": "prisma/d1-migrations"
+		}
+	]
+}

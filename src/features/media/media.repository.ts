@@ -1,5 +1,5 @@
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import type { Prisma } from "@/generated/prisma/client";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database/prisma";
 import { env } from "@/shared/env";
 

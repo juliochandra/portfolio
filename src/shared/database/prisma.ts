@@ -1,12 +1,16 @@
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@/generated/prisma/client";
-import { env } from "@/shared/env";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { PrismaD1 } from "@prisma/adapter-d1";
+import { PrismaClient } from "@prisma/client";
+import { cache } from "react";
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
-const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
+const getPrismaClient = cache(() => {
+	const { env } = getCloudflareContext();
+	const adapter = new PrismaD1((env as Env).PORTFOLIO_DB);
+	return new PrismaClient({ adapter });
+});
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
-
-if (process.env.NODE_ENV !== "production") {
-	globalForPrisma.prisma = prisma;
-}
+export const prisma = new Proxy({} as PrismaClient, {
+	get(_target, property) {
+		return Reflect.get(getPrismaClient(), property);
+	},
+});

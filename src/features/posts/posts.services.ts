@@ -15,7 +15,7 @@ import {
 	updatePostRecord,
 } from "@/features/posts/posts.repository";
 import type { CreatePostInput, UpdatePostInput } from "@/features/posts/posts.schema";
-import { PublishStatus } from "@/generated/prisma/client";
+import { PublishStatus, toPublishStatus } from "@/shared/publish-status";
 import { richTextToPlainText, sanitizeRichText } from "@/shared/rich-text";
 import { generateUniqueSlug } from "@/shared/slug";
 
@@ -120,6 +120,7 @@ export async function getPostsAdmin(): Promise<AdminPostListItem[]> {
 	return posts.map((post) => ({
 		...post,
 		createdAt: post.createdAt.toISOString(),
+		status: toPublishStatus(post.status),
 	}));
 }
 
@@ -145,6 +146,7 @@ export async function getPostsAdminPage(page: number): Promise<AdminPostListPage
 		posts: posts.map((post) => ({
 			...post,
 			createdAt: post.createdAt.toISOString(),
+			status: toPublishStatus(post.status),
 		})),
 		totalPages,
 	};
@@ -159,6 +161,7 @@ export async function getPostAdminById(id: string): Promise<AdminPostDetail | nu
 	const { tags, ...postDetail } = post;
 	return {
 		...postDetail,
+		status: toPublishStatus(postDetail.status),
 		tagIds: tags.map((tag) => tag.id),
 	};
 }

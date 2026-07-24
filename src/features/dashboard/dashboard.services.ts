@@ -3,7 +3,7 @@ import {
 	type RecentPostRecord,
 	type RecentProjectRecord,
 } from "@/features/dashboard/dashboard.repository";
-import type { PublishStatus } from "@/generated/prisma/client";
+import { type PublishStatus, toPublishStatus } from "@/shared/publish-status";
 
 type RecentItem = {
 	createdAt: string;
@@ -28,11 +28,11 @@ export type DashboardSummary = {
 };
 
 function toRecentPost(item: RecentPostRecord): RecentPost {
-	return { ...item, createdAt: item.createdAt.toISOString() };
+	return { ...item, createdAt: item.createdAt.toISOString(), status: toPublishStatus(item.status) };
 }
 
 function toRecentProject(item: RecentProjectRecord): RecentProject {
-	return { ...item, createdAt: item.createdAt.toISOString() };
+	return { ...item, createdAt: item.createdAt.toISOString(), status: toPublishStatus(item.status) };
 }
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
