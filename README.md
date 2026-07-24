@@ -45,7 +45,8 @@ npm run d1:seed
 | Perintah | Fungsi |
 |---|---|
 | `npm run dev` | Menjalankan server pengembangan di `http://localhost:3000` |
-| `npm run build` | Build produksi |
+| `npm run build` | Build bundle OpenNext untuk Cloudflare Workers |
+| `npm run next:build` | Build Next.js tanpa bundle Cloudflare |
 | `npm run start` | Menjalankan build produksi |
 | `npm run lint` | Lint & cek format (Biome) |
 | `npm run format` | Format kode (Biome) |
@@ -71,14 +72,14 @@ Untuk deploy melalui Git integration Cloudflare, buka **Settings > Build** pada 
 dan gunakan konfigurasi berikut:
 
 ```text
-Build command: npm run cf:build
-Deploy command: npm run cf:deploy
+Build command: npm run build
+Deploy command: npx wrangler deploy
 Production branch: main
 ```
 
-Jangan gunakan `npm run build` sebagai build command Workers. Perintah tersebut hanya
-membuat build Next.js dan tidak menghasilkan `.open-next/worker.js` yang diperlukan
-oleh deploy Cloudflare.
+`npm run build` menghasilkan `.open-next/worker.js`, sedangkan OpenNext menjalankan
+`npm run next:build` secara internal untuk membangun aplikasi Next.js. Dengan demikian,
+command default Workers Builds dapat langsung dipakai.
 
 ## Struktur Folder
 
