@@ -19,7 +19,7 @@ import {
 	FaXmark,
 } from "react-icons/fa6";
 import { logout } from "@/features/auth/auth.action";
-import { Button } from "@/shared/components/Button";
+import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { ThemeToggle } from "@/shared/components/ThemeToggle";
 
 type NavigationItem = {
@@ -59,6 +59,7 @@ const navigationGroups: NavigationGroup[] = [
 export function AdminNav() {
 	const pathname = usePathname();
 	const router = useRouter();
+	const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	async function handleLogout() {
@@ -81,10 +82,6 @@ export function AdminNav() {
 					<p className="mt-1 text-sm text-text-mute">CMS Dashboard</p>
 				</Link>
 				<div className="flex items-center gap-2 lg:hidden">
-					<ThemeToggle />
-					<Button type="button" variant="secondary" className="px-3" onClick={handleLogout}>
-						Keluar
-					</Button>
 					<button
 						type="button"
 						aria-controls="admin-navigation"
@@ -122,26 +119,35 @@ export function AdminNav() {
 									</li>
 								);
 							})}
+							{group.label === "System" ? (
+								<>
+									<li>
+										<ThemeToggle variant="menu" />
+									</li>
+									<li>
+										<button
+											className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-sm text-text-mute transition-colors hover:bg-surface hover:text-text"
+											onClick={() => setIsLogoutDialogOpen(true)}
+											type="button"
+										>
+											<FaRightFromBracket className="text-lg" aria-hidden="true" />
+											Keluar
+										</button>
+									</li>
+								</>
+							) : null}
 						</ul>
 					</div>
 				))}
 			</nav>
-
-			<div className="mt-auto hidden border-border border-t p-5 lg:block">
-				<div className="flex items-center justify-between">
-					<span className="text-sm text-text-mute">Tema</span>
-					<ThemeToggle />
-				</div>
-				<Button
-					type="button"
-					variant="secondary"
-					className="mt-4 w-full"
-					icon={<FaRightFromBracket />}
-					onClick={handleLogout}
-				>
-					Keluar
-				</Button>
-			</div>
+			<ConfirmDialog
+				confirmLabel="Keluar"
+				description="Anda perlu masuk kembali untuk mengakses CMS."
+				onCancel={() => setIsLogoutDialogOpen(false)}
+				onConfirm={handleLogout}
+				open={isLogoutDialogOpen}
+				title="Apakah Anda yakin ingin keluar?"
+			/>
 		</aside>
 	);
 }

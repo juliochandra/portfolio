@@ -3,6 +3,7 @@ import { PublishStatus } from "@/generated/prisma/client";
 
 const mocks = vi.hoisted(() => ({
 	createProjectRecord: vi.fn(),
+	countProjectsAdmin: vi.fn(),
 	deleteProjectRecord: vi.fn(),
 	findProjectDetailForAdmin: vi.fn(),
 	findProjectForAdmin: vi.fn(),
@@ -13,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/features/projects/projects.repository", () => ({
 	createProjectRecord: mocks.createProjectRecord,
+	countProjectsAdmin: mocks.countProjectsAdmin,
 	deleteProjectRecord: mocks.deleteProjectRecord,
 	findProjectBySlug: vi.fn(),
 	findProjectDetailForAdmin: mocks.findProjectDetailForAdmin,
@@ -28,6 +30,7 @@ import {
 	deleteAdminProject,
 	getProjectAdminById,
 	getProjectsAdmin,
+	getProjectsAdminPage,
 	updateAdminProject,
 } from "@/features/projects/projects.services";
 
@@ -52,6 +55,7 @@ describe("project admin services", () => {
 		mocks.createProjectRecord.mockResolvedValue({ id: "project-1", slug: "project-baru" });
 		mocks.updateProjectRecord.mockResolvedValue({ id: "project-1", slug: "project-baru" });
 		mocks.deleteProjectRecord.mockResolvedValue({ id: "project-1" });
+		mocks.countProjectsAdmin.mockResolvedValue(0);
 	});
 
 	afterEach(() => {
@@ -66,6 +70,20 @@ describe("project admin services", () => {
 		await expect(getProjectsAdmin()).resolves.toEqual([
 			{ description: null, id: "project-1", status: PublishStatus.DRAFT, title: "Project Baru" },
 		]);
+	});
+
+	it("returns one page of projects and its pagination metadata", async () => {
+		mocks.countProjectsAdmin.mockResolvedValue(11);
+		mocks.findProjectsAdmin.mockResolvedValue([
+			{ description: null, id: "project-11", status: PublishStatus.DRAFT, title: "Project 11" },
+		]);
+
+		await expect(getProjectsAdminPage(2)).resolves.toEqual({
+			currentPage: 2,
+			projects: [{ description: null, id: "project-11", status: PublishStatus.DRAFT, title: "Project 11" }],
+			totalPages: 2,
+		});
+		expect(mocks.findProjectsAdmin).toHaveBeenCalledWith({ skip: 10, take: 10 });
 	});
 
 	it("maps project relations to selected IDs for the edit form", async () => {

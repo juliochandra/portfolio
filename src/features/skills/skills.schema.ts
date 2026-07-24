@@ -6,8 +6,16 @@ const REQUIRED_MESSAGE = "Wajib diisi.";
 
 const requiredText = (maxLength: number) => z.string().trim().min(1, REQUIRED_MESSAGE).max(maxLength);
 
+const requiredUrl = (maxLength: number) =>
+	z
+		.string()
+		.trim()
+		.min(1, REQUIRED_MESSAGE)
+		.max(maxLength)
+		.refine((value) => z.url().safeParse(value).success, "URL ikon tidak valid.");
+
 const skillInputSchema = z.object({
-	icon: requiredText(100),
+	icon: requiredUrl(255),
 	name: requiredText(50),
 });
 

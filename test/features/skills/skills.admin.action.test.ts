@@ -21,9 +21,11 @@ vi.mock("@/features/skills/skills.services", () => ({
 
 import { createSkill, deleteSkill, getSkillsAdmin, updateSkill } from "@/features/skills/skills.action";
 
+const skillIconUrl = "https://cdn.example/skills/typescript.png";
+
 function skillInput(values: Record<string, unknown> = {}): Record<string, unknown> {
 	return {
-		icon: "typescript",
+		icon: skillIconUrl,
 		name: "TypeScript",
 		...values,
 	};
@@ -59,13 +61,20 @@ describe("skill admin Server Actions", () => {
 
 	it("validates object input and creates a skill", async () => {
 		await expect(createSkill(skillInput())).resolves.toEqual({ data: { id: "skill-1" } });
-		expect(mocks.createAdminSkill).toHaveBeenCalledWith({ icon: "typescript", name: "TypeScript" });
+		expect(mocks.createAdminSkill).toHaveBeenCalledWith({ icon: skillIconUrl, name: "TypeScript" });
 	});
 
 	it("returns field errors without creating an invalid skill", async () => {
 		const result = await createSkill(skillInput({ icon: "", name: "" }));
 
 		expect(result).toEqual({ error: { fields: { icon: "Wajib diisi.", name: "Wajib diisi." } } });
+		expect(mocks.createAdminSkill).not.toHaveBeenCalled();
+	});
+
+	it("rejects an icon that is not an image URL", async () => {
+		const result = await createSkill(skillInput({ icon: "typescript" }));
+
+		expect(result).toEqual({ error: { fields: { icon: "URL ikon tidak valid." } } });
 		expect(mocks.createAdminSkill).not.toHaveBeenCalled();
 	});
 
@@ -79,7 +88,7 @@ describe("skill admin Server Actions", () => {
 
 	it("updates and deletes skills for an authenticated admin", async () => {
 		await expect(updateSkill("skill-1", skillInput())).resolves.toEqual({ data: { id: "skill-1" } });
-		expect(mocks.updateAdminSkill).toHaveBeenCalledWith("skill-1", { icon: "typescript", name: "TypeScript" });
+		expect(mocks.updateAdminSkill).toHaveBeenCalledWith("skill-1", { icon: skillIconUrl, name: "TypeScript" });
 
 		await expect(deleteSkill("skill-1")).resolves.toEqual({ data: { id: "skill-1" } });
 	});

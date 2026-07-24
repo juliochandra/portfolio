@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
 	deleteAdminProject: vi.fn(),
 	getProjectAdminById: vi.fn(),
 	getProjectsAdmin: vi.fn(),
+	getProjectsAdminPage: vi.fn(),
 	getServerSession: vi.fn(),
 	updateAdminProject: vi.fn(),
 }));
@@ -17,6 +18,7 @@ vi.mock("@/features/projects/projects.services", () => ({
 	deleteAdminProject: mocks.deleteAdminProject,
 	getProjectAdminById: mocks.getProjectAdminById,
 	getProjectsAdmin: mocks.getProjectsAdmin,
+	getProjectsAdminPage: mocks.getProjectsAdminPage,
 	getPublishedProjectBySlug: vi.fn(),
 	getPublishedProjects: vi.fn(),
 	updateAdminProject: mocks.updateAdminProject,
@@ -27,6 +29,7 @@ import {
 	deleteProject,
 	getProjectAdmin,
 	getProjectsAdmin,
+	getProjectsAdminPage,
 	updateProject,
 } from "@/features/projects/projects.action";
 import { PublishStatus } from "@/generated/prisma/client";
@@ -52,6 +55,7 @@ describe("project admin Server Actions", () => {
 		vi.clearAllMocks();
 		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getProjectsAdmin.mockResolvedValue([]);
+		mocks.getProjectsAdminPage.mockResolvedValue({ currentPage: 1, projects: [], totalPages: 1 });
 		mocks.getProjectAdminById.mockResolvedValue({
 			content: "Isi project",
 			demoUrl: null,
@@ -90,6 +94,13 @@ describe("project admin Server Actions", () => {
 		await expect(getProjectsAdmin()).resolves.toEqual({
 			data: [{ description: null, id: "project-1", status: "ARCHIVED", title: "Project Lama" }],
 		});
+	});
+
+	it("returns a paginated project list for an authenticated admin", async () => {
+		await expect(getProjectsAdminPage(2)).resolves.toEqual({
+			data: { currentPage: 1, projects: [], totalPages: 1 },
+		});
+		expect(mocks.getProjectsAdminPage).toHaveBeenCalledWith(2);
 	});
 
 	it("returns the complete project data required by the edit form", async () => {

@@ -1,4 +1,5 @@
 import {
+	countProjectsAdmin,
 	createProjectRecord,
 	deleteProjectRecord,
 	findProjectBySlug,
@@ -98,6 +99,26 @@ export async function getPublishedProjectBySlug(slug: string): Promise<PublicPro
 
 export function getProjectsAdmin(): Promise<AdminProjectListItem[]> {
 	return findProjectsAdmin();
+}
+
+export const ADMIN_PROJECTS_PER_PAGE = 10;
+
+export type AdminProjectListPage = {
+	currentPage: number;
+	projects: AdminProjectListItem[];
+	totalPages: number;
+};
+
+export async function getProjectsAdminPage(page: number): Promise<AdminProjectListPage> {
+	const totalProjects = await countProjectsAdmin();
+	const totalPages = Math.max(1, Math.ceil(totalProjects / ADMIN_PROJECTS_PER_PAGE));
+	const currentPage = Math.min(page, totalPages);
+	const projects = await findProjectsAdmin({
+		skip: (currentPage - 1) * ADMIN_PROJECTS_PER_PAGE,
+		take: ADMIN_PROJECTS_PER_PAGE,
+	});
+
+	return { currentPage, projects, totalPages };
 }
 
 export async function getProjectAdminById(id: string): Promise<AdminProjectDetail | null> {

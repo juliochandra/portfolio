@@ -10,6 +10,8 @@ export const getProjectsParamsSchema = z
 
 export type GetProjectsParams = z.infer<typeof getProjectsParamsSchema>;
 
+export const adminProjectsPageSchema = z.number().int().positive();
+
 export const projectSlugSchema = z.string().trim().min(1);
 export const projectIdSchema = z.string().trim().min(1);
 

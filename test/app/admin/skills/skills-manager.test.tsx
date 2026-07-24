@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -17,6 +17,9 @@ vi.mock("@/features/skills/skills.action", () => ({
 
 import { SkillsManager } from "@/app/admin/skills/_components/SkillsManager";
 
+const iconUrl = "https://cdn.example/skills/typescript.png";
+const media = [{ fileName: "typescript.png", folderId: null, id: "media-1", url: iconUrl }];
+
 // biome-ignore lint/nursery/noSecrets: Component name, not a secret.
 describe("SkillsManager", () => {
 	beforeEach(() => {
@@ -28,41 +31,71 @@ describe("SkillsManager", () => {
 	});
 
 	it("shows validation errors without creating an incomplete skill", async () => {
-		const manager = render(<SkillsManager initialSkills={[]} />);
+		const manager = render(<SkillsManager folders={[]} initialSkills={[]} media={[]} />);
+		fireEvent.click(manager.getByRole("button", { name: "Tambah Skill" }));
+		const dialog = manager.getByRole("dialog", { name: "Tambah Skill" });
 
-		fireEvent.submit(manager.getByRole("button", { name: "+ Tambah" }).closest("form") as HTMLFormElement);
+		fireEvent.submit(within(dialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
-		await waitFor(() => {
-			expect(manager.getAllByText("Wajib diisi.")).toHaveLength(2);
-		});
+		await waitFor(() => expect(within(dialog).getAllByText("Wajib diisi.")).toHaveLength(2));
 		expect(mocks.createSkill).not.toHaveBeenCalled();
 	});
 
-	it("creates a skill and refreshes the list", async () => {
-		const manager = render(<SkillsManager initialSkills={[]} />);
-		fireEvent.change(manager.getByRole("textbox", { name: "Nama" }), { target: { value: "TypeScript" } });
-		fireEvent.change(manager.getByRole("combobox", { name: "Ikon" }), { target: { value: "typescript" } });
+	it("selects an icon from the media modal and creates a skill", async () => {
+		const manager = render(<SkillsManager folders={[]} initialSkills={[]} media={media} />);
+		fireEvent.click(manager.getByRole("button", { name: "Tambah Skill" }));
+		const dialog = manager.getByRole("dialog", { name: "Tambah Skill" });
+		fireEvent.change(within(dialog).getByRole("textbox", { name: "Nama skill" }), { target: { value: "TypeScript" } });
+		fireEvent.click(within(dialog).getByRole("button", { name: "Pilih ikon" }));
 
-		fireEvent.submit(manager.getByRole("button", { name: "+ Tambah" }).closest("form") as HTMLFormElement);
+		expect(screen.getByRole("dialog", { name: "Pilih Ikon Keahlian" })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole("button", { name: "Pilih typescript.png" }));
+		expect(within(dialog).getByAltText("Pratinjau ikon keahlian")).toHaveAttribute("src", iconUrl);
 
-		await waitFor(() => {
-			expect(mocks.createSkill).toHaveBeenCalledWith({ icon: "typescript", name: "TypeScript" });
-		});
+		fireEvent.submit(within(dialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
+
+		await waitFor(() => expect(mocks.createSkill).toHaveBeenCalledWith({ icon: iconUrl, name: "TypeScript" }));
 		expect(mocks.refresh).toHaveBeenCalledOnce();
 	});
 
-	it("fills the form and updates the selected skill", async () => {
-		const manager = render(<SkillsManager initialSkills={[{ icon: "typescript", id: "skill-1", name: "TypeScript" }]} />);
+	it("sorts skills and filters the compact badge list", () => {
+		const manager = render(
+			<SkillsManager
+				folders={[]}
+				initialSkills={[
+					{ icon: iconUrl, id: "skill-1", name: "Zod" },
+					{ icon: iconUrl, id: "skill-2", name: "React" },
+				]}
+				media={media}
+			/>,
+		);
 
-		fireEvent.click(screen.getByRole("button", { name: "Ubah" }));
-		expect(manager.getByRole("textbox", { name: "Nama" })).toHaveValue("TypeScript");
-		expect(manager.getByRole("button", { name: "Simpan" })).toBeInTheDocument();
+		expect(manager.getByRole("list", { name: "Daftar skill" })).toHaveTextContent("ReactZod");
+		fireEvent.change(manager.getByRole("textbox", { name: "Cari skill" }), { target: { value: "react" } });
+		expect(manager.getByRole("list", { name: "Daftar skill" })).toHaveTextContent("React");
+		expect(manager.queryByText("Zod")).not.toBeInTheDocument();
+	});
 
-		fireEvent.change(manager.getByRole("textbox", { name: "Nama" }), { target: { value: "TypeScript Baru" } });
-		fireEvent.submit(manager.getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
+	it("fills the edit dialog and confirms deletion of a skill", async () => {
+		const manager = render(
+			<SkillsManager folders={[]} initialSkills={[{ icon: iconUrl, id: "skill-1", name: "TypeScript" }]} media={media} />,
+		);
 
-		await waitFor(() => {
-			expect(mocks.updateSkill).toHaveBeenCalledWith("skill-1", { icon: "typescript", name: "TypeScript Baru" });
-		});
+		fireEvent.click(screen.getByRole("button", { name: "TypeScript" }));
+		const formDialog = manager.getByRole("dialog", { name: "Ubah Skill" });
+		expect(within(formDialog).getByRole("textbox", { name: "Nama skill" })).toHaveValue("TypeScript");
+
+		fireEvent.change(within(formDialog).getByRole("textbox", { name: "Nama skill" }), { target: { value: "React" } });
+		fireEvent.submit(within(formDialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
+
+		await waitFor(() => expect(mocks.updateSkill).toHaveBeenCalledWith("skill-1", { icon: iconUrl, name: "React" }));
+
+		fireEvent.click(screen.getByRole("button", { name: "TypeScript" }));
+		const deleteFormDialog = manager.getByRole("dialog", { name: "Ubah Skill" });
+		fireEvent.click(within(deleteFormDialog).getByRole("button", { name: "Hapus" }));
+		const deleteDialog = screen.getByRole("dialog");
+		expect(deleteDialog).toHaveTextContent("Skill ini akan dihapus dari daftar keahlian.");
+		fireEvent.click(within(deleteDialog).getByRole("button", { name: "Hapus" }));
+		await waitFor(() => expect(mocks.deleteSkill).toHaveBeenCalledWith("skill-1"));
 	});
 });
