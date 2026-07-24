@@ -23,7 +23,7 @@ React Hook Form 7 · Vitest 4 · Playwright 1 · Biome 2.
 ```bash
 npm install
 cp .env.example .env
-# isi R2_*, ADMIN_USERNAME, ADMIN_PASSWORD, JWT_ACCESS_SECRET
+# isi R2_PUBLIC_URL, ADMIN_USERNAME, ADMIN_PASSWORD, JWT_ACCESS_SECRET
 # & JWT_REFRESH_SECRET di .env dengan nilai Anda sendiri
 
 # Login ke Cloudflare, lalu buat database D1 kosong.
@@ -63,8 +63,6 @@ npm run d1:seed
 | `npm run d1:seed:local` | Membuat akun admin awal pada D1 lokal (aman diulang) |
 | `npm run preview` | Menjalankan aplikasi dalam runtime Workers lokal |
 | `npm run deploy` | Build dan deploy ke Cloudflare Workers |
-| `npm run r2:verify` | Verifikasi upload & baca berkas percobaan ke bucket R2 |
-| `npm run r2:cleanup` | Menghapus berkas percobaan `r2:verify` dari bucket |
 
 ## Cloudflare Workers Builds
 
@@ -80,6 +78,9 @@ Production branch: main
 `npm run build` menghasilkan `.open-next/worker.js`, sedangkan OpenNext menjalankan
 `npm run next:build` secara internal untuk membangun aplikasi Next.js. Dengan demikian,
 command default Workers Builds dapat langsung dipakai.
+
+Bucket R2 media diakses melalui binding `PORTFOLIO_MEDIA`, bukan AWS S3 SDK.
+Pastikan binding tersebut mengarah ke bucket `portfolio` pada Workers Dashboard.
 
 ## Struktur Folder
 
