@@ -28,37 +28,61 @@ describe("TagsManager", () => {
 
 	it("shows a validation error without creating an empty tag", async () => {
 		const manager = render(<TagsManager initialTags={[]} />);
+		fireEvent.click(manager.getByRole("button", { name: "Tambah Tag" }));
+		const dialog = manager.getByRole("dialog", { name: "Tambah Tag" });
 
-		fireEvent.submit(manager.getByRole("button", { name: "+ Tambah" }).closest("form") as HTMLFormElement);
+		fireEvent.submit(within(dialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
-		await waitFor(() => expect(manager.getByText("Wajib diisi.")).toBeInTheDocument());
+		await waitFor(() => expect(within(dialog).getByText("Wajib diisi.")).toBeInTheDocument());
 		expect(mocks.createTag).not.toHaveBeenCalled();
 	});
 
-	it("creates a tag and refreshes the list", async () => {
+	it("creates a tag from the compact form dialog", async () => {
 		const manager = render(<TagsManager initialTags={[]} />);
-		fireEvent.change(manager.getByRole("textbox", { name: "Nama" }), { target: { value: "Next.js" } });
+		fireEvent.click(manager.getByRole("button", { name: "Tambah Tag" }));
+		const dialog = manager.getByRole("dialog", { name: "Tambah Tag" });
+		fireEvent.change(within(dialog).getByRole("textbox", { name: "Nama tag" }), { target: { value: "Next.js" } });
 
-		fireEvent.submit(manager.getByRole("button", { name: "+ Tambah" }).closest("form") as HTMLFormElement);
+		fireEvent.submit(within(dialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
 		await waitFor(() => expect(mocks.createTag).toHaveBeenCalledWith({ name: "Next.js" }));
 		expect(mocks.refresh).toHaveBeenCalledOnce();
 	});
 
-	it("fills the form, updates, and confirms deletion of a tag", async () => {
+	it("sorts tags and filters the compact list", () => {
+		const manager = render(
+			<TagsManager
+				initialTags={[
+					{ id: "tag-1", name: "Zod" },
+					{ id: "tag-2", name: "React" },
+				]}
+			/>,
+		);
+
+		expect(manager.getByRole("list", { name: "Daftar tag" })).toHaveTextContent("reactzod");
+		fireEvent.change(manager.getByRole("textbox", { name: "Cari tag" }), { target: { value: "react" } });
+		expect(manager.getByRole("list", { name: "Daftar tag" })).toHaveTextContent("react");
+		expect(manager.queryByText("zod")).not.toBeInTheDocument();
+	});
+
+	it("fills the edit dialog and confirms deletion of a tag", async () => {
 		const manager = render(<TagsManager initialTags={[{ id: "tag-1", name: "Next.js" }]} />);
 
-		fireEvent.click(screen.getByRole("button", { name: "Ubah" }));
-		expect(manager.getByRole("textbox", { name: "Nama" })).toHaveValue("Next.js");
+		fireEvent.click(screen.getByRole("button", { name: "next.js" }));
+		const formDialog = manager.getByRole("dialog", { name: "Ubah Tag" });
+		expect(within(formDialog).getByRole("textbox", { name: "Nama tag" })).toHaveValue("Next.js");
 
-		fireEvent.change(manager.getByRole("textbox", { name: "Nama" }), { target: { value: "React" } });
-		fireEvent.submit(manager.getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
+		fireEvent.change(within(formDialog).getByRole("textbox", { name: "Nama tag" }), { target: { value: "React" } });
+		fireEvent.submit(within(formDialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
 		await waitFor(() => expect(mocks.updateTag).toHaveBeenCalledWith("tag-1", { name: "React" }));
 
-		fireEvent.click(screen.getByRole("button", { name: "Hapus" }));
-		expect(screen.getByRole("dialog")).toHaveTextContent("Project/Tulisan yang memakainya tidak ikut terhapus");
-		fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Hapus" }));
+		fireEvent.click(screen.getByRole("button", { name: "next.js" }));
+		const deleteFormDialog = manager.getByRole("dialog", { name: "Ubah Tag" });
+		fireEvent.click(within(deleteFormDialog).getByRole("button", { name: "Hapus" }));
+		const deleteDialog = screen.getByRole("dialog");
+		expect(deleteDialog).toHaveTextContent("Project/Tulisan yang memakainya tidak ikut terhapus");
+		fireEvent.click(within(deleteDialog).getByRole("button", { name: "Hapus" }));
 		await waitFor(() => expect(mocks.deleteTag).toHaveBeenCalledWith("tag-1"));
 	});
 });

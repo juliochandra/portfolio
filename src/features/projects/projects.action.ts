@@ -1,6 +1,7 @@
 "use server";
 
 import {
+	adminProjectsPageSchema,
 	type CreateProjectInput,
 	createProjectSchema,
 	type GetProjectsParams,
@@ -15,6 +16,7 @@ import {
 	createAdminProject,
 	deleteAdminProject,
 	getProjectsAdmin as getAdminProjects,
+	getProjectsAdminPage as getAdminProjectsPage,
 	getProjectAdminById,
 	getPublishedProjectBySlug,
 	getPublishedProjects,
@@ -34,6 +36,10 @@ type GetProjectsResult = { data: PublicProjectListItem[] };
 type GetProjectBySlugResult = { data: PublicProjectDetail } | { error: { message: string } };
 
 type GetProjectsAdminResult = { data: Awaited<ReturnType<typeof getAdminProjects>> } | { error: { message: "UNAUTHORIZED" } };
+
+type GetProjectsAdminPageResult =
+	| { data: Awaited<ReturnType<typeof getAdminProjectsPage>> }
+	| { error: { message: "UNAUTHORIZED" } };
 
 type GetProjectAdminResult =
 	| { data: NonNullable<Awaited<ReturnType<typeof getProjectAdminById>>> }
@@ -73,6 +79,16 @@ export async function getProjectsAdmin(): Promise<GetProjectsAdminResult> {
 	}
 
 	return { data: await getAdminProjects() };
+}
+
+export async function getProjectsAdminPage(page: number): Promise<GetProjectsAdminPageResult> {
+	if (!(await getServerSession())) {
+		return UNAUTHORIZED;
+	}
+
+	const validation = validateWithZod(adminProjectsPageSchema, page);
+	const currentPage = validation.success ? validation.data : 1;
+	return { data: await getAdminProjectsPage(currentPage) };
 }
 
 export async function getProjectAdmin(id: string): Promise<GetProjectAdminResult> {

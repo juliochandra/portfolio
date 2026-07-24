@@ -2,21 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
+import { FaImage } from "react-icons/fa";
 import { createProject, updateProject } from "@/features/projects/projects.action";
 import { createProjectSchema, projectFormDataToInput, updateProjectSchema } from "@/features/projects/projects.schema";
 import { BackLink } from "@/shared/components/BackLink";
 import { Button } from "@/shared/components/Button";
 import { FormField } from "@/shared/components/FormField";
+import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
+import { RichTextEditor } from "@/shared/components/RichTextEditor";
+import { getSkillIcon, isSkillImageUrl } from "@/shared/components/SkillTag";
 import { StatusMessage } from "@/shared/components/StatusMessage";
 import { StatusSelect } from "@/shared/components/StatusSelect";
 import type { PublishStatus } from "@/shared/publish-status";
 import { validateWithZod } from "@/shared/validation/zod";
-
-type MediaOption = {
-	fileName: string;
-	id: string;
-	url: string;
-};
 
 type ProjectFormProject = {
 	content: string;
@@ -32,19 +30,43 @@ type ProjectFormProject = {
 };
 
 type ProjectFormProps = {
-	media: MediaOption[];
+	folders: { id: string; name: string }[];
+	media: MediaImagePickerItem[];
 	project?: ProjectFormProject;
-	skills: { id: string; name: string }[];
+	skills: { icon: string | null; id: string; name: string }[];
 	tags: { id: string; name: string }[];
 };
 
 const inputClassName = "w-full rounded-md border border-border bg-canvas px-3 py-3 outline-none focus:border-accent";
 
-export function ProjectForm({ media, project, skills, tags }: ProjectFormProps) {
+export function ProjectForm({ folders, media, project, skills, tags }: ProjectFormProps) {
 	const router = useRouter();
 	const [fields, setFields] = useState<Record<string, string>>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isThumbnailModalOpen, setIsThumbnailModalOpen] = useState(false);
+	const [selectedSkillIds, setSelectedSkillIds] = useState(project?.skillIds ?? []);
+	const [selectedTagIds, setSelectedTagIds] = useState(project?.tagIds ?? []);
+	const [successMessage, setSuccessMessage] = useState<string | null>(null);
+	const [thumbnailImage, setThumbnailImage] = useState(project?.thumbnailImage ?? "");
 	const isEditing = Boolean(project);
+	const sortedSkills = [...skills].sort((firstSkill, secondSkill) => firstSkill.name.localeCompare(secondSkill.name, "id"));
+	const sortedTags = [...tags].sort((firstTag, secondTag) => firstTag.name.localeCompare(secondTag.name, "id"));
+
+	function toggleSkill(skillId: string) {
+		setSelectedSkillIds((currentSkillIds) =>
+			currentSkillIds.includes(skillId)
+				? currentSkillIds.filter((currentSkillId) => currentSkillId !== skillId)
+				: [...currentSkillIds, skillId],
+		);
+	}
+
+	function toggleTag(tagId: string) {
+		setSelectedTagIds((currentTagIds) =>
+			currentTagIds.includes(tagId)
+				? currentTagIds.filter((currentTagId) => currentTagId !== tagId)
+				: [...currentTagIds, tagId],
+		);
+	}
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -55,11 +77,13 @@ export function ProjectForm({ media, project, skills, tags }: ProjectFormProps) 
 		);
 
 		if (!validation.success) {
+			setSuccessMessage(null);
 			setFields(validation.fields);
 			return;
 		}
 
 		setFields({});
+		setSuccessMessage(null);
 		setIsSubmitting(true);
 		try {
 			const result = project ? await updateProject(project.id, formData) : await createProject(formData);
@@ -68,7 +92,12 @@ export function ProjectForm({ media, project, skills, tags }: ProjectFormProps) 
 				return;
 			}
 
-			router.push("/admin/projects?message=saved");
+			if (!project) {
+				router.replace(`/admin/projects/${result.data.id}`);
+				return;
+			}
+
+			setSuccessMessage("Project tersimpan.");
 			router.refresh();
 		} finally {
 			setIsSubmitting(false);
@@ -76,119 +105,191 @@ export function ProjectForm({ media, project, skills, tags }: ProjectFormProps) 
 	}
 
 	return (
-		<section className="max-w-4xl">
+		<section className="w-full">
 			<BackLink href="/admin/projects" label="Kembali ke Project" />
 			<h1 className="mt-5 font-bold text-3xl tracking-tight">{isEditing ? "Ubah Project" : "Tambah Project"}</h1>
 			{fields._form ? <StatusMessage message={fields._form} type="error" /> : null}
+			{successMessage ? <StatusMessage message={successMessage} type="success" /> : null}
 			<form onSubmit={handleSubmit} className="mt-8 space-y-6 rounded-xl border border-border bg-canvas p-5 sm:p-8">
 				<FormField label="Nama project" required error={fields.title}>
 					<input
-						name="title"
 						aria-label="Nama project"
+						className={inputClassName}
 						defaultValue={project?.title}
 						disabled={isSubmitting}
-						className={inputClassName}
+						name="title"
 					/>
 				</FormField>
-				<FormField label="Gambaran singkat" required error={fields.description}>
+				<FormField label="Deskripsi" required error={fields.description}>
 					<textarea
-						name="description"
-						aria-label="Gambaran singkat"
+						aria-label="Deskripsi"
+						className={inputClassName}
 						defaultValue={project?.description ?? ""}
 						disabled={isSubmitting}
+						name="description"
 						rows={3}
-						className={inputClassName}
 					/>
 				</FormField>
 				<FormField label="Deskripsi lengkap" required error={fields.content}>
-					<textarea
-						name="content"
-						aria-label="Deskripsi lengkap"
-						defaultValue={project?.content}
+					<RichTextEditor
 						disabled={isSubmitting}
-						rows={8}
-						className={inputClassName}
+						folders={folders}
+						initialContent={project?.content ?? ""}
+						label="Deskripsi lengkap"
+						media={media}
+						name="content"
 					/>
 				</FormField>
 				<div className="grid gap-6 sm:grid-cols-2">
 					<FormField label="Tautan demo" error={fields.demoUrl}>
 						<input
-							name="demoUrl"
 							aria-label="Tautan demo"
-							type="url"
+							className={inputClassName}
 							defaultValue={project?.demoUrl ?? ""}
 							disabled={isSubmitting}
-							className={inputClassName}
+							name="demoUrl"
+							type="url"
 						/>
 					</FormField>
 					<FormField label="Tautan kode" error={fields.repositoryUrl}>
 						<input
-							name="repositoryUrl"
 							aria-label="Tautan kode"
-							type="url"
+							className={inputClassName}
 							defaultValue={project?.repositoryUrl ?? ""}
 							disabled={isSubmitting}
-							className={inputClassName}
+							name="repositoryUrl"
+							type="url"
 						/>
 					</FormField>
 				</div>
-				<FormField label="Gambar dari galeri Media" error={fields.thumbnailImage}>
-					<select
-						name="thumbnailImage"
-						aria-label="Gambar dari galeri Media"
-						defaultValue={project?.thumbnailImage ?? ""}
-						disabled={isSubmitting}
-						className={inputClassName}
-					>
-						<option value="">Tidak menggunakan gambar</option>
-						{media.map((item) => (
-							<option key={item.id} value={item.url}>
-								{item.fileName}
-							</option>
+				<FormField label="Gambar Sampul" error={fields.thumbnailImage}>
+					<div>
+						<input name="thumbnailImage" type="hidden" value={thumbnailImage} />
+						<button
+							aria-label="Pilih gambar sampul"
+							className="group w-full cursor-pointer rounded-xl border border-border border-dashed bg-surface/60 p-4 text-left transition-colors hover:border-accent sm:p-5"
+							disabled={isSubmitting}
+							onClick={() => setIsThumbnailModalOpen(true)}
+							type="button"
+						>
+							{thumbnailImage ? (
+								<div className="flex flex-col gap-5">
+									<div className="w-full overflow-hidden rounded-lg border border-border bg-canvas p-1 transition-colors group-hover:border-accent">
+										{/* biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin. */}
+										<img
+											alt="Pratinjau gambar sampul"
+											className="mx-auto max-w-full rounded-md object-contain"
+											src={thumbnailImage}
+										/>
+									</div>
+									<div>
+										<p className="font-medium">Gambar sampul dipilih</p>
+										<p className="mt-1 text-sm text-text-mute">
+											Gambar ini akan tampil di bagian atas detail project dan kartu portfolio. Klik untuk mengganti
+											gambar.
+										</p>
+									</div>
+								</div>
+							) : (
+								<div className="flex items-center gap-3">
+									<div className="grid size-11 shrink-0 place-items-center rounded-lg bg-canvas text-text-mute">
+										<FaImage aria-hidden="true" />
+									</div>
+									<div>
+										<p className="font-medium">Belum ada gambar sampul</p>
+										<p className="mt-1 text-sm text-text-mute">Pilih gambar dari galeri Media untuk project ini.</p>
+									</div>
+								</div>
+							)}
+						</button>
+					</div>
+				</FormField>
+				<FormField label="Tech Stack" error={fields.skillIds}>
+					<fieldset aria-label="Tech Stack" className="flex flex-wrap gap-2">
+						{selectedSkillIds.map((skillId) => (
+							<input key={skillId} name="skillIds" type="hidden" value={skillId} />
 						))}
-					</select>
-				</FormField>
-				<div className="grid gap-6 sm:grid-cols-2">
-					<FormField label="Keahlian / Tech Stack" error={fields.skillIds}>
-						<select
-							multiple
-							name="skillIds"
-							aria-label="Keahlian / Tech Stack"
-							defaultValue={project?.skillIds}
-							disabled={isSubmitting}
-							className={`${inputClassName} min-h-36`}
-						>
-							{skills.map((skill) => (
-								<option key={skill.id} value={skill.id}>
+						{sortedSkills.map((skill) => {
+							const isSelected = selectedSkillIds.includes(skill.id);
+							return (
+								<button
+									aria-pressed={isSelected}
+									className={`rounded-md border px-3 py-2 text-sm transition-colors ${
+										isSelected
+											? "border-accent bg-accent/10 text-accent"
+											: "border-border bg-canvas text-text-mute hover:border-accent hover:text-text"
+									}`}
+									disabled={isSubmitting}
+									key={skill.id}
+									onClick={() => toggleSkill(skill.id)}
+									type="button"
+								>
+									<TechStackIcon icon={skill.icon} />
 									{skill.name}
-								</option>
-							))}
-						</select>
-					</FormField>
-					<FormField label="Tag" error={fields.tagIds}>
-						<select
-							multiple
-							name="tagIds"
-							aria-label="Tag"
-							defaultValue={project?.tagIds}
-							disabled={isSubmitting}
-							className={`${inputClassName} min-h-36`}
-						>
-							{tags.map((tag) => (
-								<option key={tag.id} value={tag.id}>
-									{tag.name}
-								</option>
-							))}
-						</select>
-					</FormField>
-				</div>
-				<FormField label="Status" error={fields.status}>
-					<StatusSelect name="status" aria-label="Status" defaultValue={project?.status} disabled={isSubmitting} />
+								</button>
+							);
+						})}
+						{skills.length === 0 ? <p className="text-sm text-text-mute">Belum ada tech stack.</p> : null}
+					</fieldset>
 				</FormField>
-				<Button type="submit" isLoading={isSubmitting}>
+				<FormField label="Tag" error={fields.tagIds}>
+					<fieldset aria-label="Tag" className="flex flex-wrap gap-2">
+						{selectedTagIds.map((tagId) => (
+							<input key={tagId} name="tagIds" type="hidden" value={tagId} />
+						))}
+						{sortedTags.map((tag) => {
+							const isSelected = selectedTagIds.includes(tag.id);
+							return (
+								<button
+									aria-pressed={isSelected}
+									className={`rounded-md border px-3 py-2 text-sm transition-colors ${
+										isSelected
+											? "border-accent bg-accent/10 text-accent"
+											: "border-border bg-canvas text-text-mute hover:border-accent hover:text-text"
+									}`}
+									disabled={isSubmitting}
+									key={tag.id}
+									onClick={() => toggleTag(tag.id)}
+									type="button"
+								>
+									{tag.name.toLowerCase()}
+								</button>
+							);
+						})}
+						{tags.length === 0 ? <p className="text-sm text-text-mute">Belum ada tag.</p> : null}
+					</fieldset>
+				</FormField>
+				<FormField label="Status" error={fields.status}>
+					<StatusSelect aria-label="Status" defaultValue={project?.status} disabled={isSubmitting} name="status" />
+				</FormField>
+				<Button isLoading={isSubmitting} type="submit">
 					Simpan
 				</Button>
 			</form>
+			{isThumbnailModalOpen ? (
+				<MediaImagePickerModal
+					folders={folders}
+					media={media}
+					onClear={() => setThumbnailImage("")}
+					onClose={() => setIsThumbnailModalOpen(false)}
+					onSelect={setThumbnailImage}
+					selectedUrl={thumbnailImage}
+					title="Pilih Gambar Sampul"
+				/>
+			) : null}
 		</section>
 	);
+}
+
+function TechStackIcon({ icon }: { icon: string | null }) {
+	const Icon = getSkillIcon(icon);
+
+	if (isSkillImageUrl(icon)) {
+		return (
+			// biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin.
+			<img src={icon} alt="" className="mr-1 inline-block size-4 object-contain" />
+		);
+	}
+
+	return Icon ? <Icon className="mr-1 inline-block" aria-hidden="true" /> : null;
 }

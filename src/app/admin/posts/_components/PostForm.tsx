@@ -124,45 +124,34 @@ export function PostForm({ folders, media, post, tags }: PostFormProps) {
 					/>
 				</FormField>
 				<FormField label="Gambar Sampul" error={fields.thumbnailImage}>
-					<div className="rounded-xl border border-border border-dashed bg-surface/60 p-4 sm:p-5">
+					<div>
 						<input type="hidden" name="thumbnailImage" value={thumbnailImage} />
-						{thumbnailImage ? (
-							<div className="flex flex-col gap-5">
-								<div className="w-full overflow-hidden rounded-lg border border-border bg-canvas p-1">
-									{/* biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin. */}
-									<img
-										src={thumbnailImage}
-										alt="Pratinjau gambar sampul"
-										className="aspect-video w-full rounded-md object-contain"
-									/>
-								</div>
-								<div>
-									<p className="font-medium">Gambar sampul dipilih</p>
-									<p className="mt-1 text-sm text-text-mute">
-										Gambar ini akan tampil di bagian atas detail tulisan dan kartu blog.
-									</p>
-									<div className="mt-4 flex flex-wrap gap-3">
-										<Button
-											type="button"
-											variant="secondary"
-											disabled={isSubmitting}
-											onClick={() => setIsThumbnailModalOpen(true)}
-										>
-											Ganti Gambar
-										</Button>
-										<Button
-											type="button"
-											variant="secondary"
-											disabled={isSubmitting}
-											onClick={() => setThumbnailImage("")}
-										>
-											Hapus Gambar
-										</Button>
+						<button
+							aria-label="Pilih gambar sampul"
+							className="group w-full cursor-pointer rounded-xl border border-border border-dashed bg-surface/60 p-4 text-left transition-colors hover:border-accent sm:p-5"
+							disabled={isSubmitting}
+							onClick={() => setIsThumbnailModalOpen(true)}
+							type="button"
+						>
+							{thumbnailImage ? (
+								<div className="flex flex-col gap-5">
+									<div className="w-full overflow-hidden rounded-lg border border-border bg-canvas p-1 transition-colors group-hover:border-accent">
+										{/* biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin. */}
+										<img
+											src={thumbnailImage}
+											alt="Pratinjau gambar sampul"
+											className="mx-auto max-w-full rounded-md object-contain"
+										/>
+									</div>
+									<div>
+										<p className="font-medium">Gambar sampul dipilih</p>
+										<p className="mt-1 text-sm text-text-mute">
+											Gambar ini akan tampil di bagian atas detail tulisan dan kartu blog. Klik untuk mengganti
+											gambar.
+										</p>
 									</div>
 								</div>
-							</div>
-						) : (
-							<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+							) : (
 								<div className="flex items-center gap-3">
 									<div className="grid size-11 shrink-0 place-items-center rounded-lg bg-canvas text-text-mute">
 										<FaImage aria-hidden="true" />
@@ -172,16 +161,8 @@ export function PostForm({ folders, media, post, tags }: PostFormProps) {
 										<p className="mt-1 text-sm text-text-mute">Pilih gambar dari galeri Media untuk tulisan ini.</p>
 									</div>
 								</div>
-								<Button
-									type="button"
-									variant="secondary"
-									disabled={isSubmitting}
-									onClick={() => setIsThumbnailModalOpen(true)}
-								>
-									Pilih Gambar
-								</Button>
-							</div>
-						)}
+							)}
+						</button>
 					</div>
 				</FormField>
 				<FormField label="Tag" error={fields.tagIds}>

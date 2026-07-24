@@ -85,11 +85,17 @@ export function findProjectBySlug(params: { slug: string; status: PublishStatus 
 	});
 }
 
-export function findProjectsAdmin(): Promise<AdminProjectListRecord[]> {
+export function findProjectsAdmin(params?: { skip: number; take: number }): Promise<AdminProjectListRecord[]> {
 	return prisma.project.findMany({
 		orderBy: { createdAt: "desc" },
 		select: adminProjectListSelect,
+		skip: params?.skip,
+		take: params?.take,
 	});
+}
+
+export function countProjectsAdmin(): Promise<number> {
+	return prisma.project.count();
 }
 
 export function findProjectForAdmin(id: string): Promise<AdminProjectRecord | null> {

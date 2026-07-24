@@ -1,16 +1,25 @@
+import type { ReactNode } from "react";
 import type { PublicSkill } from "@/features/skills/skills.services";
-import { getSkillIcon } from "@/shared/components/SkillTag";
+import { getSkillIcon, isSkillImageUrl } from "@/shared/components/SkillTag";
 
 export function SkillCard({ skill }: { skill: PublicSkill }) {
 	const Icon = getSkillIcon(skill.icon);
+	let iconContent: ReactNode;
+
+	if (isSkillImageUrl(skill.icon)) {
+		iconContent = (
+			// biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin.
+			<img src={skill.icon} alt="" className="size-12 object-contain" />
+		);
+	} else if (Icon) {
+		iconContent = <Icon className="text-3xl text-accent" aria-hidden="true" />;
+	} else {
+		iconContent = <span className="font-mono text-2xl text-accent">&lt;/&gt;</span>;
+	}
 
 	return (
 		<li className="grid place-items-center rounded-xl border border-border bg-canvas px-4 py-5 text-center">
-			{Icon ? (
-				<Icon className="text-3xl text-accent" aria-hidden="true" />
-			) : (
-				<span className="font-mono text-2xl text-accent">&lt;/&gt;</span>
-			)}
+			{iconContent}
 			<span className="mt-4 font-semibold">{skill.name}</span>
 		</li>
 	);

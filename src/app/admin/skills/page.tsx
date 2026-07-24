@@ -1,11 +1,16 @@
 import { SkillsManager } from "@/app/admin/skills/_components/SkillsManager";
+import { getMediaFolders, getMediaGallery } from "@/features/media/media.action";
 import { getSkillsAdmin } from "@/features/skills/skills.action";
 
 export default async function SkillsPage() {
-	const skillsResult = await getSkillsAdmin();
-	if ("error" in skillsResult) {
+	const [foldersResult, mediaResult, skillsResult] = await Promise.all([
+		getMediaFolders(),
+		getMediaGallery(),
+		getSkillsAdmin(),
+	]);
+	if ("error" in foldersResult || "error" in mediaResult || "error" in skillsResult) {
 		return null;
 	}
 
-	return <SkillsManager initialSkills={skillsResult.data} />;
+	return <SkillsManager folders={foldersResult.data} initialSkills={skillsResult.data} media={mediaResult.data} />;
 }

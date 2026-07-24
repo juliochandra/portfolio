@@ -87,7 +87,7 @@ describe("PostForm", () => {
 				tags={[]}
 			/>,
 		);
-		fireEvent.click(postForm.getByRole("button", { name: "Pilih Gambar" }));
+		fireEvent.click(postForm.getByRole("button", { name: "Pilih gambar sampul" }));
 
 		expect(postForm.getByRole("dialog", { name: "Pilih Gambar Sampul" })).toBeInTheDocument();
 		expect(postForm.getByRole("button", { name: "Portfolio" })).toBeInTheDocument();
@@ -100,8 +100,8 @@ describe("PostForm", () => {
 
 		expect(postForm.queryByRole("dialog", { name: "Pilih Gambar Sampul" })).not.toBeInTheDocument();
 		expect(postForm.getByAltText("Pratinjau gambar sampul")).toHaveAttribute("src", "https://cdn.example/cover.png");
-		expect(postForm.getByRole("button", { name: "Ganti Gambar" })).toBeInTheDocument();
-		fireEvent.click(postForm.getByRole("button", { name: "Hapus Gambar" }));
+		fireEvent.click(postForm.getByRole("button", { name: "Pilih gambar sampul" }));
+		fireEvent.click(postForm.getByRole("button", { name: "Tanpa gambar" }));
 		expect(postForm.queryByAltText("Pratinjau gambar sampul")).not.toBeInTheDocument();
 		expect(postForm.getByText("Belum ada gambar sampul")).toBeInTheDocument();
 	});
