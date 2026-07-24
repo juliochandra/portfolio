@@ -1,7 +1,6 @@
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import type { Prisma } from "@prisma/client";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/shared/database/prisma";
-import { env } from "@/shared/env";
 
 const mediaGallerySelect = {
 	createdAt: true,
@@ -19,12 +18,6 @@ const mediaFolderListSelect = {
 	...mediaFolderSelect,
 	_count: { select: { media: true } },
 } satisfies Prisma.MediaFolderSelect;
-const r2 = new S3Client({
-	credentials: { accessKeyId: env.R2_ACCESS_KEY_ID, secretAccessKey: env.R2_SECRET_ACCESS_KEY },
-	endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-	region: "auto",
-});
-
 export type MediaGalleryRecord = Prisma.MediaGetPayload<{ select: typeof mediaGallerySelect }>;
 export type MediaDeleteRecord = Prisma.MediaGetPayload<{ select: typeof mediaDeleteSelect }>;
 export type MediaFolderRecord = Prisma.MediaFolderGetPayload<{ select: typeof mediaFolderSelect }>;
@@ -68,19 +61,19 @@ export function deleteEmptyMediaFolderRecord(id: string): Promise<{ count: numbe
 	return prisma.mediaFolder.deleteMany({ where: { id, media: { none: {} } } });
 }
 
+function getMediaBucket(): R2Bucket {
+	const { env } = getCloudflareContext();
+	return (env as Env).PORTFOLIO_MEDIA;
+}
+
 export async function uploadMediaObject(objectKey: string, file: File): Promise<void> {
-	await r2.send(
-		new PutObjectCommand({
-			Body: Buffer.from(await file.arrayBuffer()),
-			Bucket: env.R2_BUCKET_NAME,
-			ContentType: file.type,
-			Key: objectKey,
-		}),
-	);
+	await getMediaBucket().put(objectKey, await file.arrayBuffer(), {
+		httpMetadata: { contentType: file.type },
+	});
 }
 
 export async function deleteMediaObject(objectKey: string): Promise<void> {
-	await r2.send(new DeleteObjectCommand({ Bucket: env.R2_BUCKET_NAME, Key: objectKey }));
+	await getMediaBucket().delete(objectKey);
 }
 
 export function createMediaRecord(input: {

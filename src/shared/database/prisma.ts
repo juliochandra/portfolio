@@ -1,7 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { PrismaD1 } from "@prisma/adapter-d1";
-import { PrismaClient } from "@prisma/client";
 import { cache } from "react";
+import { PrismaClient } from "@/generated/prisma/client";
 
 const getPrismaClient = cache(() => {
 	const { env } = getCloudflareContext();

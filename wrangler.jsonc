@@ -15,5 +15,11 @@
 			"database_id": "10e7613b-d101-46e6-8ef3-d0c94e0ba5d3",
 			"migrations_dir": "prisma/d1-migrations"
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "PORTFOLIO_MEDIA",
+			"bucket_name": "portfolio"
+		}
 	]
 }
