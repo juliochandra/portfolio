@@ -54,6 +54,8 @@ npm run d1:seed
 | `npm run test:e2e` | E2E test (Playwright) — build & start otomatis |
 | `npx prisma generate` | Meng-generate Prisma Client (otomatis lewat `postinstall`) |
 | `npm run cf-typegen` | Menghasilkan tipe binding dari `wrangler.jsonc` |
+| `npm run cf:build` | Membuat bundle OpenNext untuk Cloudflare Workers |
+| `npm run cf:deploy` | Deploy bundle OpenNext yang sudah dibuat |
 | `npm run d1:migrate:local` | Menerapkan migrasi ke D1 lokal |
 | `npm run d1:migrate:remote` | Menerapkan migrasi ke D1 Cloudflare |
 | `npm run d1:seed` | Membuat akun admin awal pada D1 remote (aman diulang) |
@@ -62,6 +64,21 @@ npm run d1:seed
 | `npm run deploy` | Build dan deploy ke Cloudflare Workers |
 | `npm run r2:verify` | Verifikasi upload & baca berkas percobaan ke bucket R2 |
 | `npm run r2:cleanup` | Menghapus berkas percobaan `r2:verify` dari bucket |
+
+## Cloudflare Workers Builds
+
+Untuk deploy melalui Git integration Cloudflare, buka **Settings > Build** pada Worker
+dan gunakan konfigurasi berikut:
+
+```text
+Build command: npm run cf:build
+Deploy command: npm run cf:deploy
+Production branch: main
+```
+
+Jangan gunakan `npm run build` sebagai build command Workers. Perintah tersebut hanya
+membuat build Next.js dan tidak menghasilkan `.open-next/worker.js` yang diperlukan
+oleh deploy Cloudflare.
 
 ## Struktur Folder
 
