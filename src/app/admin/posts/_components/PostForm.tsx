@@ -28,13 +28,15 @@ type PostFormPost = {
 type PostFormProps = {
 	folders: { id: string; name: string }[];
 	media: MediaImagePickerItem[];
+	mediaCurrentPage?: number;
+	mediaTotalPages?: number;
 	post?: PostFormPost;
 	tags: { id: string; name: string }[];
 };
 
 const inputClassName = "w-full rounded-md border border-border bg-canvas px-3 py-3 outline-none focus:border-accent";
 
-export function PostForm({ folders, media, post, tags }: PostFormProps) {
+export function PostForm({ folders, media, mediaCurrentPage = 1, mediaTotalPages = 1, post, tags }: PostFormProps) {
 	const router = useRouter();
 	const [fields, setFields] = useState<Record<string, string>>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,6 +122,8 @@ export function PostForm({ folders, media, post, tags }: PostFormProps) {
 						initialContent={post?.content ?? ""}
 						label="Isi"
 						media={media}
+						mediaCurrentPage={mediaCurrentPage}
+						mediaTotalPages={mediaTotalPages}
 						name="content"
 					/>
 				</FormField>
@@ -201,6 +205,7 @@ export function PostForm({ folders, media, post, tags }: PostFormProps) {
 			</form>
 			{isThumbnailModalOpen ? (
 				<MediaImagePickerModal
+					currentPage={mediaCurrentPage}
 					folders={folders}
 					media={media}
 					onClear={() => setThumbnailImage("")}
@@ -208,6 +213,7 @@ export function PostForm({ folders, media, post, tags }: PostFormProps) {
 					onSelect={setThumbnailImage}
 					selectedUrl={thumbnailImage}
 					title="Pilih Gambar Sampul"
+					totalPages={mediaTotalPages}
 				/>
 			) : null}
 		</section>

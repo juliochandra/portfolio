@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
 	createProject: vi.fn(),
+	getMediaGalleryPage: vi.fn(),
 	refresh: vi.fn(),
 	replace: vi.fn(),
 	updateProject: vi.fn(),
@@ -13,6 +14,7 @@ vi.mock("@/features/projects/projects.action", () => ({
 	createProject: mocks.createProject,
 	updateProject: mocks.updateProject,
 }));
+vi.mock("@/features/media/media.action", () => ({ getMediaGalleryPage: mocks.getMediaGalleryPage }));
 // biome-ignore lint/nursery/noSecrets: Module path, not a secret.
 vi.mock("@/shared/components/RichTextEditor", () => ({
 	RichTextEditor: ({ initialContent, label, name }: { initialContent: string; label: string; name: string }) => (
@@ -27,6 +29,7 @@ describe("ProjectForm", () => {
 		cleanup();
 		vi.clearAllMocks();
 		mocks.createProject.mockResolvedValue({ data: { id: "project-1", slug: "project-baru" } });
+		mocks.getMediaGalleryPage.mockResolvedValue({ data: { currentPage: 1, media: [], totalPages: 1 } });
 		mocks.updateProject.mockResolvedValue({ data: { id: "project-1", slug: "project-baru" } });
 	});
 
@@ -74,7 +77,14 @@ describe("ProjectForm", () => {
 		expect(projectForm.container.querySelector('img[src="https://cdn.example/skills/react.png"]')).toBeInTheDocument();
 	});
 
-	it("selects a cover image from the media modal", () => {
+	it("selects a cover image from the media modal", async () => {
+		mocks.getMediaGalleryPage.mockResolvedValue({
+			data: {
+				currentPage: 1,
+				media: [{ fileName: "cover.png", folderId: "folder-1", id: "media-1", url: "https://cdn.example/cover.png" }],
+				totalPages: 1,
+			},
+		});
 		const projectForm = render(
 			<ProjectForm
 				folders={[{ id: "folder-1", name: "Portfolio" }]}
@@ -86,6 +96,7 @@ describe("ProjectForm", () => {
 
 		fireEvent.click(projectForm.getByRole("button", { name: "Pilih gambar sampul" }));
 		fireEvent.click(projectForm.getByRole("button", { name: "Portfolio" }));
+		await waitFor(() => expect(projectForm.getByRole("button", { name: "Pilih cover.png" })).toBeInTheDocument());
 		fireEvent.click(projectForm.getByRole("button", { name: "Pilih cover.png" }));
 
 		expect(projectForm.getByAltText("Pratinjau gambar sampul")).toHaveAttribute("src", "https://cdn.example/cover.png");

@@ -2,6 +2,7 @@ import type { IconType } from "react-icons";
 import { CiAt, CiLink } from "react-icons/ci";
 import { FaLinkedin } from "react-icons/fa";
 import { SiGithub, SiX } from "react-icons/si";
+import { isImageUrl } from "@/shared/validation/is-image-url";
 
 type ContactLinkProps = {
 	icon: string | null;
@@ -42,7 +43,12 @@ export function ContactLink({ icon, label, value }: ContactLinkProps) {
 			target={isExternalLink ? "_blank" : undefined}
 			rel={isExternalLink ? "noreferrer" : undefined}
 		>
-			<Icon className="text-accent text-lg" aria-hidden="true" />
+			{isImageUrl(icon) ? (
+				// biome-ignore lint/performance/noImgElement: URL gambar dipilih admin dari galeri Media.
+				<img src={icon} alt="" className="size-5 object-contain" />
+			) : (
+				<Icon className="text-accent text-lg" aria-hidden="true" />
+			)}
 			<span className="font-semibold">{label}</span>
 		</a>
 	);

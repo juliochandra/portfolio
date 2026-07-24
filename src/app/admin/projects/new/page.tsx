@@ -1,12 +1,12 @@
 import { ProjectForm } from "@/app/admin/projects/_components/ProjectForm";
-import { getMediaFolders, getMediaGallery } from "@/features/media/media.action";
+import { getMediaFolders, getMediaGalleryPage } from "@/features/media/media.action";
 import { getSkillsAdmin } from "@/features/skills/skills.action";
 import { getTagsAdmin } from "@/features/tags/tags.action";
 
 export default async function NewProjectPage() {
 	const [foldersResult, mediaResult, skillsResult, tagsResult] = await Promise.all([
 		getMediaFolders(),
-		getMediaGallery(),
+		getMediaGalleryPage({ folderId: null, page: 1 }),
 		getSkillsAdmin(),
 		getTagsAdmin(),
 	]);
@@ -15,6 +15,13 @@ export default async function NewProjectPage() {
 	}
 
 	return (
-		<ProjectForm folders={foldersResult.data} media={mediaResult.data} skills={skillsResult.data} tags={tagsResult.data} />
+		<ProjectForm
+			folders={foldersResult.data}
+			media={mediaResult.data.media}
+			mediaCurrentPage={mediaResult.data.currentPage}
+			mediaTotalPages={mediaResult.data.totalPages}
+			skills={skillsResult.data}
+			tags={tagsResult.data}
+		/>
 	);
 }

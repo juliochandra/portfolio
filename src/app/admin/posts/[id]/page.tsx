@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PostForm } from "@/app/admin/posts/_components/PostForm";
-import { getMediaFolders, getMediaGallery } from "@/features/media/media.action";
+import { getMediaFolders, getMediaGalleryPage } from "@/features/media/media.action";
 import { getPostAdmin } from "@/features/posts/posts.action";
 import { getTagsAdmin } from "@/features/tags/tags.action";
 
@@ -13,12 +13,21 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
 	const [foldersResult, postResult, mediaResult, tagsResult] = await Promise.all([
 		getMediaFolders(),
 		getPostAdmin(id),
-		getMediaGallery(),
+		getMediaGalleryPage({ folderId: null, page: 1 }),
 		getTagsAdmin(),
 	]);
 	if ("error" in foldersResult || "error" in postResult || "error" in mediaResult || "error" in tagsResult) {
 		notFound();
 	}
 
-	return <PostForm folders={foldersResult.data} post={postResult.data} media={mediaResult.data} tags={tagsResult.data} />;
+	return (
+		<PostForm
+			folders={foldersResult.data}
+			media={mediaResult.data.media}
+			mediaCurrentPage={mediaResult.data.currentPage}
+			mediaTotalPages={mediaResult.data.totalPages}
+			post={postResult.data}
+			tags={tagsResult.data}
+		/>
+	);
 }

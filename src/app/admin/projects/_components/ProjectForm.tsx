@@ -10,10 +10,11 @@ import { Button } from "@/shared/components/Button";
 import { FormField } from "@/shared/components/FormField";
 import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
 import { RichTextEditor } from "@/shared/components/RichTextEditor";
-import { getSkillIcon, isSkillImageUrl } from "@/shared/components/SkillTag";
+import { getSkillIcon } from "@/shared/components/SkillTag";
 import { StatusMessage } from "@/shared/components/StatusMessage";
 import { StatusSelect } from "@/shared/components/StatusSelect";
 import type { PublishStatus } from "@/shared/publish-status";
+import { isImageUrl } from "@/shared/validation/is-image-url";
 import { validateWithZod } from "@/shared/validation/zod";
 
 type ProjectFormProject = {
@@ -32,6 +33,8 @@ type ProjectFormProject = {
 type ProjectFormProps = {
 	folders: { id: string; name: string }[];
 	media: MediaImagePickerItem[];
+	mediaCurrentPage?: number;
+	mediaTotalPages?: number;
 	project?: ProjectFormProject;
 	skills: { icon: string | null; id: string; name: string }[];
 	tags: { id: string; name: string }[];
@@ -39,7 +42,15 @@ type ProjectFormProps = {
 
 const inputClassName = "w-full rounded-md border border-border bg-canvas px-3 py-3 outline-none focus:border-accent";
 
-export function ProjectForm({ folders, media, project, skills, tags }: ProjectFormProps) {
+export function ProjectForm({
+	folders,
+	media,
+	mediaCurrentPage = 1,
+	mediaTotalPages = 1,
+	project,
+	skills,
+	tags,
+}: ProjectFormProps) {
 	const router = useRouter();
 	const [fields, setFields] = useState<Record<string, string>>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -137,6 +148,8 @@ export function ProjectForm({ folders, media, project, skills, tags }: ProjectFo
 						initialContent={project?.content ?? ""}
 						label="Deskripsi lengkap"
 						media={media}
+						mediaCurrentPage={mediaCurrentPage}
+						mediaTotalPages={mediaTotalPages}
 						name="content"
 					/>
 				</FormField>
@@ -268,6 +281,7 @@ export function ProjectForm({ folders, media, project, skills, tags }: ProjectFo
 			</form>
 			{isThumbnailModalOpen ? (
 				<MediaImagePickerModal
+					currentPage={mediaCurrentPage}
 					folders={folders}
 					media={media}
 					onClear={() => setThumbnailImage("")}
@@ -275,6 +289,7 @@ export function ProjectForm({ folders, media, project, skills, tags }: ProjectFo
 					onSelect={setThumbnailImage}
 					selectedUrl={thumbnailImage}
 					title="Pilih Gambar Sampul"
+					totalPages={mediaTotalPages}
 				/>
 			) : null}
 		</section>
@@ -284,7 +299,7 @@ export function ProjectForm({ folders, media, project, skills, tags }: ProjectFo
 function TechStackIcon({ icon }: { icon: string | null }) {
 	const Icon = getSkillIcon(icon);
 
-	if (isSkillImageUrl(icon)) {
+	if (isImageUrl(icon)) {
 		return (
 			// biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin.
 			<img src={icon} alt="" className="mr-1 inline-block size-4 object-contain" />

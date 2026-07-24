@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
 	createMediaFolderRecord: vi.fn(),
 	createMediaRecord: vi.fn(),
+	countMediaGallery: vi.fn(),
 	deleteEmptyMediaFolderRecord: vi.fn(),
 	deleteMediaObject: vi.fn(),
 	deleteMediaRecord: vi.fn(),
@@ -18,7 +19,7 @@ import {
 	createAdminMediaFolder,
 	deleteAdminMedia,
 	deleteAdminMediaFolder,
-	getMediaGallery,
+	getMediaGalleryPage,
 	uploadAdminMedia,
 } from "@/features/media/media.services";
 
@@ -26,11 +27,12 @@ describe("media services", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.createMediaRecord.mockResolvedValue({ id: "media-1", url: "https://cdn.example/media/x.png" });
+		mocks.countMediaGallery.mockResolvedValue(1);
 		mocks.createMediaFolderRecord.mockResolvedValue({ id: "folder-1", name: "Portfolio" });
 		mocks.deleteEmptyMediaFolderRecord.mockResolvedValue({ count: 1 });
 		mocks.deleteMediaRecord.mockResolvedValue({ id: "media-1" });
 	});
-	it("serializes gallery dates and stores an uploaded image", async () => {
+	it("paginates gallery media, serializes dates, and stores an uploaded image", async () => {
 		mocks.findMediaGallery.mockResolvedValue([
 			{
 				createdAt: new Date("2026-07-18T00:00:00.000Z"),
@@ -41,7 +43,12 @@ describe("media services", () => {
 				url: "https://cdn.example/media/x.png",
 			},
 		]);
-		await expect(getMediaGallery()).resolves.toEqual([expect.objectContaining({ createdAt: "2026-07-18T00:00:00.000Z" })]);
+		await expect(getMediaGalleryPage({ folderId: null, page: 1 })).resolves.toEqual({
+			currentPage: 1,
+			media: [expect.objectContaining({ createdAt: "2026-07-18T00:00:00.000Z" })],
+			totalPages: 1,
+		});
+		expect(mocks.findMediaGallery).toHaveBeenCalledWith({ folderId: null, skip: 0, take: 24 });
 		await uploadAdminMedia({ file: new File(["x"], "x.png", { type: "image/png" }), folderId: null });
 		expect(mocks.uploadMediaObject).toHaveBeenCalled();
 	});

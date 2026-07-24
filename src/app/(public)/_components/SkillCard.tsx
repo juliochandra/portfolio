@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import type { PublicSkill } from "@/features/skills/skills.services";
-import { getSkillIcon, isSkillImageUrl } from "@/shared/components/SkillTag";
+import { getSkillIcon } from "@/shared/components/SkillTag";
+import { isImageUrl } from "@/shared/validation/is-image-url";
 
 export function SkillCard({ skill }: { skill: PublicSkill }) {
 	const Icon = getSkillIcon(skill.icon);
 	let iconContent: ReactNode;
 
-	if (isSkillImageUrl(skill.icon)) {
+	if (isImageUrl(skill.icon)) {
 		iconContent = (
 			// biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin.
 			<img src={skill.icon} alt="" className="size-12 object-contain" />

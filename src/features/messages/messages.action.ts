@@ -1,11 +1,12 @@
 "use server";
 
 import { z } from "zod";
-import { type SendMessageInput, sendMessageSchema } from "@/features/messages/messages.schema";
+import { adminMessagesPageSchema, type SendMessageInput, sendMessageSchema } from "@/features/messages/messages.schema";
 import {
 	archiveAdminMessage,
 	createPublicMessage,
 	getAdminMessages,
+	getAdminMessagesPage,
 	type MessageTab,
 	markAdminMessageRead,
 	type SentMessage,
@@ -27,6 +28,10 @@ const MESSAGE_NOT_FOUND_MESSAGE = "Pesan tidak ditemukan.";
 const UNAUTHORIZED = { error: { message: "UNAUTHORIZED" } } as const;
 
 type GetMessagesResult = { data: Awaited<ReturnType<typeof getAdminMessages>> } | { error: { message: "UNAUTHORIZED" } };
+
+type GetMessagesPageResult =
+	| { data: Awaited<ReturnType<typeof getAdminMessagesPage>> }
+	| { error: { message: "UNAUTHORIZED" } };
 
 type MessageStatusMutationResult = { data: { id: string } } | { error: { message: "Pesan tidak ditemukan." | "UNAUTHORIZED" } };
 
@@ -50,6 +55,16 @@ export async function getMessages(params?: { tab?: MessageTab }): Promise<GetMes
 	}
 
 	return { data: await getAdminMessages(validation.data?.tab ?? "aktif") };
+}
+
+export async function getMessagesPage(params: { page: number; tab: MessageTab }): Promise<GetMessagesPageResult> {
+	if (!(await getServerSession())) {
+		return UNAUTHORIZED;
+	}
+
+	const validation = validateWithZod(adminMessagesPageSchema, params);
+	const input = validation.success ? validation.data : { page: 1, tab: "aktif" as const };
+	return { data: await getAdminMessagesPage(input.tab, input.page) };
 }
 
 async function updateMessage(

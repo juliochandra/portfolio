@@ -3,12 +3,14 @@ import { MessageStatus } from "@/generated/prisma/client";
 
 const mocks = vi.hoisted(() => ({
 	findMessages: vi.fn(),
+	countMessages: vi.fn(),
 	findMessageStatus: vi.fn(),
 	updateMessageStatus: vi.fn(),
 }));
 
 vi.mock("@/features/messages/messages.repository", () => ({
 	createMessage: vi.fn(),
+	countMessages: mocks.countMessages,
 	findMessages: mocks.findMessages,
 	findMessageStatus: mocks.findMessageStatus,
 	updateMessageStatus: mocks.updateMessageStatus,
@@ -17,6 +19,7 @@ vi.mock("@/features/messages/messages.repository", () => ({
 import {
 	archiveAdminMessage,
 	getAdminMessages,
+	getAdminMessagesPage,
 	markAdminMessageRead,
 	unarchiveAdminMessage,
 } from "@/features/messages/messages.services";
@@ -25,6 +28,15 @@ describe("message admin services", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.updateMessageStatus.mockResolvedValue({ id: "message-1" });
+		mocks.countMessages.mockResolvedValue(11);
+	});
+
+	it("returns one paginated message page", async () => {
+		mocks.findMessages.mockResolvedValue([]);
+
+		await expect(getAdminMessagesPage("aktif", 2)).resolves.toEqual({ currentPage: 2, messages: [], totalPages: 2 });
+		expect(mocks.countMessages).toHaveBeenCalledWith([MessageStatus.UNREAD, MessageStatus.READ]);
+		expect(mocks.findMessages).toHaveBeenCalledWith([MessageStatus.UNREAD, MessageStatus.READ], { skip: 10, take: 10 });
 	});
 
 	it("filters active and archived message tabs and serializes creation dates", async () => {

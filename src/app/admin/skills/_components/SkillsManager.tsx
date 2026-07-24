@@ -9,8 +9,9 @@ import { Button } from "@/shared/components/Button";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { FormField } from "@/shared/components/FormField";
 import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
-import { getSkillIcon, isSkillImageUrl } from "@/shared/components/SkillTag";
+import { getSkillIcon } from "@/shared/components/SkillTag";
 import { StatusMessage } from "@/shared/components/StatusMessage";
+import { isImageUrl } from "@/shared/validation/is-image-url";
 import { validateWithZod } from "@/shared/validation/zod";
 
 type Skill = {
@@ -23,6 +24,8 @@ type SkillsManagerProps = {
 	folders: { id: string; name: string }[];
 	initialSkills: Skill[];
 	media: MediaImagePickerItem[];
+	mediaCurrentPage?: number;
+	mediaTotalPages?: number;
 };
 
 const inputClassName = "w-full rounded-md border border-border bg-canvas px-3 py-3 outline-none focus:border-accent";
@@ -35,7 +38,13 @@ function createSkillInput(formData: FormData): Record<string, unknown> {
 	};
 }
 
-export function SkillsManager({ folders, initialSkills, media }: SkillsManagerProps) {
+export function SkillsManager({
+	folders,
+	initialSkills,
+	media,
+	mediaCurrentPage = 1,
+	mediaTotalPages = 1,
+}: SkillsManagerProps) {
 	const router = useRouter();
 	const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
 	const [fields, setFields] = useState<Record<string, string>>({});
@@ -174,6 +183,8 @@ export function SkillsManager({ folders, initialSkills, media }: SkillsManagerPr
 					folders={folders}
 					isSubmitting={isSubmitting}
 					media={media}
+					mediaCurrentPage={mediaCurrentPage}
+					mediaTotalPages={mediaTotalPages}
 					onCancel={closeSkillForm}
 					onDelete={
 						editingSkill
@@ -200,7 +211,7 @@ export function SkillsManager({ folders, initialSkills, media }: SkillsManagerPr
 function SkillIcon({ icon }: { icon: string | null }): ReactNode {
 	const Icon = getSkillIcon(icon);
 
-	if (isSkillImageUrl(icon)) {
+	if (isImageUrl(icon)) {
 		return (
 			// biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin.
 			<img src={icon} alt="" className="size-4 object-contain" />
@@ -216,6 +227,8 @@ function SkillFormDialog({
 	folders,
 	isSubmitting,
 	media,
+	mediaCurrentPage,
+	mediaTotalPages,
 	onCancel,
 	onDelete,
 	onSubmit,
@@ -225,6 +238,8 @@ function SkillFormDialog({
 	folders: { id: string; name: string }[];
 	isSubmitting: boolean;
 	media: MediaImagePickerItem[];
+	mediaCurrentPage: number;
+	mediaTotalPages: number;
 	onCancel: () => void;
 	onDelete?: () => void;
 	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -272,7 +287,7 @@ function SkillFormDialog({
 							onClick={() => setIsIconPickerOpen(true)}
 							type="button"
 						>
-							{isSkillImageUrl(iconUrl) ? (
+							{isImageUrl(iconUrl) ? (
 								// biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin.
 								<img src={iconUrl} alt="Pratinjau ikon keahlian" className="size-14 rounded-md object-contain" />
 							) : (
@@ -281,7 +296,7 @@ function SkillFormDialog({
 								</span>
 							)}
 							<span>
-								<span className="block font-medium">{isSkillImageUrl(iconUrl) ? "Ganti ikon" : "Pilih ikon"}</span>
+								<span className="block font-medium">{isImageUrl(iconUrl) ? "Ganti ikon" : "Pilih ikon"}</span>
 								<span className="mt-1 block text-sm text-text-mute">Pilih gambar dari galeri Media.</span>
 							</span>
 						</button>
@@ -314,12 +329,14 @@ function SkillFormDialog({
 			</form>
 			{isIconPickerOpen ? (
 				<MediaImagePickerModal
+					currentPage={mediaCurrentPage}
 					folders={folders}
 					media={media}
 					onClose={() => setIsIconPickerOpen(false)}
 					onSelect={setIconUrl}
 					selectedUrl={iconUrl}
 					title="Pilih Ikon Keahlian"
+					totalPages={mediaTotalPages}
 				/>
 			) : null}
 		</div>

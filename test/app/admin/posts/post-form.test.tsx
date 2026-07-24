@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
 	createPost: vi.fn(),
+	getMediaGalleryPage: vi.fn(),
 	push: vi.fn(),
 	refresh: vi.fn(),
 	replace: vi.fn(),
@@ -14,6 +15,7 @@ vi.mock("@/features/posts/posts.action", () => ({
 	createPost: mocks.createPost,
 	updatePost: mocks.updatePost,
 }));
+vi.mock("@/features/media/media.action", () => ({ getMediaGalleryPage: mocks.getMediaGalleryPage }));
 // biome-ignore lint/nursery/noSecrets: Module path, not a secret.
 vi.mock("@/shared/components/RichTextEditor", () => ({
 	RichTextEditor: ({ initialContent, label, name }: { initialContent: string; label: string; name: string }) => (
@@ -28,6 +30,7 @@ describe("PostForm", () => {
 		cleanup();
 		vi.clearAllMocks();
 		mocks.createPost.mockResolvedValue({ data: { id: "post-1", slug: "tulisan-baru" } });
+		mocks.getMediaGalleryPage.mockResolvedValue({ data: { currentPage: 1, media: [], totalPages: 1 } });
 		mocks.updatePost.mockResolvedValue({ data: { id: "post-1", slug: "tulisan-baru" } });
 	});
 
@@ -76,7 +79,14 @@ describe("PostForm", () => {
 		});
 	});
 
-	it("selects a cover image from the media modal", () => {
+	it("selects a cover image from the media modal", async () => {
+		mocks.getMediaGalleryPage.mockResolvedValue({
+			data: {
+				currentPage: 1,
+				media: [{ fileName: "cover.png", folderId: "folder-1", id: "media-1", url: "https://cdn.example/cover.png" }],
+				totalPages: 1,
+			},
+		});
 		const postForm = render(
 			<PostForm
 				folders={[{ id: "folder-1", name: "Portfolio" }]}
@@ -93,7 +103,7 @@ describe("PostForm", () => {
 		expect(postForm.getByRole("button", { name: "Portfolio" })).toBeInTheDocument();
 		expect(postForm.getByRole("button", { name: "Pilih root.png" })).toBeInTheDocument();
 		fireEvent.click(postForm.getByRole("button", { name: "Portfolio" }));
-		expect(postForm.getByRole("button", { name: "Pilih cover.png" })).toBeInTheDocument();
+		await waitFor(() => expect(postForm.getByRole("button", { name: "Pilih cover.png" })).toBeInTheDocument());
 		expect(postForm.getByText("cover.png")).toBeInTheDocument();
 		expect(postForm.queryByRole("button", { name: "Pilih root.png" })).not.toBeInTheDocument();
 		fireEvent.click(postForm.getByRole("button", { name: "Pilih cover.png" }));

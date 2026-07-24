@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { type ChangeEvent, type FormEvent, useRef, useState } from "react";
 import { FaFolder, FaTrash } from "react-icons/fa6";
 import { MediaCard } from "@/app/admin/media/_components/MediaCard";
-import { createMediaFolder, deleteMediaFolder, uploadMedia } from "@/features/media/media.action";
+import { createMediaFolder, deleteMediaFolder, getMediaGalleryPage, uploadMedia } from "@/features/media/media.action";
 import { Button } from "@/shared/components/Button";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { StatusMessage } from "@/shared/components/StatusMessage";
@@ -22,11 +22,11 @@ type Media = {
 type MediaFolder = { id: string; name: string };
 
 type MediaManagerProps = {
-	folders: MediaFolder[];
-	media: Media[];
+	folders: (MediaFolder & { mediaCount: number })[];
+	gallery: { currentPage: number; media: Media[]; totalPages: number };
 };
 
-export function MediaManager({ folders, media }: MediaManagerProps) {
+export function MediaManager({ folders, gallery: initialGallery }: MediaManagerProps) {
 	const router = useRouter();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
@@ -34,19 +34,30 @@ export function MediaManager({ folders, media }: MediaManagerProps) {
 	const [folderFields, setFolderFields] = useState<Record<string, string>>({});
 	const [folderName, setFolderName] = useState("");
 	const [folderToDelete, setFolderToDelete] = useState<MediaFolder | null>(null);
+	const [gallery, setGallery] = useState(initialGallery);
 	const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 	const [isDeletingFolder, setIsDeletingFolder] = useState(false);
 	const [isFolderFormOpen, setIsFolderFormOpen] = useState(false);
+	const [isLoadingGallery, setIsLoadingGallery] = useState(false);
 	const [message, setMessage] = useState<{ text: string; type: "error" | "success" } | null>(null);
 	const activeFolder = folders.find((folder) => folder.id === activeFolderId) ?? null;
 	const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number } | null>(null);
-	const sortedMedia = [...media].sort((firstMedia, secondMedia) =>
-		firstMedia.fileName.localeCompare(secondMedia.fileName, "id", { sensitivity: "base" }),
-	);
-	const visibleMedia = sortedMedia.filter((item) => item.folderId === activeFolderId);
 	const sortedFolders = [...folders].sort((firstFolder, secondFolder) =>
 		firstFolder.name.localeCompare(secondFolder.name, "id", { sensitivity: "base" }),
 	);
+
+	async function loadGallery(folderId: string | null, page: number) {
+		setActiveFolderId(folderId);
+		setIsLoadingGallery(true);
+		try {
+			const result = await getMediaGalleryPage({ folderId, page });
+			if ("error" in result) return;
+
+			setGallery(result.data);
+		} finally {
+			setIsLoadingGallery(false);
+		}
+	}
 
 	async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
 		const fileInput = event.currentTarget;
@@ -80,6 +91,7 @@ export function MediaManager({ folders, media }: MediaManagerProps) {
 			}
 			if (uploadedCount > 0) {
 				setMessage({ text: `${uploadedCount} gambar berhasil diunggah.`, type: "success" });
+				await loadGallery(activeFolderId, 1);
 				router.refresh();
 			}
 		} finally {
@@ -110,6 +122,7 @@ export function MediaManager({ folders, media }: MediaManagerProps) {
 
 	function handleDeleted() {
 		setMessage({ text: "Gambar terhapus.", type: "success" });
+		void loadGallery(activeFolderId, gallery.currentPage);
 		router.refresh();
 	}
 
@@ -204,23 +217,62 @@ export function MediaManager({ folders, media }: MediaManagerProps) {
 				<FolderContents
 					folderName={activeFolder.name}
 					uploadProgress={uploadProgress}
-					media={visibleMedia}
+					media={gallery.media}
 					onDeleteError={handleDeleteError}
 					onDeleted={handleDeleted}
-					onGoBack={() => setActiveFolderId(null)}
+					onGoBack={() => loadGallery(null, 1)}
 				/>
 			) : (
 				<GalleryRoot
-					allMedia={media}
 					folders={sortedFolders}
 					uploadProgress={uploadProgress}
-					media={visibleMedia}
+					media={gallery.media}
 					onDeleteError={handleDeleteError}
 					onDeleted={handleDeleted}
-					onOpenFolder={setActiveFolderId}
+					onOpenFolder={(folderId) => loadGallery(folderId, 1)}
 					onRequestDeleteFolder={setFolderToDelete}
 				/>
 			)}
+			{gallery.totalPages > 1 ? (
+				<nav className="mt-6 flex flex-wrap items-center justify-center gap-2" aria-label="Pagination media">
+					{gallery.currentPage > 1 ? (
+						<button
+							className="rounded-md border border-border px-3 py-2 text-sm hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+							disabled={isLoadingGallery}
+							onClick={() => loadGallery(activeFolderId, gallery.currentPage - 1)}
+							type="button"
+						>
+							Sebelumnya
+						</button>
+					) : null}
+					{Array.from({ length: gallery.totalPages }, (_, index) => index + 1).map((page) => (
+						<button
+							aria-current={page === gallery.currentPage ? "page" : undefined}
+							className={
+								page === gallery.currentPage
+									? "rounded-md bg-accent px-3 py-2 font-semibold text-sm text-white"
+									: "rounded-md border border-border px-3 py-2 text-sm hover:bg-surface"
+							}
+							disabled={isLoadingGallery}
+							key={page}
+							onClick={() => loadGallery(activeFolderId, page)}
+							type="button"
+						>
+							{page}
+						</button>
+					))}
+					{gallery.currentPage < gallery.totalPages ? (
+						<button
+							className="rounded-md border border-border px-3 py-2 text-sm hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+							disabled={isLoadingGallery}
+							onClick={() => loadGallery(activeFolderId, gallery.currentPage + 1)}
+							type="button"
+						>
+							Berikutnya
+						</button>
+					) : null}
+				</nav>
+			) : null}
 			<ConfirmDialog
 				open={Boolean(folderToDelete)}
 				itemName={`folder ${folderToDelete?.name ?? ""}`}
@@ -233,7 +285,6 @@ export function MediaManager({ folders, media }: MediaManagerProps) {
 }
 
 function GalleryRoot({
-	allMedia,
 	folders,
 	uploadProgress,
 	media,
@@ -242,8 +293,7 @@ function GalleryRoot({
 	onOpenFolder,
 	onRequestDeleteFolder,
 }: {
-	allMedia: Media[];
-	folders: MediaFolder[];
+	folders: (MediaFolder & { mediaCount: number })[];
 	uploadProgress: { completed: number; total: number } | null;
 	media: Media[];
 	onDeleteError: (message: string) => void;
@@ -261,7 +311,7 @@ function GalleryRoot({
 							<FolderCard
 								key={folder.id}
 								folder={folder}
-								mediaCount={allMedia.filter((item) => item.folderId === folder.id).length}
+								mediaCount={folder.mediaCount}
 								onOpen={onOpenFolder}
 								onRequestDelete={onRequestDeleteFolder}
 							/>
