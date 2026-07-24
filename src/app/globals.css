@@ -41,6 +41,26 @@ body {
 	font-family: Arial, Helvetica, sans-serif;
 }
 
+:root {
+	--toastify-color-light: var(--canvas);
+	--toastify-color-success: var(--primary);
+	--toastify-color-error: var(--danger);
+	--toastify-text-color-light: var(--text);
+	--toastify-toast-width: min(22rem, calc(100vw - 2rem));
+	--toastify-font-family: Arial, Helvetica, sans-serif;
+}
+
+.Toastify__toast-theme--light {
+	border: 1px solid var(--border);
+	background: var(--surface);
+	color: var(--text);
+}
+
+.Toastify__close-button--light {
+	color: var(--text-mute);
+	opacity: 1;
+}
+
 .navbar {
 	background: var(--canvas);
 }

@@ -1,21 +1,33 @@
 "use client";
-import { useEffect, useState } from "react";
-export function StatusMessage({ message, type = "info" }: { message: string; type?: "error" | "info" | "success" }) {
-	const [visible, setVisible] = useState(true);
+
+import { useEffect, useId } from "react";
+import { toast } from "react-toastify";
+
+type StatusMessageProps = {
+	message: string;
+	type?: "error" | "info" | "success";
+};
+
+export function StatusMessage({ message, type = "info" }: StatusMessageProps) {
+	const toastId = useId();
+
 	useEffect(() => {
-		const timer = setTimeout(() => setVisible(false), 5000);
-		return () => clearTimeout(timer);
-	}, []);
-	if (!visible) return null;
-	let color = "text-accent";
-	if (type === "error") color = "text-danger";
-	if (type === "success") color = "text-primary";
+		if (type === "error") {
+			toast.error(message, { toastId });
+			return;
+		}
+
+		if (type === "success") {
+			toast.success(message, { toastId });
+			return;
+		}
+
+		toast.info(message, { toastId });
+	}, [message, toastId, type]);
+
 	return (
-		<output className={`rounded-md border border-border bg-surface p-3 text-sm ${color}`}>
+		<span aria-hidden="true" className="sr-only">
 			{message}
-			<button type="button" className="float-right" onClick={() => setVisible(false)}>
-				×
-			</button>
-		</output>
+		</span>
 	);
 }
