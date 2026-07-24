@@ -1,0 +1,315 @@
+project:
+  id: PRJ-001
+  title: "Portfolio Developer"
+  source: "docs/ba_01_feature.md + docs/ba_02_user_story.md + docs/ba_03_acceptance_criteria.md"
+  source_version: "6.0"
+  context: "docs/pm_01_project.md v1.6"
+  status: done   # set UI/UX v1.8 (v1.7 D-014: referensi desain admin client — Dashboard, Tags/Media/Password dapat halaman baru, Contact Info jadi CRUD, bahasa campuran sisi admin; v1.8 D-015: perbaikan bug FLOW-02/SCR-01/C-06 — leftover "Selengkapnya di About" ditemukan Issue Planner, 2026-07-16) diserahkan ke Tech Lead — UI/UX berhenti
+
+screen_inventory:
+  # ——— sisi publik ———
+  - { id: SCR-01, name: "Home",               side: public,  serves: [US-001, US-019, US-017], states: [normal, kosong],            nav: "Menu utama > Home (halaman pembuka)" }
+  - { id: SCR-02, name: "About",              side: public,  serves: [US-002, US-020],          states: [normal],                    nav: "Menu utama > About" }
+  - { id: SCR-03, name: "Portfolio (daftar)", side: public,  serves: [US-003],                  states: [normal, kosong],            nav: "Menu utama > Portfolio" }
+  - { id: SCR-04, name: "Detail Project",     side: public,  serves: [US-004],                  states: [normal],                    nav: "Dari kartu project di SCR-01/SCR-03" }
+  - { id: SCR-05, name: "Blog (daftar)",      side: public,  serves: [US-005],                  states: [normal, kosong],            nav: "Menu utama > Blog" }
+  - { id: SCR-06, name: "Detail Tulisan",     side: public,  serves: [US-006],                  states: [normal],                    nav: "Dari item tulisan di SCR-01/SCR-05" }
+  - { id: SCR-07, name: "Contact",            side: public,  serves: [US-007, US-008],          states: [normal, error-validasi, terkirim, memuat], nav: "Menu utama > Contact" }
+  # ——— sisi pengelola (istilah Glossary BA: 'halaman admin') ———
+  - { id: SCR-08, name: "Masuk Admin",        side: managed, serves: [US-009],                  states: [normal, gagal-masuk],       nav: "Alamat khusus admin; tujuan pengalihan state terlarang" }
+  - { id: SCR-09, name: "Dashboard",          side: managed, serves: [US-009, US-016],          states: [normal, terlarang],         nav: "Setelah masuk; kerangka menu semua layar kelola (label Inggris, pm_01 D009)" }
+  - { id: SCR-10, name: "Kelola Project",     side: managed, serves: [US-010, US-011],          states: [normal, kosong, konfirmasi-hapus, terlarang], nav: "Halaman admin > Content > Projects" }
+  - { id: SCR-11, name: "Form Project",       side: managed, serves: [US-010, US-011],          states: [normal, error-validasi, terlarang], nav: "Halaman admin > Content > Projects > Tambah / Ubah" }
+  - { id: SCR-12, name: "Kelola Tulisan",     side: managed, serves: [US-012, US-013],          states: [normal, kosong, konfirmasi-hapus, terlarang], nav: "Halaman admin > Content > Posts" }
+  - { id: SCR-13, name: "Form Tulisan",       side: managed, serves: [US-012, US-013],          states: [normal, error-validasi, terlarang], nav: "Halaman admin > Content > Posts > Tulis / Ubah" }
+  - { id: SCR-14, name: "Kelola Keahlian",    side: managed, serves: [US-014],                  states: [normal, kosong, konfirmasi-hapus, terlarang], nav: "Halaman admin > Content > Skills (tambah/ubah/hapus nama+ikon — data identitas pemilik statis, tidak di sini, pm_01 D007)" }
+  - { id: SCR-15, name: "Contact Info",       side: managed, serves: [US-015],                  states: [normal, kosong, konfirmasi-hapus, terlarang], nav: "Halaman admin > Communication > Contact Info (CRUD per baris, D-013 techlead — dirombak dari form singleton)" }
+  - { id: SCR-16, name: "Messages",           side: managed, serves: [US-018],                  states: [normal, kosong, terlarang], nav: "Halaman admin > Communication > Messages (tab Active/Archived)" }
+  - { id: SCR-17, name: "Tags",               side: managed, serves: [US-021],                  states: [normal, kosong, konfirmasi-hapus, terlarang], nav: "Halaman admin > Content > Tags (CRUD, mencabut G-014 BA lama)" }
+  - { id: SCR-18, name: "Media",              side: managed, serves: [US-022],                  states: [normal, kosong, mengunggah, konfirmasi-hapus, terlarang], nav: "Halaman admin > Content > Media (galeri + unggah)" }
+  - { id: SCR-19, name: "Password",           side: managed, serves: [US-023],                  states: [normal, error-validasi, tersimpan, terlarang], nav: "Halaman admin > System > Password (ganti kata sandi sendiri)" }
+
+user_flows:
+  - { id: FLOW-01, story: US-001, actor: "HRD / recruiter perusahaan", screens: [SCR-01], covers: [AC-001-1, AC-001-2, AC-001-3, AC-001-4],
+      steps: ["1. Membuka website — nama & profesi pemilik langsung terlihat; menu ke About/Portfolio/Blog/Contact tersedia [AC-001-1]",
+              "2. Dari ponsel: seluruh isi terbaca tanpa geser samping/zoom [AC-001-2]; seluruh teks berbahasa Indonesia [AC-001-3]",
+              "CATATAN [AC-001-4]: 'muncul di pencarian Google' ditutup di sisi sistem — diteruskan ke Tech Lead (Skenario 5), bukan elemen layar"] }
+  - { id: FLOW-02, story: US-019, actor: "HRD / recruiter perusahaan", screens: [SCR-01, SCR-03, SCR-04, SCR-05, SCR-06, SCR-07], covers: [AC-019-1, AC-019-2, AC-019-3],
+      steps: ["1. Menggulir Home: ringkasan keahlian → cuplikan project unggulan → tulisan terbaru [AC-019-1]. Keahlian tampil utuh langsung di sini, tanpa halaman lengkap terpisah (v1.8 D-015 — perbaikan bug, sebelumnya keliru menyebut jalan ke About)",
+              "2. Project Unggulan & Tulisan Terbaru masing-masing punya 'Lihat semua →' menuju halaman lengkapnya (Portfolio/Blog); tiap kartu/item juga bisa ditekan langsung menuju detailnya",
+              "3. Bagian akhir: ajakan menghubungi (→ SCR-07) dan [Unduh CV] [AC-019-2]",
+              "CABANG [AC-019-3]: belum ada project/tulisan → bagian sorotan itu disembunyikan; halaman tetap wajar (state kosong)"] }
+  - { id: FLOW-03, story: US-002, actor: "HRD / recruiter perusahaan", screens: [SCR-02], covers: [AC-002-1],
+      steps: ["1. Menu About → foto, profesi, dan perkenalan singkat pemilik tampil (About Hero) [AC-002-1]"] }
+  - { id: FLOW-04, story: US-003, actor: "HRD / recruiter perusahaan", screens: [SCR-03], covers: [AC-003-1, AC-003-2],
+      steps: ["1. Menu Portfolio → daftar project: nama + gambaran singkat [AC-003-1]",
+              "CABANG [AC-003-2]: belum ada project → keterangan 'belum ada project' (state kosong)"] }
+  - { id: FLOW-05, story: US-004, actor: "HRD / recruiter perusahaan", screens: [SCR-03, SCR-04], covers: [AC-004-1],
+      steps: ["1. Menekan satu kartu project → Detail Project: deskripsi, peran pemilik, tautan bila ada [AC-004-1]",
+              "2. '< Kembali ke Portfolio' memulangkan ke daftar"] }
+  - { id: FLOW-06, story: US-005, actor: "HRD / recruiter perusahaan", screens: [SCR-05], covers: [AC-005-1, AC-005-2],
+      steps: ["1. Menu Blog → daftar tulisan urut terbaru [AC-005-1]",
+              "CABANG [AC-005-2]: belum ada tulisan → keterangan (state kosong)"] }
+  - { id: FLOW-07, story: US-006, actor: "HRD / recruiter perusahaan", screens: [SCR-05, SCR-06], covers: [AC-006-1, AC-006-2],
+      steps: ["1. Menekan satu item tulisan → isi tulisan utuh [AC-006-1]",
+              "2. Tidak ada fitur komentar di mana pun [AC-006-2] — anotasi negatif di SCR-06"] }
+  - { id: FLOW-08, story: US-007, actor: "HRD / recruiter perusahaan", screens: [SCR-07], covers: [AC-007-1],
+      steps: ["1. Menu Contact → info kontak (yang dikelola admin) tampil [AC-007-1]"] }
+  - { id: FLOW-09, story: US-008, actor: "HRD / recruiter perusahaan", screens: [SCR-07], covers: [AC-008-1, AC-008-2],
+      steps: ["1. Mengisi formulir: nama, email, isi pesan (Assumption BA A-007)",
+              "2. Menekan [Kirim Pesan] → penanda proses (state memuat)",
+              "CABANG [AC-008-2]: isian wajib kosong → state error-validasi, bagian salah ditandai per isian → kembali ke 1",
+              "3. [AC-008-1] State terkirim: tanda pesan terkirim; pesan muncul di Kotak Pesan admin (SCR-16, FLOW-18)"] }
+  - { id: FLOW-10, story: US-009, actor: "Admin (pemilik website)", screens: [SCR-08, SCR-09], covers: [AC-009-1, AC-009-2, AC-009-3],
+      steps: ["1. Membuka alamat halaman admin tanpa sesi → dialihkan ke Masuk Admin (SCR-08) [AC-009-3]",
+              "2. Mengisi data masuk, menekan [Masuk]",
+              "CABANG [AC-009-2]: data salah → state gagal-masuk, pemberitahuan jelas tanpa merinci bagian mana yang salah → kembali ke 2",
+              "3. [AC-009-1] Berhasil → Dashboard (SCR-09), menu kelola tersedia"] }
+  - { id: FLOW-11, story: US-010, actor: "Admin (pemilik website)", screens: [SCR-09, SCR-10, SCR-11, SCR-03], covers: [AC-010-1, AC-010-2],
+      steps: ["1. Menu Project (SCR-10) → [+ Tambah Project] → Form Project (SCR-11)",
+              "2. Mengisi isian, memilih status (default Draf), menekan [Simpan]",
+              "CABANG [AC-010-2]: bagian wajib kosong → state error-validasi per isian → kembali ke 2",
+              "3. [AC-010-1] Tersimpan → kembali ke SCR-10 dengan pesan berhasil; bila status Terbit, project tampil di Portfolio publik (SCR-03); bila Draf, belum tampil publik"] }
+  - { id: FLOW-12, story: US-011, actor: "Admin (pemilik website)", screens: [SCR-10, SCR-11], covers: [AC-011-1, AC-011-2, AC-011-3, AC-011-4],
+      steps: ["1. Di Kelola Project, memilih 'Ubah' pada satu baris → Form Project terisi data lama",
+              "2. [AC-011-1] Menyimpan → versi terbaru tampil di publik bila status Terbit",
+              "CABANG [AC-011-3]: status Draf → Terbit lalu simpan → project mulai tampil di Portfolio publik",
+              "CABANG [AC-011-4]: status Terbit → Arsip lalu simpan → project hilang dari Portfolio publik, tetap ada di Kelola Project",
+              "3. Memilih 'Hapus' → dialog konfirmasi (state konfirmasi-hapus)",
+              "CABANG [AC-011-2]: batal → tidak terjadi apa-apa; konfirmasi → project hilang permanen dari publik + Kelola Project + pesan berhasil"] }
+  - { id: FLOW-13, story: US-012, actor: "Admin (pemilik website)", screens: [SCR-12, SCR-13, SCR-05], covers: [AC-012-1, AC-012-2],
+      steps: ["1. Menu Tulisan (SCR-12) → [+ Tulis Tulisan] → Form Tulisan (SCR-13)",
+              "2. Mengisi judul, isi, gambar sampul & tag (opsional), memilih status (default Draf), menekan [Simpan]",
+              "CABANG [AC-012-2]: judul kosong → state error-validasi → kembali ke 2",
+              "3. [AC-012-1] Tersimpan → bila status Terbit, tulisan langsung tampil teratas di Blog publik (SCR-05); bila Draf, tersimpan tanpa tampil publik (menggantikan asumsi lama 'tanpa draf' — Assumption BA A-006 direvisi)"] }
+  - { id: FLOW-14, story: US-013, actor: "Admin (pemilik website)", screens: [SCR-12, SCR-13], covers: [AC-013-1, AC-013-2, AC-013-3, AC-013-4],
+      steps: ["1. 'Ubah' pada satu tulisan → form terisi data lama → simpan → versi terbaru tampil di publik bila status Terbit [AC-013-1]",
+              "CABANG [AC-013-3]: status Draf → Terbit lalu simpan → tulisan mulai tampil di Blog publik",
+              "CABANG [AC-013-4]: status Terbit → Arsip lalu simpan → tulisan hilang dari Blog publik, tetap ada di Kelola Tulisan",
+              "2. 'Hapus' → dialog konfirmasi → konfirmasi → tulisan hilang permanen dari publik + Kelola Tulisan [AC-013-2]; batal → kembali tanpa perubahan"] }
+  - { id: FLOW-15, story: US-014, actor: "Admin (pemilik website)", screens: [SCR-14, SCR-01], covers: [AC-014-1, AC-014-2],
+      steps: ["1. Menu Keahlian → isi nama+ikon di Form Tambah → [+ Tambah]",
+              "2. [AC-014-1] Tersimpan → keahlian baru masuk daftar; ringkasan Home menampilkan versi terbaru",
+              "3. 'Ubah' pada satu baris → form terisi data lama → simpan → Home menampilkan versi terbaru",
+              "CABANG [AC-014-2]: 'Hapus' → dialog konfirmasi → [Hapus] → keahlian hilang dari Home; [Batal] → tanpa perubahan",
+              "CATATAN: data identitas pemilik (foto, perkenalan, Engineering Principles, dst., CV) statis di kode — tidak ada flow admin untuk itu (pm_01 D007)"] }
+  - { id: FLOW-16, story: US-015, actor: "Admin (pemilik website)", screens: [SCR-15, SCR-07], covers: [AC-015-1],
+      steps: ["1. Menu Contact Info → mengisi label+nilai+ikon di Form Tambah Saluran → [+ Tambah]",
+              "2. [AC-015-1] Tersimpan → saluran baru masuk daftar; Contact publik menampilkan versi terbaru",
+              "3. 'Ubah' pada satu baris → form terisi data lama → simpan → Contact publik menampilkan versi terbaru",
+              "4. 'Hapus' → dialog konfirmasi → [Hapus] → saluran hilang dari Contact publik; [Batal] → tanpa perubahan"],
+      notes: "Dirombak dari form singleton replace-all jadi CRUD per baris (pola FLOW-15), mengikuti skema ContactInfo flat multi-baris (techlead_02 D-013)" }
+  - { id: FLOW-17, story: US-016, actor: "Admin (pemilik website)", screens: [SCR-09, SCR-08], covers: [AC-016-1],
+      steps: ["1. Menekan 'Keluar' di kerangka halaman admin (tersedia di semua layar kelola)",
+              "2. [AC-016-1] Sesi berakhir → kembali ke Masuk Admin; membuka alamat admin lagi → dialihkan ke SCR-08"] }
+  - { id: FLOW-18, story: US-018, actor: "Admin (pemilik website)", screens: [SCR-16], covers: [AC-018-1, AC-018-2, AC-018-3, AC-018-4],
+      steps: ["1. Menu Pesan → tab Aktif default → daftar pesan urut terbaru: penanda belum-dibaca, nama, email pengirim, isi [AC-018-1]",
+              "CABANG [AC-018-2]: belum ada pesan di tab aktif → keterangan 'belum ada pesan' (state kosong)",
+              "2. [AC-018-3] Membuka/melihat kartu pesan → status otomatis jadi sudah dibaca",
+              "3. [AC-018-4] [Arsipkan] → pesan pindah ke tab Arsip tanpa terhapus; [Kembalikan] dari tab Arsip → kembali ke tab Aktif"] }
+  - { id: FLOW-19, story: US-017, actor: "HRD / recruiter perusahaan", screens: [SCR-01], covers: [AC-017-1],
+      steps: ["1. Menekan [Unduh CV] (hero Home & bagian ajakan — D-006) → berkas CV terunduh dan dapat dibuka [AC-017-1]"] }
+  - { id: FLOW-20, story: US-020, actor: "HRD / recruiter perusahaan", screens: [SCR-02], covers: [AC-020-1, AC-020-2, AC-020-3, AC-020-4],
+      steps: ["1. Menggulir halaman About → Engineering Principles, Development Workflow, Current Focus, dan Beyond Code tampil berurutan [AC-020-1, AC-020-2, AC-020-3, AC-020-4]"] }
+  - { id: FLOW-21, story: US-021, actor: "Admin (pemilik website)", screens: [SCR-17], covers: [AC-021-1, AC-021-2],
+      steps: ["1. Menu Tags → isi nama di Form Tambah Tag → [+ Tambah]",
+              "2. [AC-021-1] Tersimpan → tag baru masuk daftar, tersedia dipilih di Form Project/Tulisan",
+              "3. 'Ubah' pada satu baris → form terisi data lama → simpan",
+              "CABANG [AC-021-2]: 'Hapus' → dialog konfirmasi → [Hapus] → tag hilang dari daftar (Project/Tulisan pemakainya tidak ikut terhapus); [Batal] → tanpa perubahan"] }
+  - { id: FLOW-22, story: US-022, actor: "Admin (pemilik website)", screens: [SCR-18], covers: [AC-022-1, AC-022-2, AC-022-3],
+      steps: ["1. Menu Media → [+ Unggah Gambar] → pilih file",
+              "2. [AC-022-1] Terunggah → gambar masuk galeri",
+              "3. [AC-022-2] Membuka halaman Media → seluruh gambar tampil urut terbaru; CABANG belum ada gambar → state kosong",
+              "4. CABANG [AC-022-3]: 'Hapus' pada satu gambar → dialog konfirmasi → [Hapus] → gambar hilang dari galeri (tautan di Project/Tulisan pemakai tidak otomatis kosong); [Batal] → tanpa perubahan"] }
+  - { id: FLOW-23, story: US-023, actor: "Admin (pemilik website)", screens: [SCR-19], covers: [AC-023-1, AC-023-2],
+      steps: ["1. Menu Password → isi kata sandi lama, baru, konfirmasi → [Simpan]",
+              "CABANG [AC-023-2]: kata sandi lama salah atau konfirmasi tidak cocok → state error-validasi → kembali ke 1",
+              "2. [AC-023-1] Kata sandi berhasil diganti → pesan berhasil"] }
+
+wireframes:
+  - { screen: SCR-01, status: done, sections: [Navbar, Hero, Keahlian, Project Unggulan, Tulisan Terbaru, Ajakan, Footer],
+      key_elements: [MenuUtama, SaklarTema, TombolUtama, TagKeahlian, KartuProject, ItemTulisan],
+      states_done: [normal, kosong], notes: "Urutan section = urutan sebutan client (pm_01 D005); sorotan kosong (Terbit) disembunyikan (AC-019-3); Tulisan Terbaru = list 1 kolom penuh lebar (gaya medium.com, D-008), thumbnail kanan opsional (D-013), beda dari Project Unggulan yang tetap grid 3 kolom di layar lebar" }
+  - { screen: SCR-02, status: done, sections: [Navbar, About Hero, Engineering Principles, Development Workflow, Current Focus, Beyond Code, Footer],
+      key_elements: [MenuUtama, SeksiTeks], states_done: [normal], notes: "Keahlian dipindah eksklusif ke Home (pm_01 D006); empat section + About Hero = teks statis di KODE, bukan dikelola admin sama sekali (direvisi pm_01 D007, G-009/A-008 BA, D-012)" }
+  - { screen: SCR-03, status: done, sections: [Navbar, Portfolio Hero, Daftar Project, Footer],
+      key_elements: [MenuUtama, KartuProject], states_done: [normal, kosong], notes: "Portfolio Hero: judul + tagline satu kalimat, teks statis (sama untuk semua pengunjung, tidak dikelola admin — D-010, klarifikasi user 2026-07-16: seluruh section hero di semua halaman statis untuk saat ini). Daftar Project hanya berstatus Terbit (D-013)" }
+  - { screen: SCR-04, status: done, sections: [Navbar, Header Project, Isi Project, Footer],
+      key_elements: [NavKembali, TagKeahlian, TombolUtama], states_done: [normal], notes: "Tautan demo/kode hanya tampil bila ada (AC-004-1)" }
+  - { screen: SCR-05, status: done, sections: [Navbar, Blog Hero, Daftar Tulisan, Footer],
+      key_elements: [MenuUtama, ItemTulisan], states_done: [normal, kosong], notes: "Hanya tulisan berstatus Terbit, urut terbaru (Assumption BA A-002); list 1 kolom di semua lebar layar (tanpa grid), konsisten gaya medium.com (D-008), thumbnail kanan opsional (D-013) — beda dari SCR-03 Portfolio yang 2-3 kolom; Blog Hero: judul + tagline statis (D-011, pola sama D-010)" }
+  - { screen: SCR-06, status: done, sections: [Navbar, Header Tulisan, Isi Tulisan, Footer],
+      key_elements: [NavKembali], states_done: [normal], notes: "Tanpa area komentar — anotasi negatif (AC-006-2)" }
+  - { screen: SCR-07, status: done, sections: [Navbar, Contact Hero, Info Kontak, Formulir Pesan, Footer],
+      key_elements: [MenuUtama, TautanKontak, FormIsian, TombolUtama, PesanStatus],
+      states_done: [normal, error-validasi, memuat, terkirim], notes: "Contact Hero: judul + tagline statis (D-011); Info Kontak tetap section terpisah setelahnya, tidak melebur (klarifikasi user)" }
+  - { screen: SCR-08, status: done, sections: [Form Masuk],
+      key_elements: [FormIsian, TombolUtama, PesanStatus], states_done: [normal, gagal-masuk], notes: "Pesan gagal tidak merinci bagian mana yang salah (AC-009-2)" }
+  - { screen: SCR-09, status: done, sections: [Header Admin, Ringkasan Statistik, Aktivitas Terbaru, Pintasan Cepat],
+      key_elements: [MenuAdmin, SaklarTema, KartuStatistik, BarisRingkasan, PintasanAksi],
+      states_done: [normal, terlarang], notes: "Dirombak dari 'Beranda Halaman Admin' (daftar pintasan kosong) jadi 'Dashboard' beranalitik — kartu statistik + aktivitas terbaru + pintasan cepat, murni pemanis tampilan non-blocking (pm_01 D009, G-009). Kerangka header+menu dipakai semua layar kelola; 'Keluar' selalu terlihat (US-016)" }
+  - { screen: SCR-10, status: done, sections: [Header Admin, Daftar Kelola Project],
+      key_elements: [MenuAdmin, BarisKelola, TombolUtama, DialogKonfirmasi, PesanStatus],
+      states_done: [normal, kosong, konfirmasi-hapus, terlarang], notes: "Judul layar 'Projects' (label Inggris, D-009); baris menampilkan badge status Draft/Published/Archived (label Inggris, D-014)" }
+  - { screen: SCR-11, status: done, sections: [Header Admin, Form Project],
+      key_elements: [MenuAdmin, FormIsian, PilihanStatus, TombolUtama, NavKembali],
+      states_done: [normal, error-validasi, terlarang], notes: "Isian: nama*, gambaran singkat*, deskripsi (dapat memuat peran, G-013 BA), tautan demo/kode, gambar (pilih dari galeri Media atau unggah baru), keahlian (multi, opsional), tag (pilih dari daftar Tag, direvisi dari input bebas — G-014 BA/G-010 uiux), status Draft/Published/Archived (default Draft, label Inggris D-014)" }
+  - { screen: SCR-12, status: done, sections: [Header Admin, Daftar Kelola Tulisan],
+      key_elements: [MenuAdmin, BarisKelola, TombolUtama, DialogKonfirmasi, PesanStatus],
+      states_done: [normal, kosong, konfirmasi-hapus, terlarang], notes: "Judul layar 'Posts' (label Inggris, D-009); baris menampilkan badge status Draft/Published/Archived (D-014)" }
+  - { screen: SCR-13, status: done, sections: [Header Admin, Form Tulisan],
+      key_elements: [MenuAdmin, FormIsian, PilihanStatus, TombolUtama, NavKembali],
+      states_done: [normal, error-validasi, terlarang], notes: "Isian: judul*, isi*, gambar sampul (pilih dari galeri Media atau unggah baru, thumbnail & share), tag (pilih dari daftar Tag, direvisi dari input bebas), status Draft/Published/Archived (default Draft) — menggantikan 'langsung tayang saat disimpan', A-006 BA direvisi (D-014)" }
+  - { screen: SCR-14, status: done, sections: [Header Admin, Form Tambah Keahlian, Daftar Keahlian],
+      key_elements: [MenuAdmin, FormIsian, BarisKelola, DialogKonfirmasi, TombolUtama, PesanStatus],
+      states_done: [normal, kosong, konfirmasi-hapus, terlarang], notes: "Judul layar 'Skills' (label Inggris, D-009). Dirombak total dari 'Ubah Profil' (D-012, mencabut D-009 lama) — sekarang CRUD keahlian (nama+ikon), pola sama SCR-10/SCR-12. Data identitas pemilik (foto, perkenalan, Engineering Principles, dst., CV) statis di kode, TIDAK ada di layar ini (pm_01 D007). Leftover state 'tersimpan'/pesan 'Profil tersimpan' dibetulkan jadi PesanStatus baku (bug ditemukan & diperbaiki 2026-07-16)" }
+  - { screen: SCR-15, status: done, sections: [Header Admin, Form Tambah Saluran, Daftar Saluran],
+      key_elements: [MenuAdmin, FormIsian, BarisKelola, DialogKonfirmasi, TombolUtama, PesanStatus],
+      states_done: [normal, kosong, konfirmasi-hapus, terlarang], notes: "Judul layar 'Contact Info' (label Inggris, D-009). Dirombak total dari 'Ubah Info Kontak' (form singleton replace-all) jadi CRUD per baris — pola sama SCR-14, mengikuti skema ContactInfo flat multi-baris (techlead_02 D-013). Bug ditemukan 2026-07-16: wireframe lama tidak pernah disesuaikan saat skema berubah — diperbaiki sekarang" }
+  - { screen: SCR-16, status: done, sections: [Header Admin, Tab Pesan, Daftar Pesan],
+      key_elements: [MenuAdmin, TabSwitch, KartuPesan], states_done: [normal, kosong, terlarang], notes: "Judul layar 'Messages', tab 'Active'/'Archived' (label Inggris, D-009 — sebelumnya Aktif/Arsip). Isi pesan tampil utuh di kartu (keputusan G-005); penanda belum-dibaca, buka kartu = tandai dibaca otomatis, aksi Arsipkan/Kembalikan (D-013)" }
+  - { screen: SCR-17, status: done, sections: [Header Admin, Form Tambah Tag, Daftar Tag],
+      key_elements: [MenuAdmin, FormIsian, BarisKelola, DialogKonfirmasi, TombolUtama, PesanStatus],
+      states_done: [normal, kosong, konfirmasi-hapus, terlarang], notes: "Layar baru — judul 'Tags' (Inggris). Pola sama SCR-14 Skills; menggantikan pola Tag inline-only lama (G-014 BA dicabut, referensi desain admin client pm_01 D009)" }
+  - { screen: SCR-18, status: done, sections: [Header Admin, Galeri Media],
+      key_elements: [MenuAdmin, TombolUtama, KartuMedia, DialogKonfirmasi, PesanStatus],
+      states_done: [normal, kosong, mengunggah, konfirmasi-hapus, terlarang], notes: "Layar baru — judul 'Media' (Inggris). Grid galeri thumbnail + unggah; dua jalur unggah (halaman ini atau inline form Project/Tulisan) masuk katalog Media yang sama (G-016 BA/G-011 uiux); hapus media tidak otomatis mengosongkan rujukan thumbnail di Project/Tulisan (G-017 BA, D-011 techlead)" }
+  - { screen: SCR-19, status: done, sections: [Header Admin, Form Ubah Kata Sandi],
+      key_elements: [MenuAdmin, FormIsian, TombolUtama, PesanStatus],
+      states_done: [normal, error-validasi, tersimpan, terlarang], notes: "Layar baru — judul 'Password' (Inggris). Wajib verifikasi kata sandi lama sebelum kata sandi baru disimpan (G-018 BA/G-012 uiux); kata sandi awal dari developer (Assumption BA A-005), diganti mandiri oleh admin (pm_01 D009)" }
+
+design_tokens:
+  colors:  # sumber: Primer (design system GitHub) — primer.style/primitives; dicatat di D-002
+    - { role: canvas,       usage: "latar halaman",                        value: "terang #ffffff · gelap #0d1117" }
+    - { role: surface,      usage: "latar kartu/panel/section selang",     value: "terang #f6f8fa · gelap #161b22" }
+    - { role: text,         usage: "teks utama",                           value: "terang #1f2328 · gelap #e6edf3" }
+    - { role: text-mute,    usage: "meta: tanggal, peran, keterangan",     value: "terang #59636e · gelap #8b949e" }
+    - { role: border,       usage: "garis kartu, pemisah, bingkai isian",  value: "terang #d0d7de · gelap #30363d" }
+    - { role: accent,       usage: "tautan, elemen interaktif, fokus",     value: "terang #0969da · gelap #58a6ff" }
+    - { role: primary,      usage: "tombol aksi utama (Kirim, Simpan, Unduh CV)", value: "terang #1f883d · gelap #238636 (hijau tombol GitHub)" }
+    - { role: danger,       usage: "error & aksi hapus",                   value: "terang #cf222e · gelap #f85149" }
+  typography:
+    - { role: heading, spec: "tegas; nama pemilik di hero = terbesar; maksimal 3 tingkat hierarki" }
+    - { role: body,    spec: "nyaman dibaca di HP; baris ≤ ±70 karakter; tulisan blog = prioritas keterbacaan" }
+  spacing: "basis 8 (8/16/24/32); antar section 2× jarak internal — batas section terasa tanpa garis tebal"
+
+components:
+  - { id: C-01, name: "TombolUtama",     anatomy: "label aksi; varian: primer (hijau), sekunder (garis tepi), bahaya (danger)",
+      behavior: "satu aksi utama per area; saat proses berjalan menunjukkan penanda sibuk", used_in: [SCR-01, SCR-04, SCR-07, SCR-08, SCR-10, SCR-11, SCR-12, SCR-13, SCR-14, SCR-15] }
+  - { id: C-02, name: "MenuUtama",       anatomy: "nama pemilik (kiri) + tautan Home·About·Portfolio·Blog·Contact + SaklarTema (kanan)",
+      behavior: "layar sempit: tautan terlipat ke ≡; halaman aktif ditandai", used_in: [SCR-01, SCR-02, SCR-03, SCR-04, SCR-05, SCR-06, SCR-07] }
+  - { id: C-03, name: "SaklarTema",      anatomy: "tombol ikon matahari/bulan",
+      behavior: "mengganti mode terang ↔ gelap seketika; pilihan diingat selama kunjungan berikutnya; wujud kapabilitas 'tersedia mode terang & gelap' dari Preferensi Visual pm_01_project.md", used_in: [SCR-01, SCR-02, SCR-03, SCR-04, SCR-05, SCR-06, SCR-07, SCR-09] }
+  - { id: C-04, name: "KartuProject",    anatomy: "nama + gambaran singkat 2 baris + tag keahlian (+ gambar bila ada)",
+      behavior: "seluruh kartu bisa ditekan → SCR-04; layar lebar: 2–3 kolom", used_in: [SCR-01, SCR-03] }
+  - { id: C-05, name: "ItemTulisan",    anatomy: "baris list (bukan kartu/kotak) — judul + tanggal + cuplikan awal isi 2 baris + thumbnail kanan (opsional), dipisah garis antar-item, tanpa bingkai/shadow",
+      behavior: "seluruh baris bisa ditekan → SCR-06; urut terbaru; selalu 1 kolom penuh lebar (gaya medium.com, D-008/D-013)", used_in: [SCR-01, SCR-05] }
+  - { id: C-06, name: "TagKeahlian",     anatomy: "label pendek berlatar surface",
+      behavior: "statis, tidak bisa ditekan", used_in: [SCR-01, SCR-04] }  # v1.8: SCR-02 dihapus (About tak lagi menampilkan keahlian sejak D-009), leftover diperbaiki D-015
+  - { id: C-07, name: "TautanKontak",    anatomy: "ikon + label saluran (email, tautan profesional lain — sesuai isian admin)",
+      behavior: "email membuka aplikasi surel; tautan lain membuka tab baru", used_in: [SCR-07] }
+  - { id: C-08, name: "FormIsian",       anatomy: "label + isian + tanda * untuk wajib + baris pesan error per isian",
+      behavior: "error ditampilkan per bagian yang salah, bukan hanya di atas form", used_in: [SCR-07, SCR-08, SCR-11, SCR-13, SCR-14, SCR-15] }
+  - { id: C-09, name: "NavKembali",      anatomy: "< + label tujuan",
+      behavior: "kembali ke daftar/posisi sebelumnya", used_in: [SCR-04, SCR-06, SCR-11, SCR-13] }
+  - { id: C-10, name: "MenuAdmin",       anatomy: "header: nama pemilik + 'CMS Dashboard' + SaklarTema + tombol Keluar; menu berkelompok, label Inggris (pm_01 D009): Overview (Dashboard) · Content (Posts, Projects, Tags, Skills, Media) · Communication (Messages, Contact Info) · System (Password)",
+      behavior: "layar sempit: menu terlipat ke ≡; 'Keluar' selalu terlihat tanpa membuka menu (US-016); bagian aktif ditandai; label modul Inggris, sisa teks kelola tetap Indonesia (uiux-agent 07 aturan 6)", used_in: [SCR-09, SCR-10, SCR-11, SCR-12, SCR-13, SCR-14, SCR-15, SCR-16, SCR-17, SCR-18, SCR-19] }
+  - { id: C-11, name: "BarisKelola",     anatomy: "nama/judul item + meta singkat + badge status (opsional, Draft/Published/Archived — label Inggris mengikuti enum) + aksi 'Ubah' & 'Hapus'",
+      behavior: "Hapus selalu membuka DialogKonfirmasi; layar sempit: aksi tetap terlihat per baris", used_in: [SCR-10, SCR-12, SCR-14, SCR-15, SCR-17] }
+  - { id: C-12, name: "DialogKonfirmasi", anatomy: "pertanyaan + nama item + [Batal] [Hapus]",
+      behavior: "Hapus berwarna danger; Batal = aksi aman & default; menutup tanpa aksi bila ditutup", used_in: [SCR-10, SCR-12, SCR-14, SCR-15, SCR-17, SCR-18] }
+  - { id: C-13, name: "PesanStatus",     anatomy: "bilah pesan singkat: berhasil / gagal / info",
+      behavior: "muncul setelah aksi (tersimpan, terkirim, terhapus, gagal masuk, terunggah); hilang sendiri atau bisa ditutup", used_in: [SCR-07, SCR-08, SCR-10, SCR-12, SCR-14, SCR-15, SCR-17, SCR-18, SCR-19] }
+  - { id: C-14, name: "KartuPesan",      anatomy: "penanda belum-dibaca (opsional) + nama pengirim + email + waktu + isi pesan utuh + aksi Arsipkan/Kembalikan",
+      behavior: "urut terbaru di atas; email pengirim bisa ditekan (membuka aplikasi surel untuk membalas); buka/tampil kartu = tandai dibaca otomatis (AC-018-3); Arsipkan/Kembalikan pindah tab tanpa hapus (AC-018-4)", used_in: [SCR-16] }
+  - { id: C-15, name: "SeksiTeks",       anatomy: "judul section (heading) + isi teks bebas (paragraf/daftar poin sederhana), statis di kode — bukan dikelola admin (pm_01 D007)",
+      behavior: "statis, tidak bisa ditekan/interaktif", used_in: [SCR-02] }
+  - { id: C-16, name: "PilihanStatus",   anatomy: "3 opsi radio/dropdown — Draft · Published · Archived (label Inggris, mengikuti enum PublishStatus — konsisten badge C-11)",
+      behavior: "satu isian dalam form yang sama, bukan tombol simpan terpisah; status awal konten baru = Draft; hanya Published tampil publik", used_in: [SCR-11, SCR-13] }
+  - { id: C-17, name: "TabSwitch",       anatomy: "dua pilihan sejajar — Active · Archived (label Inggris, D-009)",
+      behavior: "menyaring daftar yang ditampilkan; tab Active = default terbuka", used_in: [SCR-16] }
+  - { id: C-18, name: "KartuStatistik",  anatomy: "ikon + label metrik + angka besar + keterangan kecil (mis. 'Published: 11')",
+      behavior: "statis, tidak bisa ditekan; angka hasil hitung otomatis — murni pemanis tampilan (pm_01 D009, non-blocking)", used_in: [SCR-09] }
+  - { id: C-19, name: "BarisRingkasan",  anatomy: "thumbnail kecil + judul + tag/skill singkat + badge status + tanggal",
+      behavior: "seluruh baris bisa ditekan → form ubah item itu; beda dari BarisKelola (C-11) karena tanpa aksi Ubah/Hapus eksplisit di baris", used_in: [SCR-09] }
+  - { id: C-20, name: "KartuMedia",      anatomy: "gambar thumbnail + nama file + ukuran berkas + aksi [Hapus]",
+      behavior: "grid responsif (2 kolom layar sempit, 4–6 kolom layar lebar); urut terbaru; [Hapus] → DialogKonfirmasi (C-12)", used_in: [SCR-18] }
+  - { id: C-21, name: "PintasanAksi",    anatomy: "ikon + label aksi singkat + keterangan kecil",
+      behavior: "menuju form tambah/halaman kelola terkait; murni navigasi cepat", used_in: [SCR-09] }
+
+asset_needs:
+  - { asset: "Berkas CV terbaru (PDF)",                          from: "pemilik (statis, developer tempel ke kode — D007)", for: [SCR-01] }
+  - { asset: "Foto profil (opsional)",                           from: "pemilik (statis, developer tempel ke kode — D007)", for: [SCR-01, SCR-02] }
+  - { asset: "Teks perkenalan (About Hero, bahasa Indonesia)",   from: "pemilik (statis, developer tempel ke kode — D007)", for: [SCR-01, SCR-02] }
+  - { asset: "Teks Engineering Principles, Development Workflow, Current Focus, Beyond Code (bahasa Indonesia)", from: "pemilik (statis, developer tempel ke kode — D007)", for: [SCR-02] }
+  - { asset: "Daftar keahlian (nama + ikon)",                    from: "pemilik (dikelola via SCR-14)", for: [SCR-01, SCR-14] }
+  - { asset: "Data project awal (nama, gambaran, deskripsi — dapat memuat peran, tautan, gambar, keahlian, tag)", from: "pemilik (via halaman admin)", for: [SCR-03, SCR-04] }
+  - { asset: "Gambar sampul tulisan (opsional, thumbnail list & pratinjau share)", from: "pemilik (via halaman admin)", for: [SCR-01, SCR-05] }
+  - { asset: "Info kontak yang ditampilkan (email, tautan lain)", from: "pemilik (via halaman admin)", for: [SCR-07] }
+
+gap_list:
+  - { id: G-001, question: "Label menu memakai bahasa apa? (konten wajib Indonesia, tapi client menamai halaman HOME/ABOUT/PORTFOLIO/BLOG/CONTACT)",
+      blocking: false, resolution: "Nama halaman diperlakukan sebagai nama diri dari client (Q&A pm) → label menu Home·About·Portfolio·Blog·Contact; seluruh teks lain berbahasa Indonesia di SISI PUBLIK. DIREVISI 2026-07-16 (G-008): sisi admin boleh bahasa campuran", status: resolved }
+  - { id: G-002, question: "'Project unggulan' di Home ditentukan bagaimana? (BA tidak mendefinisikan 'unggulan')",
+      blocking: false, resolution: "Default tanpa kemampuan baru: cuplikan = project terbaru; kurasi manual 'tandai unggulan' = kemampuan baru → usulan di Open Questions", status: resolved }
+  - { id: G-003, question: "Jumlah cuplikan di Home?", blocking: false,
+      resolution: "3 project + 3 tulisan terbaru — cukup memberi gambaran tanpa memperpanjang halaman", status: resolved }
+  - { id: G-004, question: "Bentuk konfirmasi hapus: dialog atau halaman?", blocking: false,
+      resolution: "Dialog — perilaku 'selalu konfirmasi' sudah dari AC; bentuk dialog paling ringkas", status: resolved }
+  - { id: G-005, question: "Membaca pesan: layar detail terpisah atau langsung di daftar?", blocking: false,
+      resolution: "Langsung di daftar (kartu memuat isi utuh) — AC-018-1 menuntut nama+email+isi terlihat; volume pesan portfolio kecil", status: resolved }
+  - { id: G-006, question: "Bagaimana wujud UI pemilihan status Draf/Terbit/Arsip di form Project/Tulisan?", blocking: false,
+      resolution: "Satu isian dropdown/radio (PilihanStatus, C-16) di form yang sama, bukan tombol simpan terpisah — konsisten pola form tunggal SCR-11/SCR-13", status: resolved }
+  - { id: G-007, question: "Bagaimana wujud UI arsip pesan di Kotak Pesan?", blocking: false,
+      resolution: "Dua tab (TabSwitch, C-17) Aktif/Arsip; tab Aktif default terbuka — sederhana untuk admin non-teknis, konsisten pola minim-klik. Label tab DIREVISI 2026-07-16 jadi Active/Archived (G-008)", status: resolved }
+  - { id: G-008, question: "Client memberi referensi desain admin (docs/ui/cms/) berlabel Inggris — bahasa apa yang dipakai sisi admin?", blocking: false,
+      resolution: "Bahasa campuran: label navigasi/modul/status Inggris (Dashboard, Posts, Projects, Tags, Skills, Media, Messages, Contact Info, Password, Draft/Published/Archived, Active/Archived); sisa teks kelola (isian form, tombol, pesan, dialog) tetap Bahasa Indonesia. Perbaikan kesalahan framework uiux-agent lama yang menyamakan bahasa seluruh UI dengan bahasa konten publik (pm_01 D009)", status: resolved }
+  - { id: G-009, question: "Apakah Dashboard (SCR-09) perlu AC/US tersendiri untuk kartu statistik & aktivitas terbaru?", blocking: false,
+      resolution: "Tidak — murni pemanis tampilan (kesan profesional, tidak kosong), non-blocking, tanpa AC baru (klarifikasi user 2026-07-16)", status: resolved }
+  - { id: G-010, question: "Isian Tag di Form Project/Tulisan — tetap input bebas, atau ikut jadi pilih-dari-daftar sekarang Tag punya halaman kelola sendiri?", blocking: false,
+      resolution: "Pilih-dari-daftar (multi-select), konsisten dengan Tag yang kini terkelola — direvisi dari input bebas lama (G-014 BA)", status: resolved }
+  - { id: G-011, question: "Unggah gambar — cuma lewat halaman Media baru, atau tetap bisa inline dari form Project/Tulisan?", blocking: false,
+      resolution: "Dua jalur, masuk katalog Media yang sama — halaman Media untuk unggah mandiri/kelola galeri, inline form untuk kenyamanan saat mengisi Project/Tulisan (G-016 BA)", status: resolved }
+  - { id: G-012, question: "Bagaimana wujud UI verifikasi kata sandi lama di SCR-19?", blocking: false,
+      resolution: "Field terpisah 'Kata sandi lama' di atas 'Kata sandi baru'+konfirmasi, satu form, satu tombol Simpan — pola sama form lain, bukan wizard multi-langkah (G-018 BA)", status: resolved }
+
+assumption_list:
+  - { id: A-001, assumption: "Label menu memakai nama halaman dari client (Home·About·Portfolio·Blog·Contact); seluruh teks lain berbahasa Indonesia", gap: G-001, status: documented }
+  - { id: A-002, assumption: "Cuplikan Home = 3 project terbaru + 3 tulisan terbaru; sorotan yang datanya kosong disembunyikan", gap: G-002, status: documented }
+  - { id: A-003, assumption: "Jumlah cuplikan per sorotan: 3", gap: G-003, status: documented }
+  - { id: A-004, assumption: "Konfirmasi hapus berbentuk dialog dengan aksi danger", gap: G-004, status: documented }
+  - { id: A-005, assumption: "Pesan dibaca langsung di daftar Kotak Pesan (tanpa layar detail)", gap: G-005, status: documented }
+  - { id: A-006, assumption: "Status Draf/Terbit/Arsip dipilih lewat satu isian dropdown/radio (PilihanStatus, C-16), bukan tombol simpan terpisah", gap: G-006, status: documented }
+  - { id: A-007, assumption: "Pesan diarsipkan lewat dua tab terpisah (Active/Archived, TabSwitch C-17), bukan filter/dropdown", gap: G-007, status: documented }
+  - { id: A-008, assumption: "Sisi admin bahasa campuran — label navigasi/modul/status Inggris, sisa teks kelola Bahasa Indonesia", gap: G-008, status: documented }
+  - { id: A-009, assumption: "Dashboard (SCR-09) murni pemanis tampilan, non-blocking, tanpa AC tersendiri", gap: G-009, status: documented }
+  - { id: A-010, assumption: "Isian Tag di Form Project/Tulisan jadi pilih-dari-daftar (multi-select), bukan input bebas lagi", gap: G-010, status: documented }
+  - { id: A-011, assumption: "Unggah gambar dua jalur (halaman Media atau inline form Project/Tulisan), masuk katalog Media yang sama", gap: G-011, status: documented }
+  - { id: A-012, assumption: "Ubah kata sandi: field kata sandi lama terpisah di atas kata sandi baru+konfirmasi, satu form satu tombol Simpan", gap: G-012, status: documented }
+
+decision_log:
+  - { id: D-001, decision: "Multi-halaman (7 layar publik), bukan single-page", reason: "Client menamai 5 halaman eksplisit di pm_01_project.md; Blog & Portfolio berkonten dinamis butuh halaman daftar+detail", time: "2026-07-15" }
+  - { id: D-002, decision: "Token warna memakai nilai asli Primer (design system GitHub), dua set terang/gelap", reason: "Preferensi Visual = referensi konkret github.com → wajib nilai asli (07 §6.1 aturan 2); sumber: primer.style/primitives", time: "2026-07-15" }
+  - { id: D-003, decision: "SaklarTema (C-03) hadir di navbar publik & header admin", reason: "Preferensi Visual 'tersedia mode terang dan gelap' = kapabilitas → wajib komponen + elemen nyata (07 §6.1 aturan 3)", time: "2026-07-15" }
+  - { id: D-004, decision: "AC-001-4 (muncul di Google) dipilah sebagai AC operasional/sistem — catatan handoff ke Tech Lead", reason: "Tidak ada wujud layar; Skenario 5 (09_FAILURE_HANDLING)", time: "2026-07-15" }
+  - { id: D-005, decision: "Kerangka admin (header + menu) = satu pola dipakai 8 layar kelola", reason: "Konsistensi; 'Keluar' selalu terlihat memenuhi US-016", time: "2026-07-15" }
+  - { id: D-006, decision: "[Unduh CV] muncul di hero dan bagian Ajakan Home", reason: "US-017 aktor recruiter — aksi kunci terlihat tanpa mencari; ajakan CTA dari pm_01 D005", time: "2026-07-15" }
+  - { id: D-007, decision: "Urutan section Home: Hero → Keahlian → Project Unggulan → Tulisan Terbaru → Ajakan", reason: "Mengikuti urutan sebutan client (pm_01_project.md D005)", time: "2026-07-15" }
+  - { id: D-008, decision: "Tulisan Terbaru (Home) & Daftar Tulisan (SCR-05) pakai gaya list ala medium.com (C-05 → ItemTulisan), bukan grid kartu; urutan CTA Ajakan (Hubungi Saya lalu Unduh CV, D-006/D-007) dikonfirmasi ulang tetap, tidak berubah", reason: "Revisi pasca-handoff — client memberi referensi visual eksplisit untuk Blog; scope tampilan/urutan = non-blocking (ba-agent/08_GAP_HANDLING.md §3), tidak menyentuh pm_01/BA/Tech Lead", time: "2026-07-16" }
+  - { id: D-009, decision: "SCR-02 About dirombak: About Hero + 4 section baru (Engineering Principles, Development Workflow, Current Focus, Beyond Code — komponen baru C-15 SeksiTeks); Keahlian dihapus dari About (eksklusif di Home); SCR-14 Form Profil diperluas 4 isian baru, keahlian tetap ada di form meski tak tampil di About", reason: "Mengikuti set BA v3.0 (F-02.1 direvisi + F-02.2..F-02.5 baru, D-007 BA) yang mengikuti pm_01_project.md v1.3 (D006) — perubahan scope/requirement, bukan sekadar tampilan; blok isi ditetapkan BA, tata letak & komponen ini keputusan UI/UX", time: "2026-07-16" }
+  - { id: D-010, decision: "SCR-03 Portfolio dapat section baru Portfolio Hero (judul + tagline satu kalimat) sebelum Daftar Project; tagline = teks statis, tidak dikelola admin. Berlaku sebagai prinsip umum: seluruh section hero di semua halaman (Home/About/Portfolio/dst.) statis untuk saat ini, bukan data admin-managed", reason: "Klarifikasi eksplisit client — pilihan teks/tampilan = non-blocking (ba-agent/08_GAP_HANDLING.md §3), tidak perlu field database baru atau siklus PM/BA; cukup UI/UX menuliskan copy-nya", time: "2026-07-16" }
+  - { id: D-011, decision: "SCR-05 Blog dapat Blog Hero (judul + tagline statis, pola sama D-010); SCR-07 Contact dapat Contact Hero (judul + tagline statis) sebelum Info Kontak — Info Kontak TETAP section terpisah, tidak melebur ke hero (klarifikasi eksplisit user)", reason: "Konsisten dengan prinsip hero statis (D-010); Info Kontak tetap wajib section sendiri karena AC-007-1 sudah menuntut data itu tampil — bukan sekadar keputusan tampilan", time: "2026-07-16" }
+  - { id: D-012, decision: "SELURUH data identitas pemilik (About Hero, Engineering Principles, Development Workflow, Current Focus, Beyond Code, foto, CV) jadi statis di kode — mencabut sebagian D-009. SCR-14 dirombak total dari 'Ubah Profil' jadi 'Kelola Keahlian' (CRUD nama+ikon, pola SCR-10/SCR-12); MenuAdmin (C-10) 'Profil'→'Keahlian'; FLOW-15 dirombak; asset_needs & Kebutuhan Aset dipisah per status statis/dinamis", reason: "Mengikuti set BA v4.0 (D-008 BA) yang mengikuti pm_01_project.md v1.4 (D007 PM) — keputusan saat perancangan skema database: Profile tidak jadi tabel, data identitas dinilai tak sepadan dibangun jadi form admin", time: "2026-07-16" }
+  - { id: D-013, decision: "Migrasi sumber v1.4/pm v1.4 → v1.6/pm v1.5. Form Project (SCR-11) & Form Tulisan (SCR-13) dapat isian status Draf/Terbit/Arsip baru (PilihanStatus, C-16) — default Draf; SCR-10/SCR-12 (BarisKelola, C-11) dapat badge status; ItemTulisan (C-05) & Form Tulisan dapat thumbnail/gambar sampul opsional (kanan pada list, tanpa mengubah gaya teks-murni medium.com di sisanya — melengkapi, bukan mencabut D-008); Form Project dapat isian Keahlian (multi) & Tag (bebas), Form Tulisan dapat isian Tag (bebas) — tanpa halaman kelola tag tersendiri (G-014 BA); SCR-16 Kotak Pesan dirombak: tab Aktif/Arsip (TabSwitch, C-17), KartuPesan (C-14) dapat penanda belum-dibaca & aksi Arsipkan/Kembalikan; asset_needs diperbarui (project: peran digabung deskripsi, tambah keahlian/tag; tulisan: tambah gambar sampul)", reason: "Mengikuti set BA v5.0 (D-009 BA) yang mengikuti pm_01_project.md v1.5 (D008 PM) — status tayang & status baca/arsip adalah kemampuan baru yang butuh wujud UI, bukan sekadar field database; thumbnail Tulisan = permintaan eksplisit user (referensi medium.com asli, gambar di kanan list)", time: "2026-07-16" }
+  - { id: D-014, decision: "Migrasi sumber v1.6/pm v1.6 (D009 PM) — client memberi referensi desain admin (docs/ui/cms/). SCR-09 dirombak dari 'Beranda Halaman Admin' (daftar pintasan kosong) jadi 'Dashboard' beranalitik (kartu statistik C-18, aktivitas terbaru C-19, pintasan cepat C-21) — murni pemanis, non-blocking (G-009). MenuAdmin (C-10) dirombak total: label Inggris berkelompok (Overview/Content/Communication/System), item baru Tags/Media/Password. SCR-15 dirombak total dari 'Ubah Info Kontak' (form singleton replace-all) jadi CRUD per baris (pola SCR-14) — bug ditemukan: wireframe lama tidak pernah disesuaikan saat skema ContactInfo berubah jadi flat multi-baris (techlead_02 D-013 sebelumnya). SCR-17 Tags baru (CRUD, mencabut G-014 BA inline-only); SCR-18 Media baru (galeri+unggah, C-20 KartuMedia); SCR-19 Password baru (ubah kata sandi). Status badge & PilihanStatus (C-16) jadi label Inggris Draft/Published/Archived; tab Kotak Pesan jadi Active/Archived; isian Tag di Form Project/Tulisan jadi pilih-dari-daftar (bukan input bebas). Ditemukan & diperbaiki sekalian: leftover 'Profil' di SCR-09/SCR-14 dari cascade D-012 lama yang tidak lengkap", reason: "Referensi desain eksplisit client, bukan tebakan tim; framework uiux-agent diperbaiki lebih dulu (07 aturan 6 baru) sebelum diterapkan ke proyek — bahasa campuran sisi admin kini sah, bukan penyimpangan", time: "2026-07-16" }
+  - { id: D-015, decision: "SCR-01 bagian Keahlian: hapus tautan 'Selengkapnya di About →' (leftover dari sebelum keahlian dipindah eksklusif ke Home, D-006 pm/D-009 uiux — About sudah tidak menampilkan keahlian, jadi tautan itu menuju halaman yang datanya sudah tidak ada di sana); ganti jadi 'seluruh keahlian tampil langsung di Home, tanpa halaman lengkap terpisah'. C-06 TagKeahlian used_in dikoreksi (hapus SCR-02). FLOW-02 screens & steps dikoreksi selaras", reason: "Ditemukan Issue Planner saat memecah backlog FE untuk SCR-01 — traceability macet karena tautan menunjuk ke konten yang tak lagi ada di tujuannya; perbaikan bug, bukan requirement baru, tapi tetap wajib versi baru (dokumen output tidak diedit diam-diam)", time: "2026-07-16" }
+
+validation_result:
+  traceability: PASS          # semua SCR ber-serves; semua flow ber-story; SaklarTema terlacak ke Preferensi Visual (kapabilitas)
+  coverage: PASS              # 23/23 story ber-flow; semua AC tertutup (AC-001-4 dipilah operasional → catatan Tech Lead, D-004)
+  consistency: PASS           # istilah Glossary BA dipatuhi ('halaman admin', 'tulisan', 'pesan'); komponen tunggal per pola; bahasa campuran sisi admin dicatat eksplisit (G-008), bukan penyimpangan diam-diam
+  constraint_compliance: PASS # mobile-first; teks Indonesia sisi publik (A-001 utk nama halaman); bahasa campuran sisi admin (D-014); Primer asli; SaklarTema nyata
+  scope: PASS                 # tanpa komentar/dua bahasa/newsletter; tanpa elemen hantu; tidak ada fitur Later
+  completeness: PASS          # 19/19 layar done dengan semua state; design system tertutup
+  missing: []
+  design_complete: true

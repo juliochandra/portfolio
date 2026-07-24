@@ -1,0 +1,461 @@
+project:
+  id: PRJ-001
+  title: "Portfolio Developer"
+  source: "set BA (FEATURE + USER_STORY + ACCEPTANCE_CRITERIA) + set UI/UX (USER_FLOW + WIREFRAME + DESIGN_SYSTEM)"
+  source_versions: { ba: "6.0", uiux: "1.8" }
+  context: "docs/pm_01_project.md v1.6"
+  status: done   # v2.7 — v2.0: revisi total dari v1.0 (perancangan skema lanjutan, pm_01 D008): 8 entitas, Server Action untuk mutasi admin, Profil dihapus total. v2.1: skema Prisma tanpa @map/@@map (D-014). v2.2: referensi desain admin client (pm_01 D009) — Tag & Media dapat CRUD/kelola penuh, changePassword baru, dashboard stats endpoint (D-015), tanpa tabel baru. v2.3: EP-17 GET /api/skills (publik) — celah kontrak ditemukan Issue Planner (D-016). v2.4: penyimpanan berkas pindah filesystem-lokal → Cloudflare R2 (D-017) — perubahan kapabilitas tim (TEAM_STACK.md diperbarui), tanpa endpoint/kontrak baru. v2.5: 5 layar publik dibungkus route group app/(public)/ (D-018) — layout Navbar+Footer bersama; sekalian fix referensi EP-01..EP-16 basi → EP-01..EP-17. v2.6: login/ dipindah keluar dari admin/ ke app/login/ (D-019) — UI sendiri, admin/layout.tsx (MenuAdmin) kini berlaku utuh tanpa pengecualian. v2.7: folder core/ diganti nama jadi shared/ (D-020) — rename murni, permanen di TEAM_STACK.md. v2.8: EP-07 (login) & EP-08 (logout) dicabut sebagai Route Handler, digantikan SA-22/SA-23 (Server Action) — D-021, permintaan eksplisit user; Route Handler kini murni baca (publik & admin), tanpa pengecualian auth; ISS-012 & ISS-004 di docs/issues/ disesuaikan manual. v2.9: SELURUH 15 Route Handler baca tersisa (EP-01..06, EP-09..17) dicabut, digantikan SA-24..38 — D-022, permintaan eksplisit user ("server action untuk semuanya"); proyek ini kini TANPA Route Handler sama sekali, app/api/ dihapus dari struktur folder; MENYIMPANG dari TEAM_STACK.md (tidak diminta jadi default tim permanen kali ini). ISS-013 di docs/issues/ di-compile ulang. v2.10: seluruh 9 folder fitur pindah dari layout bersarang domain/application/infrastructure/presentation ke pola flat 4-file (<fitur>.action.ts/.services.ts/.repository.ts/.schema.ts) — D-023, permintaan eksplisit user, dicontohkan lewat features/auth/; presentation/ dihapus total, komponen UI khas-fitur co-located ke app/; features/dashboard/ terkecuali tanpa .schema.ts; MENYIMPANG dari TEAM_STACK.md (tidak diminta permanen kali ini, sama seperti D-022). ISS-012 & ISS-013 di docs/issues/ di-compile ulang. 4 dokumen diserahkan ke Issue Planner / FE & BE — Tech Lead berhenti
+
+system_inventory:
+  - { screen: SCR-01, kind: dynamic,
+      data_needs: ["3 project terbaru berstatus Terbit", "3 tulisan terbaru berstatus Terbit", "daftar keahlian (skills)"],
+      capabilities: ["baca sorotan project & tulisan berstatus Terbit (AC-019-1)", "sorotan kosong disembunyikan (AC-019-3)",
+                     "muncul di pencarian Google (AC-001-4) — ditopang arsitektur SSR+meta+sitemap, bukan endpoint (D-007)",
+                     "unduh CV via tautan statis ke public/ (pm_01 D007) — BUKAN endpoint, dihapus dari v1.0"] }
+  - { screen: SCR-02, kind: static,
+      data_needs: [],
+      capabilities: ["seluruh isi (About Hero + 4 section) konstanta JSX statis di kode — TIDAK ada baca database (pm_01 D007)"] }
+  - { screen: SCR-03, kind: dynamic,
+      data_needs: ["daftar project berstatus Terbit: title, description, thumbnailImage, skills"],
+      capabilities: ["baca daftar project Terbit (AC-003-1)", "kondisi kosong (AC-003-2)"] }
+  - { screen: SCR-04, kind: dynamic,
+      data_needs: ["detail project berstatus Terbit: title, content, demoUrl/repositoryUrl bila ada, thumbnailImage, skills, tags"],
+      capabilities: ["baca detail project via slug (AC-004-1)", "404 bila tidak ditemukan/bukan Terbit"] }
+  - { screen: SCR-05, kind: dynamic,
+      data_needs: ["daftar tulisan berstatus Terbit: title, description, thumbnailImage, publishedAt"],
+      capabilities: ["baca daftar tulisan Terbit urut publishedAt desc (AC-005-1)", "kondisi kosong (AC-005-2)"] }
+  - { screen: SCR-06, kind: dynamic,
+      data_needs: ["detail tulisan berstatus Terbit: title, content, readingTime, publishedAt"],
+      capabilities: ["baca detail tulisan via slug (AC-006-1)", "404 bila tidak ditemukan/bukan Terbit"] }
+  - { screen: SCR-07, kind: dynamic,
+      data_needs: ["seluruh baris ContactInfo: label, value, icon"],
+      capabilities: ["baca info kontak (AC-007-1)", "simpan pesan pengunjung berstatus UNREAD (AC-008-1)",
+                     "tolak isian kosong per bagian (AC-008-2)"] }
+  - { screen: SCR-08, kind: dynamic,
+      data_needs: ["data masuk admin"],
+      capabilities: ["verifikasi data masuk (AC-009-1)", "tolak data salah tanpa merinci bagian (AC-009-2)"] }
+  - { screen: SCR-09, kind: dynamic,
+      data_needs: ["status sesi admin", "ringkasan Dashboard: hitungan Post/Project/Tag/Skill, 5 item terbaru Post & Project (SA-37)"],
+      capabilities: ["tolak akses tanpa sesi (AC-009-3)", "akhiri sesi (AC-016-1)",
+                     "baca ringkasan statistik & aktivitas terbaru — murni pemanis, non-blocking (pm_01 D009, G-009 uiux)"] }
+  - { screen: SCR-10, kind: dynamic,
+      data_needs: ["daftar project (kelola, semua status): title, description, status"],
+      capabilities: ["baca daftar project terlindung (SA-30)", "hapus project permanen setelah konfirmasi (AC-011-2, SA-03)",
+                     "tolak akses tanpa sesi (AC-009-3)"] }
+  - { screen: SCR-11, kind: dynamic,
+      data_needs: ["isian project: title*, description, content, demoUrl, repositoryUrl, thumbnailImage, skillIds, tags, status"],
+      capabilities: ["simpan project baru via Server Action (AC-010-1, SA-01)", "tolak tanpa title (AC-010-2)",
+                     "ubah project & transisi status via Server Action (AC-011-1, AC-011-3, AC-011-4, SA-02)",
+                     "tolak akses tanpa sesi (AC-009-3, diverifikasi ulang di dalam Server Action)"] }
+  - { screen: SCR-12, kind: dynamic,
+      data_needs: ["daftar tulisan (kelola, semua status): title, status, createdAt"],
+      capabilities: ["baca daftar tulisan terlindung (SA-31)", "hapus tulisan permanen setelah konfirmasi (AC-013-2, SA-06)",
+                     "tolak akses tanpa sesi (AC-009-3)"] }
+  - { screen: SCR-13, kind: dynamic,
+      data_needs: ["isian tulisan: title*, content*, thumbnailImage, tags, status"],
+      capabilities: ["simpan & hitung readingTime server-side via Server Action (AC-012-1, SA-04)", "tolak tanpa title (AC-012-2)",
+                     "ubah tulisan & transisi status via Server Action (AC-013-1, AC-013-3, AC-013-4, SA-05)",
+                     "tolak akses tanpa sesi (AC-009-3)"] }
+  - { screen: SCR-14, kind: dynamic,
+      data_needs: ["daftar & isian keahlian: name*, icon*"],
+      capabilities: ["baca daftar keahlian terlindung (SA-32)", "tambah/ubah/hapus keahlian via Server Action (AC-014-1, AC-014-2, SA-07..09)",
+                     "tolak akses tanpa sesi (AC-009-3)"] }
+  - { screen: SCR-17, kind: dynamic,
+      data_needs: ["daftar & isian tag: name*"],
+      capabilities: ["baca daftar tag terlindung (SA-35)", "tambah/ubah/hapus tag via Server Action (AC-021-1, AC-021-2, SA-16..18)",
+                     "tolak akses tanpa sesi (AC-009-3)"] }
+  - { screen: SCR-18, kind: dynamic,
+      data_needs: ["galeri media: fileName, url, mimeType, size, createdAt"],
+      capabilities: ["baca daftar media terlindung (SA-36)", "unggah gambar mandiri via Server Action (AC-022-1, SA-19)",
+                     "hapus media via Server Action (AC-022-3, SA-20)", "tolak akses tanpa sesi (AC-009-3)"] }
+  - { screen: SCR-19, kind: dynamic,
+      data_needs: ["isian: oldPassword*, newPassword*, confirmPassword*"],
+      capabilities: ["ubah kata sandi via Server Action, verifikasi kata sandi lama (AC-023-1, AC-023-2, SA-21)",
+                     "tolak akses tanpa sesi (AC-009-3)"] }
+  - { screen: SCR-15, kind: dynamic,
+      data_needs: ["daftar & isian info kontak: label*, value*, icon"],
+      capabilities: ["baca daftar info kontak terlindung (SA-33)", "tambah/ubah/hapus baris info kontak via Server Action (AC-015-1, SA-10..12)",
+                     "tolak akses tanpa sesi (AC-009-3)"] }
+  - { screen: SCR-16, kind: dynamic,
+      data_needs: ["daftar pesan per tab (Active: UNREAD+READ / Archived: ARCHIVED): name, email, message, status, createdAt"],
+      capabilities: ["baca daftar pesan urut terbaru per tab (AC-018-1)", "kondisi kosong (AC-018-2)",
+                     "tandai dibaca otomatis saat kartu dibuka (AC-018-3, SA-13)",
+                     "arsipkan/kembalikan pesan (AC-018-4, SA-14, SA-15)",
+                     "tolak akses tanpa sesi (AC-009-3)"] }
+
+tech_stack:
+  - { layer: framework, choice: "Next.js 15 (App Router)", source: team_stack, reason: "Stack baku tim, mencakup seluruh kapabilitas inventory", constraints: [] }
+  - { layer: ui_library, choice: "React 19", source: team_stack, reason: "Stack baku tim", constraints: [] }
+  - { layer: bahasa, choice: "TypeScript 7 (strict mode)", source: team_stack, reason: "Stack baku tim", constraints: [] }
+  - { layer: styling, choice: "Tailwind CSS 4", source: team_stack, reason: "Stack baku tim", constraints: [] }
+  - { layer: runtime, choice: "Node.js 22 (LTS)", source: team_stack, reason: "Stack baku tim", constraints: [] }
+  - { layer: api, choice: "Server Actions saja — TANPA Route Handler (menyimpang dari TEAM_STACK.md)", source: team_stack,
+      reason: "Stack baku tim awalnya: v2.0 membagi jelas Route Handler (GET publik/admin) + Server Action (create/update/delete/transisi-status admin, D-012) — permintaan eksplisit user. v2.8 (D-021): login/logout turut pindah ke Server Action (SA-22/SA-23). v2.9 (D-022, permintaan eksplisit user — 'server action untuk semuanya'): SELURUH 15 Route Handler baca tersisa (EP-01..06, EP-09..17) turut dicabut, digantikan SA-24..38 — proyek ini kini TANPA Route Handler sama sekali, MENYIMPANG dari TEAM_STACK.md baris API Layer ('Route Handlers + Server Actions', techlead-agent/TEAM_STACK.md) yang TIDAK diminta diperbarui kali ini (beda dari D-020 core→shared yang eksplisit diminta jadi perubahan permanen tim) — deviasi khusus proyek ini, bukan default baru", constraints: [] }
+  - { layer: database, choice: "PostgreSQL 18 (Neon)", source: team_stack, reason: "Stack baku tim", constraints: [] }
+  - { layer: orm, choice: "Prisma 7", source: team_stack, reason: "Stack baku tim; skema deklaratif = kontrak techlead_02 (07 §3.1); id String cuid() di seluruh model (D-008)", constraints: [] }
+  - { layer: auth, choice: "JWT (Access + Refresh Token) + Bcrypt", source: team_stack, reason: "Stack baku tim; cukup untuk 1 akun admin (F-06.1); sesi diverifikasi ulang di tiap Server Action (D-012) — kecuali login (SA-22, D-021) yang justru membuat sesi baru, bukan memverifikasi yang sudah ada", constraints: [] }
+  - { layer: validasi, choice: "Zod 4", source: team_stack, reason: "Stack baku tim; schema diturunkan 1:1 dari shape techlead_03 (v2.9: seluruhnya Server Action, D-022)", constraints: [] }
+  - { layer: form, choice: "React Hook Form 7", source: team_stack, reason: "Stack baku tim; form admin memanggil Server Action lewat action prop", constraints: [] }
+  - { layer: test, choice: "Vitest 4 (unit) + Playwright 1 (E2E)", source: team_stack, reason: "Stack baku tim", constraints: [] }
+  - { layer: cicd, choice: "GitHub Actions", source: team_stack, reason: "Stack baku tim", constraints: [] }
+  - { layer: linter, choice: "Biome 2", source: team_stack, reason: "Stack baku tim", constraints: [] }
+  - { layer: container, choice: "Docker Engine 29 + Docker Compose 2", source: team_stack, reason: "Stack baku tim", constraints: [] }
+  - { layer: hosting, choice: "Ubuntu LTS 22/24 + Caddy 2 (reverse proxy) + Cloudflare (CDN & security)", source: team_stack, reason: "Stack baku tim; Caddy = HTTPS otomatis, menopang kebutuhan kualitas 'mudah ditemukan Google' (AC-001-4)", constraints: [] }
+  - { layer: storage, choice: "Cloudflare R2 (S3-compatible object storage)", source: team_stack,
+      reason: "v2.4 (D-017) — TEAM_STACK.md diperbarui user, kini mencakup penyimpanan berkas; mencabut penyimpangan filesystem-lokal v2.0-v2.3 (D-002). Alur unggah tetap lewat Server Action (createProject/createPost/uploadMedia, D-012 tidak berubah) — Server Action yang memanggil S3 SDK ke R2 di *.repository.ts fitur / shared/ (v2.10 D-023: dulu lapisan infrastructure/shared; v2.7 D-020: shared/ rename dari core), bukan endpoint/presigned-URL terpisah (opsi itu dipertimbangkan & ditolak user demi kesederhanaan skala 1 admin). v2.0: hanya gambar unggahan admin (thumbnail project/tulisan) — CV TIDAK lewat R2, ditempel developer ke public/ (pm_01 D007)",
+      constraints: ["Kebutuhan Aset uiux_03_design_system.md: thumbnail project, thumbnail tulisan"] }
+
+architecture:
+  pattern: "monolith server-rendered (CMS ringan) — sisi publik + sisi admin terlindung dalam satu aplikasi Next.js"
+  modules: ["sisi publik (Home, About statis, Portfolio, Blog, Contact)", "sisi admin terlindung (kelola project/tulisan/keahlian/info kontak/pesan)", "penyimpanan berkas (gambar unggahan, Cloudflare R2 v2.4)"]
+  deployment: "satu image Next.js dijalankan via Docker Compose (aplikasi + PostgreSQL) di VPS Ubuntu; Caddy reverse proxy di depan aplikasi, Cloudflare di depan Caddy; berkas unggahan admin ke Cloudflare R2 (v2.4, tanpa volume Docker terpisah); deploy via GitHub Actions build & push; berkas CV disertakan dalam image (public/), tidak lewat R2"
+  structure:
+    style: "feature-based flat-file (v2.10 D-023: menyimpang dari layered Clean Architecture Struktur Folder Baku TEAM_STACK.md — lihat layer per folder di bawah)"
+    source: team_stack
+    folders:
+      - { path: "src/features/projects", layer: "flat: projects.action.ts · projects.services.ts · projects.repository.ts · projects.schema.ts (v2.10 D-023)", serves: [F-01.2, F-03, F-06.2] }
+      - { path: "src/features/posts",    layer: "flat: posts.action.ts · posts.services.ts · posts.repository.ts · posts.schema.ts (v2.10 D-023)", serves: [F-01.2, F-04, F-06.3] }
+      - { path: "src/features/skills",   layer: "flat: skills.action.ts · skills.services.ts · skills.repository.ts · skills.schema.ts (v2.10 D-023)", serves: [F-01.2, F-06.4] }  # v2.3: + SA-38 baca publik (D-016, v2.9 D-022: dulu EP-17)
+      - { path: "src/features/tags",     layer: "flat: tags.action.ts · tags.services.ts · tags.repository.ts · tags.schema.ts (v2.10 D-023)", serves: [F-06.8] }
+      - { path: "src/features/media",    layer: "flat: media.action.ts · media.services.ts · media.repository.ts · media.schema.ts (v2.10 D-023)", serves: [F-06.9] }
+      - { path: "src/features/contact",  layer: "flat: contact.action.ts · contact.services.ts · contact.repository.ts · contact.schema.ts (v2.10 D-023)", serves: [F-05.1, F-06.5] }
+      - { path: "src/features/messages", layer: "flat: messages.action.ts · messages.services.ts · messages.repository.ts · messages.schema.ts (v2.10 D-023)", serves: [F-05.2, F-06.7] }
+      - { path: "src/features/auth",     layer: "flat: auth.action.ts · auth.services.ts · auth.repository.ts · auth.schema.ts (v2.10 D-023)", serves: [F-06.1, F-06.6, F-06.10] }
+      - { path: "src/features/dashboard", layer: "flat: dashboard.action.ts · dashboard.services.ts · dashboard.repository.ts (v2.10 D-023 — tanpa .schema.ts, SA-37 tanpa input)", serves: ["SCR-09 (pemanis, non-blocking)"] }
+      - { path: "src/app", layer: "presentation (route App Router + komponen UI khas-fitur co-located, v2.10 D-023 — tanpa Route Handler sejak v2.9, D-022)", serves: ["SCR-01..SCR-19"] }
+      - { path: "src/app/(public)", layer: "presentation — route group Next.js (tanpa efek URL), layout.tsx bersama Navbar+Footer, v2.5 D-018", serves: ["SCR-01..SCR-07"] }
+      - { path: "src/app/login", layer: "presentation — halaman berdiri sendiri, UI form sendiri, dipindah keluar dari admin/ v2.6 D-019", serves: ["SCR-08"] }
+      - { path: "src/app/admin", layer: "presentation — layout.tsx MenuAdmin (C-10) berlaku utuh tanpa pengecualian sejak login dipindah, v2.6 D-019", serves: ["SCR-09..SCR-19"] }
+      - { path: "src/shared", layer: "shared lintas fitur (ui dasar, config, klien Prisma, util auth, util penyimpanan berkas — S3 SDK ke Cloudflare R2, v2.4)", serves: ["lintas fitur"] }  # v2.7 D-020: rename dari src/core
+      - { path: "src/middleware.ts", layer: "penjaga route /admin/* (verifikasi JWT)", serves: ["F-06 (semua sub-fitur)"] }
+      - { path: "public/", layer: "aset statis (termasuk CV)", serves: ["F-07"] }
+
+entities:
+  - id: ENT-01
+    name: "Project"
+    table: "Project"
+    serves: [F-01.2, F-03, F-06.2, US-003, US-004, US-010, US-011, US-019]
+    fields:
+      - { name: id,             type: id,      required: true, note: "cuid() — D-008" }
+      - { name: title,          type: teks,    required: true, note: "AC-010-2: wajib" }
+      - { name: slug,           type: teks,    required: true, note: "unik; auto dari title — D-010" }
+      - { name: description,    type: teks,    required: false, note: "gambaran singkat — AC-003-1; divalidasi wajib di Zod, bukan NOT NULL skema (AC-010-2)" }
+      - { name: content,        type: teks-panjang, required: true, note: "deskripsi lengkap; dapat memuat 'peran saya' (G-013 BA)" }
+      - { name: demoUrl,        type: teks,    required: false, note: "tampil hanya bila ada (AC-004-1)" }
+      - { name: repositoryUrl,  type: teks,    required: false, note: "'Tautan kode' di UI; tampil hanya bila ada (AC-004-1)" }
+      - { name: thumbnailImage, type: berkas, required: false, note: "opsional" }
+      - { name: status,         type: "enum(PublishStatus)", required: true, note: "DRAFT default — pm_01 D008" }
+      - { name: publishedAt,    type: tanggal, required: false, note: "diisi sekali saat pertama PUBLISHED, tidak berubah lagi" }
+    relations: ["m-n implisit ke Tag (ENT-03)", "m-n implisit ke Skill (ENT-04)"]
+    rules: ["hanya status PUBLISHED tampil publik, urut publishedAt desc; daftar admin urut createdAt desc (AC-003-1, AC-003-2)",
+            "penghapusan bersifat permanen (hard delete), selalu setelah konfirmasi UI, terpisah dari ARCHIVED (Assumption BA A-003, direvisi)"]
+  - id: ENT-02
+    name: "Tulisan"
+    table: "Post"
+    serves: [F-01.2, F-04, F-06.3, US-005, US-006, US-012, US-013, US-019]
+    fields:
+      - { name: id,             type: id,      required: true, note: "cuid() — D-008" }
+      - { name: title,          type: teks,    required: true, note: "AC-012-2: wajib" }
+      - { name: slug,           type: teks,    required: true, note: "unik; auto dari title — D-010" }
+      - { name: description,    type: teks,    required: false, note: "cuplikan, tampil di ItemTulisan" }
+      - { name: content,        type: teks-panjang, required: true, note: "isi tulisan" }
+      - { name: readingTime,    type: angka,   required: true, note: "dihitung sekali saat create/update dari content — tidak dihitung ulang tiap dibaca" }
+      - { name: thumbnailImage, type: berkas, required: false, note: "opsional — thumbnail kanan list (C-05) & pratinjau share; TIDAK tampil di isi tulisan" }
+      - { name: status,         type: "enum(PublishStatus)", required: true, note: "DRAFT default — pm_01 D008" }
+      - { name: publishedAt,    type: tanggal, required: false, note: "diisi sekali saat pertama PUBLISHED, tidak berubah saat diedit" }
+    relations: ["m-n implisit ke Tag (ENT-03)"]
+    rules: ["hanya status PUBLISHED tampil publik, urut publishedAt desc, tanpa kategori (Assumption BA A-002, tag melengkapi tanpa mengubah tampilan)",
+            "penghapusan bersifat permanen (hard delete), selalu setelah konfirmasi UI, terpisah dari ARCHIVED"]
+  - id: ENT-03
+    name: "Tag"
+    table: "Tag"
+    serves: [F-03, F-04, F-06.8, US-021]
+    fields:
+      - { name: id,        type: id,   required: true, note: "cuid()" }
+      - { name: name,      type: teks, required: true, note: "unik — AC-021-1" }
+      - { name: slug,      type: teks, required: true, note: "unik; auto dari name; disiapkan, belum ada route yang memakainya" }
+    relations: ["m-n implisit ke Post (ENT-02)", "m-n implisit ke Project (ENT-01)"]
+    rules: ["CRUD penuh lewat SCR-17 (SA-35, SA-16..18) — mencabut G-014 BA lama 'inline-only, tanpa halaman kelola' (pm_01 D009, referensi desain admin client)",
+            "Project/Post memilih tagIds dari daftar yang ada (pola sama skillIds), bukan lagi upsert-by-name",
+            "menghapus tag yang dipakai hanya melepas relasi m-n implisit (Prisma disconnect), tidak menghapus Project/Post"]
+  - id: ENT-04
+    name: "Skill"
+    table: "Skill"
+    serves: [F-01.2, F-06.4, US-014, US-019]
+    fields:
+      - { name: id,   type: id,   required: true, note: "cuid()" }
+      - { name: name, type: teks, required: true, note: "unik — AC-014-1" }
+      - { name: slug, type: teks, required: true, note: "unik; auto dari name; disiapkan, belum ada route yang memakainya" }
+      - { name: icon, type: teks, required: false, note: "nama ikon tech-stack; divalidasi wajib di Zod (AC-014-1), bukan NOT NULL skema" }
+    relations: ["m-n implisit ke Project (ENT-01)"]
+    rules: ["CRUD penuh lewat SCR-14 (tambah/ubah/hapus, selalu konfirmasi sebelum hapus — AC-014-2)", "Dibaca publik lewat SA-38 (v2.3, D-016, v2.9 D-022: dulu EP-17) — bagian Keahlian di Home (SCR-01) tampil ke pengunjung, terpisah dari SA-32 (dulu EP-11) yang khusus admin"]
+  - id: ENT-05
+    name: "Media"
+    table: "Media"
+    serves: ["F-06.9, US-022 — infrastruktur unggahan & galeri (Kebutuhan Aset uiux_03_design_system.md)"]
+    fields:
+      - { name: id,        type: id,   required: true, note: "cuid()" }
+      - { name: fileName,  type: teks, required: true, note: "" }
+      - { name: objectKey, type: teks, required: true, note: "unik" }
+      - { name: url,       type: teks, required: true, note: "" }
+      - { name: mimeType,  type: teks, required: true, note: "" }
+      - { name: extension, type: teks, required: true, note: "" }
+      - { name: size,      type: angka, required: true, note: "bytes" }
+    relations: ["tidak ada — katalog metadata, bukan FK dari Project/Post (D-011)"]
+    rules: ["satu baris dibuat tiap kali admin mengunggah file — lewat halaman Media (SCR-18, SA-36/SA-19) atau inline form Project/Tulisan (G-016 BA); path hasil disalin ke field thumbnailImage terkait bila inline",
+            "menghapus baris Media (SA-20) TIDAK mengosongkan thumbnailImage yang sudah tersalin ke Project/Post lain (tanpa FK, G-017 BA — risiko diterima)",
+            "batas ukuran & jenis: gambar (jpg/png/webp) ≤ 2MB (G-003)"]
+  - id: ENT-06
+    name: "Pesan"
+    table: "Message"
+    serves: [F-05.2, F-06.7, US-008, US-018]
+    fields:
+      - { name: id,      type: id,   required: true, note: "cuid()" }
+      - { name: name,    type: teks, required: true, note: "AC-008-1, AC-018-1" }
+      - { name: email,   type: teks, required: true, note: "AC-008-1, AC-018-1" }
+      - { name: message, type: teks-panjang, required: true, note: "AC-008-1, AC-018-1" }
+      - { name: status,  type: "enum(MessageStatus)", required: true, note: "UNREAD default — pm_01 D008" }
+    relations: []
+    rules: ["hanya dibuat (publik, selalu UNREAD) dan dibaca/diarsipkan (admin) — tanpa story ubah isi/hapus (Scope Validation)",
+            "transisi: UNREAD→READ otomatis saat dibuka (AC-018-3); UNREAD|READ→ARCHIVED saat Arsipkan (AC-018-4); ARCHIVED→READ saat Kembalikan",
+            "urut tampil terbaru dulu berdasar createdAt (AC-018-1), disaring tab Aktif (UNREAD+READ) / Arsip (ARCHIVED)"]
+  - id: ENT-07
+    name: "Info Kontak"
+    table: "ContactInfo"
+    serves: [F-05.1, F-06.5, US-007, US-015]
+    fields:
+      - { name: id,    type: id,   required: true, note: "cuid()" }
+      - { name: label, type: teks, required: true, note: "nama saluran — AC-007-1" }
+      - { name: value, type: teks, required: true, note: "alamat/tautan saluran — AC-007-1" }
+      - { name: icon,  type: teks, required: false, note: "" }
+    relations: []
+    rules: ["tabel flat multi-baris (D-013, mencabut desain singleton v1.0) — email pun baris biasa, tanpa field khusus",
+            "CRUD penuh per baris lewat SCR-15 (BarisKelola) — menggantikan pola replace-all v1.0"]
+  - id: ENT-08
+    name: "User"
+    table: "User"
+    serves: [F-06.1, F-06.6, US-009, US-016]
+    fields:
+      - { name: id,           type: id,   required: true, note: "cuid()" }
+      - { name: username,     type: teks, required: true, note: "unik — data masuk (AC-009-1)" }
+      - { name: passwordHash, type: teks, required: true, note: "hash Bcrypt (TEAM_STACK.md)" }
+    relations: []
+    rules: ["tepat satu akun, disiapkan saat Data Awal — tanpa registrasi publik (Assumption BA A-005)",
+            "murni kredensial login — TIDAK menyimpan data identitas pemilik (statis di kode, pm_01 D007); beda dari Admin v1.0 hanya soal nama tabel",
+            "admin dapat mengganti passwordHash sendiri lewat SCR-19 (SA-21 changePassword) — wajib verifikasi kata sandi lama cocok dulu (G-018 BA, AC-023-1/2)",
+            "TIDAK ada createdAt/updatedAt — D-009"]
+
+endpoints: []  # kosong sejak v2.9 (D-022) — seluruh Route Handler dicabut, digantikan Server Action (lihat server_actions SA-24..38)
+
+server_actions:
+  - { id: SA-01, name: "createProject",       purpose: "Tambah project (title*, description, content, demoUrl, repositoryUrl, thumbnail?, skillIds, tags, status)",
+      serves: [SCR-11, FLOW-11], covers: [AC-010-1, AC-010-2], auth: admin, entity: ENT-01 }
+  - { id: SA-02, name: "updateProject",       purpose: "Ubah project & transisi status",
+      serves: [SCR-11, FLOW-12], covers: [AC-011-1, AC-011-3, AC-011-4], auth: admin, entity: ENT-01 }
+  - { id: SA-03, name: "deleteProject",       purpose: "Hapus project permanen (setelah konfirmasi FE)",
+      serves: [SCR-10, FLOW-12], covers: [AC-011-2], auth: admin, entity: ENT-01 }
+  - { id: SA-04, name: "createPost",          purpose: "Tulis tulisan (title*, description, content*, thumbnail?, tags, status); readingTime dihitung server",
+      serves: [SCR-13, FLOW-13], covers: [AC-012-1, AC-012-2], auth: admin, entity: ENT-02 }
+  - { id: SA-05, name: "updatePost",          purpose: "Ubah tulisan & transisi status",
+      serves: [SCR-13, FLOW-14], covers: [AC-013-1, AC-013-3, AC-013-4], auth: admin, entity: ENT-02 }
+  - { id: SA-06, name: "deletePost",          purpose: "Hapus tulisan permanen (setelah konfirmasi FE)",
+      serves: [SCR-12, FLOW-14], covers: [AC-013-2], auth: admin, entity: ENT-02 }
+  - { id: SA-07, name: "createSkill",         purpose: "Tambah keahlian (name*, icon*)",
+      serves: [SCR-14, FLOW-15], covers: [AC-014-1], auth: admin, entity: ENT-04 }
+  - { id: SA-08, name: "updateSkill",         purpose: "Ubah keahlian",
+      serves: [SCR-14, FLOW-15], covers: [AC-014-2], auth: admin, entity: ENT-04 }
+  - { id: SA-09, name: "deleteSkill",         purpose: "Hapus keahlian (setelah konfirmasi FE)",
+      serves: [SCR-14, FLOW-15], covers: [AC-014-2], auth: admin, entity: ENT-04 }
+  - { id: SA-10, name: "createContactInfo",   purpose: "Tambah baris info kontak (label*, value*, icon)",
+      serves: [SCR-15, FLOW-16], covers: [AC-015-1], auth: admin, entity: ENT-07 }
+  - { id: SA-11, name: "updateContactInfo",   purpose: "Ubah baris info kontak",
+      serves: [SCR-15, FLOW-16], covers: [AC-015-1], auth: admin, entity: ENT-07 }
+  - { id: SA-12, name: "deleteContactInfo",   purpose: "Hapus baris info kontak",
+      serves: [SCR-15, FLOW-16], covers: [AC-015-1], auth: admin, entity: ENT-07 }
+  - { id: SA-13, name: "markMessageRead",     purpose: "Tandai pesan sudah dibaca — dipanggil otomatis FE saat kartu dibuka",
+      serves: [SCR-16, FLOW-18], covers: [AC-018-3], auth: admin, entity: ENT-06 }
+  - { id: SA-14, name: "archiveMessage",      purpose: "Arsipkan pesan (dari tab Aktif)",
+      serves: [SCR-16, FLOW-18], covers: [AC-018-4], auth: admin, entity: ENT-06 }
+  - { id: SA-15, name: "unarchiveMessage",    purpose: "Kembalikan pesan ke Aktif (dari tab Arsip)",
+      serves: [SCR-16, FLOW-18], covers: [AC-018-4], auth: admin, entity: ENT-06 }
+  - { id: SA-16, name: "createTag",           purpose: "Tambah tag (name*)",
+      serves: [SCR-17, FLOW-21], covers: [AC-021-1], auth: admin, entity: ENT-03 }
+  - { id: SA-17, name: "updateTag",           purpose: "Ubah tag",
+      serves: [SCR-17, FLOW-21], covers: [AC-021-2], auth: admin, entity: ENT-03 }
+  - { id: SA-18, name: "deleteTag",           purpose: "Hapus tag (setelah konfirmasi FE) — melepas relasi Project/Post, tidak menghapusnya",
+      serves: [SCR-17, FLOW-21], covers: [AC-021-2], auth: admin, entity: ENT-03 }
+  - { id: SA-19, name: "uploadMedia",         purpose: "Unggah gambar mandiri (file*, ≤2MB) — berdiri sendiri, beda dari unggahan inline createProject/createPost",
+      serves: [SCR-18, FLOW-22], covers: [AC-022-1], auth: admin, entity: ENT-05 }
+  - { id: SA-20, name: "deleteMedia",         purpose: "Hapus media (setelah konfirmasi FE) — tidak mengosongkan rujukan thumbnailImage di Project/Post lain",
+      serves: [SCR-18, FLOW-22], covers: [AC-022-3], auth: admin, entity: ENT-05 }
+  - { id: SA-21, name: "changePassword",      purpose: "Ubah kata sandi sendiri (oldPassword*, newPassword*, confirmPassword*) — wajib verifikasi oldPassword",
+      serves: [SCR-19, FLOW-23], covers: [AC-023-1, AC-023-2], auth: admin, entity: ENT-08 }
+  - { id: SA-22, name: "login",                purpose: "Masuk admin (username*, password*) — menggantikan EP-07 (D-021)",
+      serves: [SCR-08, FLOW-10], covers: [AC-009-1, AC-009-2], auth: public, entity: ENT-08 }
+  - { id: SA-23, name: "logout",               purpose: "Keluar, akhiri sesi — menggantikan EP-08 (D-021)",
+      serves: [SCR-09, FLOW-17], covers: [AC-016-1], auth: admin, entity: ENT-08 }
+  - { id: SA-24, name: "getProjects",           purpose: "Daftar project (Home: 3 terbaru; Portfolio: semua) — hanya status PUBLISHED — menggantikan EP-01 (D-022)",
+      serves: [SCR-01, SCR-03, FLOW-02, FLOW-04], covers: [AC-003-1, AC-003-2, AC-019-1, AC-019-3], auth: public, entity: ENT-01 }
+  - { id: SA-25, name: "getProjectBySlug",      purpose: "Detail project — hanya status PUBLISHED — menggantikan EP-02 (D-022)",
+      serves: [SCR-04, FLOW-05], covers: [AC-004-1], auth: public, entity: ENT-01 }
+  - { id: SA-26, name: "getPosts",              purpose: "Daftar tulisan (Home: 3 terbaru; Blog: semua) — hanya status PUBLISHED — menggantikan EP-03 (D-022)",
+      serves: [SCR-01, SCR-05, FLOW-02, FLOW-06], covers: [AC-005-1, AC-005-2, AC-019-1, AC-019-3], auth: public, entity: ENT-02 }
+  - { id: SA-27, name: "getPostBySlug",         purpose: "Detail tulisan — hanya status PUBLISHED — menggantikan EP-04 (D-022)",
+      serves: [SCR-06, FLOW-07], covers: [AC-006-1], auth: public, entity: ENT-02 }
+  - { id: SA-28, name: "getContactInfo",        purpose: "Seluruh baris info kontak — menggantikan EP-05 (D-022)",
+      serves: [SCR-07, FLOW-08], covers: [AC-007-1], auth: public, entity: ENT-07 }
+  - { id: SA-29, name: "sendMessage",           purpose: "Kirim pesan lewat formulir — menggantikan EP-06 (D-022)",
+      serves: [SCR-07, FLOW-09], covers: [AC-008-1, AC-008-2], auth: public, entity: ENT-06 }
+  - { id: SA-30, name: "getProjectsAdmin",      purpose: "Daftar project kelola (semua status) — menggantikan EP-09 (D-022)",
+      serves: [SCR-10, FLOW-11, FLOW-12], covers: [], auth: admin, entity: ENT-01 }
+  - { id: SA-31, name: "getPostsAdmin",         purpose: "Daftar tulisan kelola (semua status) — menggantikan EP-10 (D-022)",
+      serves: [SCR-12, FLOW-13, FLOW-14], covers: [], auth: admin, entity: ENT-02 }
+  - { id: SA-32, name: "getSkillsAdmin",        purpose: "Daftar keahlian kelola — menggantikan EP-11 (D-022)",
+      serves: [SCR-14, FLOW-15], covers: [], auth: admin, entity: ENT-04 }
+  - { id: SA-33, name: "getContactInfoAdmin",   purpose: "Daftar info kontak kelola — menggantikan EP-12 (D-022)",
+      serves: [SCR-15, FLOW-16], covers: [], auth: admin, entity: ENT-07 }
+  - { id: SA-34, name: "getMessages",           purpose: "Daftar pesan per tab Aktif/Arsip — menggantikan EP-13 (D-022)",
+      serves: [SCR-16, FLOW-18], covers: [AC-018-1, AC-018-2], auth: admin, entity: ENT-06 }
+  - { id: SA-35, name: "getTagsAdmin",          purpose: "Daftar tag kelola — menggantikan EP-14 (D-022)",
+      serves: [SCR-17, FLOW-21], covers: [], auth: admin, entity: ENT-03 }
+  - { id: SA-36, name: "getMediaGallery",       purpose: "Daftar media (galeri) — menggantikan EP-15 (D-022)",
+      serves: [SCR-18, FLOW-22], covers: [AC-022-2], auth: admin, entity: ENT-05 }
+  - { id: SA-37, name: "getDashboardSummary",   purpose: "Ringkasan statistik & aktivitas terbaru — pemanis, non-blocking — menggantikan EP-16 (D-022)",
+      serves: [SCR-09], covers: [], auth: admin, entity: "ENT-01, ENT-02, ENT-03, ENT-04" }
+  - { id: SA-38, name: "getSkills",             purpose: "Daftar keahlian publik (v2.3, D-016) — melengkapi SA-32 (dulu EP-11) yang admin-only — menggantikan EP-17 (D-022)",
+      serves: [SCR-01, FLOW-02], covers: [AC-019-1, AC-019-3], auth: public, entity: ENT-04 }
+
+gap_list:
+  - { id: G-001, question: "Berkas CV belum tentu tersedia saat AC-017-1 dituntut (tombol Unduh CV) — apa yang terjadi bila kosong?",
+      blocking: false, to: null,
+      resolution: "DIREVISI (2026-07-16, pm_01 D007): CV bukan lagi data DB — aset statis, ditempel developer ke public/ sebelum situs tayang publik. Resolusi awal (cv_file NOT NULL di skema Profil) sudah tidak berlaku karena Profil dihapus total",
+      status: resolved }
+  - { id: G-002, question: "Urutan daftar Project di halaman Portfolio tidak disebut eksplisit oleh BA/UI-UX",
+      blocking: false, to: null,
+      resolution: "Default: publishedAt terbaru dulu, hanya status PUBLISHED (Assumption BA A-002, direvisi pm_01 D008)",
+      status: resolved }
+  - { id: G-003, question: "Batas ukuran & jenis berkas unggahan (gambar) tidak disebut",
+      blocking: false, to: null,
+      resolution: "Default wajar: gambar (jpg/png/webp) ≤ 2MB — mekanisme teknis dalam batas requirement. Ketentuan CV ≤5MB v1.0 dicabut (CV tidak lagi diunggah lewat admin, pm_01 D007)",
+      status: resolved }
+  - { id: G-004, question: "Durasi sesi masuk admin (access/refresh token) tidak disebut dokumen hulu",
+      blocking: false, to: null,
+      resolution: "Default standar: token akses 15 menit, token pembaruan 7 hari, disimpan sebagai httpOnly cookie; berlaku juga untuk verifikasi ulang di dalam tiap Server Action (D-012)",
+      status: resolved }
+  - { id: G-005, question: "Bagaimana admin memicu perubahan status Draf/Terbit/Arsip pada Project/Tulisan di lapisan data?",
+      blocking: false, to: null,
+      resolution: "Satu Server Action update* menerima field status, memvalidasi & menyimpan; publishedAt diisi sekali saat pertama kali menyentuh PUBLISHED (G-011 BA)",
+      status: resolved }
+  - { id: G-006, question: "ID entitas: BigInt autoincrement (v1.0) atau string cuid?",
+      blocking: false, to: null,
+      resolution: "cuid() string — id tidak bisa ditebak/dienumerasi lewat manipulasi URL; berpasangan wajar dengan slug yang sudah dipakai di seluruh entitas berkonten (D-008)",
+      status: resolved }
+  - { id: G-007, question: "Server Action untuk seluruh mutasi admin, atau hanya Project seperti permintaan awal user?",
+      blocking: false, to: null,
+      resolution: "Global — seluruh mutasi admin (Project/Post/Skill/ContactInfo/Message) jadi Server Action, bukan hanya Project, untuk konsistensi pola di seluruh fitur admin; Route Handler dipertahankan untuk baca & autentikasi (D-012)",
+      status: resolved }
+  - { id: G-008, question: "Tag & Media dapat CRUD/kelola penuh (referensi desain admin client) — perlu tabel/kolom baru?",
+      blocking: false, to: null,
+      resolution: "Tidak — Tag & Media sudah ada sejak v2.0; hanya ditambah permukaan Route Handler baca (EP-14/EP-15) + Server Action mutasi (SA-16..20). Project/Post beralih dari upsert-by-name Tag jadi pilih tagIds dari daftar",
+      status: resolved }
+  - { id: G-009, question: "Bagaimana bentuk endpoint statistik Dashboard (SCR-09) — satu endpoint agregat, atau client menghitung dari beberapa GET list?",
+      blocking: false, to: null,
+      resolution: "Satu endpoint agregat (EP-16 GET /api/admin/dashboard) — menghindari client memuat seluruh Project/Post hanya untuk menghitung total; murni pemanis, tanpa AC (G-009 uiux)",
+      status: resolved }
+  - { id: G-010, question: "changePassword — server action terpisah, atau bagian dari updateUser generik?",
+      blocking: false, to: null,
+      resolution: "Server Action khusus (changePassword) dengan payload oldPassword/newPassword/confirmPassword — User cuma py 2 field (username, passwordHash), tidak ada kebutuhan update generik lain",
+      status: resolved }
+
+assumption_list:
+  - { id: A-001, assumption: "CV adalah aset statis di public/, bukan data DB — situs tidak tayang publik tanpanya (DIREVISI 2026-07-16, pm_01 D007)", gap: G-001, status: documented }
+  - { id: A-002, assumption: "Daftar Project & Tulisan publik terbaru dulu (publishedAt desc), hanya status PUBLISHED", gap: G-002, status: documented }
+  - { id: A-003, assumption: "Batas unggahan: gambar ≤2MB (jpg/png/webp); tanpa ketentuan CV (dicabut)", gap: G-003, status: documented }
+  - { id: A-004, assumption: "Token akses 15 menit, token pembaruan 7 hari, httpOnly cookie; diverifikasi ulang di tiap Server Action", gap: G-004, status: documented }
+  - { id: A-005, assumption: "Status Draf/Terbit/Arsip diubah lewat Server Action update* yang sama dengan create*, satu field status di payload", gap: G-005, status: documented }
+  - { id: A-006, assumption: "Seluruh id entitas memakai cuid() string, bukan BigInt autoincrement", gap: G-006, status: documented }
+  - { id: A-007, assumption: "Server Action dipakai global untuk seluruh mutasi admin (bukan hanya Project), Route Handler untuk baca & auth", gap: G-007, status: documented }
+  - { id: A-008, assumption: "Tag & Media memakai tabel yang sudah ada (v2.0), hanya menambah permukaan Route Handler/Server Action baru — tanpa migrasi skema", gap: G-008, status: documented }
+  - { id: A-009, assumption: "Dashboard (SCR-09) dilayani satu fungsi agregat (SA-37, v2.9 D-022: dulu EP-16), bukan client menghitung dari beberapa baca list", gap: G-009, status: documented }
+  - { id: A-010, assumption: "changePassword adalah Server Action khusus, terpisah dari update generik (User tidak punya field lain untuk diubah)", gap: G-010, status: documented }
+
+decision_log:
+  - { id: D-001, decision: "Kelas proyek: CMS ringan (monolith server-rendered), bukan situs statis",
+      reason: "Objective pm_01_project.md eksplisit menuntut 'kendali penuh memperbarui seluruh isinya sendiri' — pemilik ADALAH Target User (Admin)",
+      time: "2026-07-15" }
+  - { id: D-002, decision: "~~TEAM_STACK.md dipakai apa adanya untuk seluruh layer kecuali penyimpanan berkas~~ — DICABUT v2.4 (D-017): TEAM_STACK.md kini mencakup penyimpanan berkas (Cloudflare R2)",
+      reason: "Berlaku v2.0-v2.3: validasi cakupan waktu itu terhadap system_inventory — stack baku tim memenuhi seluruh kapabilitas kecuali penyimpanan berkas unggahan; celah itu ditutup user langsung di TEAM_STACK.md, bukan lagi penyimpangan proyek",
+      time: "2026-07-15" }
+  - { id: D-003, decision: "Struktur folder = jalur 1 (Struktur Folder Baku TEAM_STACK.md) — pemetaan F-XX ke folder fitur ini tetap berlaku; sub-struktur layer di dalam tiap folder fitur diperbarui v2.10, lihat D-023",
+      reason: "TEAM_STACK.md menyediakan kerangka feature-based layered baku; pekerjaan Tech Lead murni memetakan F-XX ke folder fitur (04 §8.1 jalur 1)",
+      time: "2026-07-15" }
+  - { id: D-004, decision: "DICABUT total v2.0 (D-013) — Profil & Info Kontak singleton tidak berlaku lagi",
+      reason: "Profil dihapus sepenuhnya (bukan tabel sama sekali, pm_01 D007); Info Kontak jadi multi-baris CRUD penuh, bukan singleton",
+      time: "2026-07-15, dicabut 2026-07-16" }
+  - { id: D-005, decision: "Pesan tanpa endpoint ubah isi/hapus — v2.0 menambah Server Action ubah status (baca/arsip)",
+      reason: "US-018 hanya menuntut 'membaca'; endpoint ubah isi/hapus = endpoint hantu (Scope Validation); status baca/arsip = kemampuan baru pm_01 D008, bukan ubah isi",
+      time: "2026-07-15, diperluas 2026-07-16" }
+  - { id: D-006, decision: "Sorotan Home memakai fungsi baca yang sama dengan daftar penuh Portfolio/Blog (SA-24/SA-26, v2.9 D-022: dulu EP-01/EP-03), dibedakan parameter `limit`",
+      reason: "Data & aturan identik (project/tulisan terbaru berstatus Terbit) — fungsi terpisah untuk kebutuhan yang sama = duplikasi tanpa alasan",
+      time: "2026-07-15" }
+  - { id: D-007, decision: "AC-001-4 (muncul di pencarian Google) ditopang lewat Server-Side Rendering + metadata + sitemap.xml — bukan endpoint",
+      reason: "Kebutuhan kualitas 'mudah ditemukan Google' adalah keputusan arsitektur (rendering + meta), bukan permukaan API",
+      time: "2026-07-15" }
+  - { id: D-008, decision: "ID seluruh entitas: String @default(cuid()), bukan BigInt autoincrement() (v1.0)",
+      reason: "Id tidak bisa ditebak/dienumerasi lewat manipulasi URL; berpasangan wajar dengan slug yang sudah dipakai di seluruh entitas berkonten; keputusan user saat perancangan skema",
+      time: "2026-07-16" }
+  - { id: D-009, decision: "ContactInfo & User tanpa kolom createdAt/updatedAt, beda dari entitas lain",
+      reason: "Skala 1 baris/1 akun; tidak ada kebutuhan produk/UI yang menampilkan riwayat perubahan keduanya",
+      time: "2026-07-16" }
+  - { id: D-010, decision: "Slug (projects, posts, tags, skills) dibuat otomatis dari nama/judul (slugify), bukan isian manual admin",
+      reason: "Admin tunggal non-teknis; auto-generate menghindari slug kosong/bentrok tanpa validasi form tambahan",
+      time: "2026-07-16" }
+  - { id: D-011, decision: "Media = katalog metadata file, bukan foreign key relasional dari projects/posts",
+      reason: "Skala kecil (1 admin, unggahan jarang) tidak sepadan dengan kompleksitas menjaga relasi FK tetap sinkron",
+      time: "2026-07-16" }
+  - { id: D-012, decision: "Seluruh mutasi admin (create/update/delete, transisi status) jadi Server Action; Route Handler untuk baca (publik & admin) + auth",
+      reason: "Permintaan eksplisit user saat perancangan skema; mutasi dipanggil langsung dari form admin, tidak butuh permukaan REST terpisah",
+      time: "2026-07-16" }
+  - { id: D-013, decision: "Entitas Profil dihapus total (bukan lagi tabel); Info Kontak jadi tabel flat multi-baris dengan CRUD penuh (mencabut D-004)",
+      reason: "pm_01 D007 (Profil statis) + pm_01 D008 lanjutan (perancangan skema) — data identitas jarang berubah, tidak sepadan jadi form admin; Info Kontak sebaliknya perlu fleksibel tambah/kurang saluran tanpa migrasi skema",
+      time: "2026-07-16" }
+  - { id: D-014, decision: "Skema Prisma TANPA @map/@@map — konvensi default Prisma apa adanya (model PascalCase singular = nama tabel, field camelCase = nama kolom)",
+      reason: "Proyek tidak pernah mengakses PostgreSQL secara langsung di luar Prisma Client (tanpa raw SQL/tool eksternal/BI) — lapisan pemetaan nama snake_case tidak punya manfaat terukur untuk skala ini; keputusan user, mencabut konvensi snake_case v2.0",
+      time: "2026-07-16" }
+  - { id: D-015, decision: "Tag & Media (sudah ada sejak v2.0) dapat permukaan CRUD/kelola admin penuh (EP-14/SA-16..18 Tag; EP-15/SA-19..20 Media), menggantikan pola inline-only/write-only; changePassword (SA-21) baru; GET /api/admin/dashboard (EP-16) baru untuk statistik & aktivitas terbaru — tanpa tabel baru; folder fitur baru features/tags, features/media, features/dashboard",
+      reason: "Referensi desain admin eksplisit dari client (docs/ui/cms/, pm_01 D009) — bukan tebakan tim; Tag/Media/User.passwordHash sudah cukup di skema v2.0/v2.1, hanya butuh permukaan API/UI baru",
+      time: "2026-07-16" }
+  - { id: D-016, decision: "GET /api/skills (EP-17, publik) ditambahkan v2.3",
+      reason: "Celah kontrak ditemukan Issue Planner saat memecah backlog FE Home (SCR-01): bagian Keahlian tampil ke publik (AC-019-1) tapi satu-satunya endpoint baca Skill yang ada (EP-11) khusus admin — gap blocking, diperbaiki di sini sebelum Issue Planner lanjut. Juga memicu perbaikan bug terkait di UI/UX (uiux_02 v1.8 D-015 — leftover tautan 'Selengkapnya di About' pada SCR-01 Keahlian)",
+      time: "2026-07-16" }
+  - { id: D-017, decision: "Penyimpanan berkas pindah dari filesystem lokal (volume Docker) ke Cloudflare R2 (S3-compatible object storage); mencabut D-002. Alur unggah TETAP lewat Server Action (D-012 tidak berubah) — file dikirim FormData ke Server Action yang sama (createProject/createPost/uploadMedia), Server Action-nya yang mengunggah ke R2 lewat S3 SDK di *.repository.ts fitur / shared/ (v2.10 D-023: dulu lapisan infrastructure/shared; v2.7 D-020: shared/ rename dari core) — tanpa endpoint/kontrak API baru, tanpa presigned URL client-langsung (dipertimbangkan & ditolak user demi kesederhanaan skala 1 admin)",
+      reason: "Perubahan kapabilitas tim (bukan requirement proyek) — user memperbarui TEAM_STACK.md menambah Penyimpanan Berkas: Cloudflare R2; R2 menghapus kebutuhan volume Docker terpisah, tanpa biaya egress, terintegrasi dengan Cloudflare yang sudah dipakai sebagai CDN",
+      time: "2026-07-17" }
+  - { id: D-018, decision: "Kelima layar publik (SCR-01..07) dibungkus route group app/(public)/ (techlead_04 v2.5) — satu layout.tsx bersama (MenuUtama C-02 + Footer) tanpa mengubah URL; admin/ TETAP folder biasa (path /admin/* nyata, dilindungi middleware.ts); SCR-08 Masuk sengaja tidak ikut berbagi layout admin (wireframe-nya tidak punya bagian Header Admin). Turut diperbaiki: referensi EP-01..EP-16 basi di techlead_04 (seharusnya EP-01..EP-17 sejak v2.3) — leftover yang lolos cascade sebelumnya",
+      reason: "Permintaan user: navbar & footer kemungkinan sama di seluruh halaman publik — route group adalah mekanisme baku Next.js App Router untuk itu tanpa duplikasi kode per halaman; murni keputusan struktur folder, tidak mengubah wireframe/kontrak API",
+      time: "2026-07-17" }
+  - { id: D-019, decision: "SCR-08 Masuk Admin (login/) dipindah keluar dari admin/ jadi app/login/ tersendiri (techlead_04 v2.6) — admin/layout.tsx (MenuAdmin) kini berlaku utuh ke seluruh admin/* tanpa pengecualian; middleware.ts yang menjaga /admin/* otomatis tidak lagi menyentuh rute login",
+      reason: "Permintaan user: SCR-08 punya UI form sendiri, berbeda dari SCR-09..19 yang seluruhnya berbagi UI Dashboard/MenuAdmin — dicek ke wireframe uiux_02, SCR-08 memang satu-satunya layar kelola tanpa bagian Header Admin; EP-07 POST /api/admin/login tidak berubah (jalur API terpisah dari path halaman FE)",
+      time: "2026-07-17" }
+  - { id: D-020, decision: "Folder lintas fitur core/ diganti nama jadi shared/ (techlead_04 v2.7) — isi & aturan penempatan sama sekali tidak berubah, murni rename. Perubahan permanen di techlead-agent/TEAM_STACK.md (Struktur Folder Baku) — berlaku proyek ini dan seluruh proyek berikutnya; techlead-agent/07_CONTRACT_RULES.md & 12_EXAMPLES/04_toko-online.md ikut disinkron demi konsistensi contoh framework",
+      reason: "Permintaan user: nama core/ kurang jelas menjelaskan isinya; shared/ langsung menyatakan maksud (dipakai bersama lintas fitur) tanpa perlu buka dokumen — konvensi umum arsitektur feature-based/DDD",
+      time: "2026-07-17" }
+  - { id: D-021, decision: "EP-07 (POST /api/admin/login) & EP-08 (POST /api/admin/logout) dicabut sebagai Route Handler, digantikan Server Action SA-22 (login) & SA-23 (logout) — techlead_03 v2.8. Route Handler kini murni baca (publik & admin), tanpa pengecualian untuk auth; SA-22 satu-satunya Server Action yang TIDAK memverifikasi sesi yang sudah ada (justru membuat sesi baru) — pengecualian eksplisit dari pola 'setiap Server Action memverifikasi sesi ulang' (D-012). EP-07/EP-08 TIDAK dipakai ulang untuk ID lain (slot pensiun, bukan gap yang perlu ditambal) — EP-09 dst. tidak berubah nomor. Matriks Akses & Konvensi Auth techlead_03 disesuaikan; docs/issues/ISS-012 (belum dikerjakan) & ISS-004 (referensi EP-07/EP-08 di teks) disesuaikan manual",
+      reason: "Permintaan eksplisit user: login & logout dipanggil langsung dari form (React Hook Form + action), konsisten dengan seluruh form admin lain yang sudah memakai pola Server Action — bukan fetch ke endpoint REST terpisah. Next.js Server Action tidak mengharuskan pemanggilnya sudah admin ber-sesi (itu cuma pola mayoritas D-012 sejauh ini, bukan batasan teknis) — halaman /login (D-019, di luar admin/) tetap publik, formnya sah memanggil Server Action",
+      time: "2026-07-17" }
+  - { id: D-022, decision: "SELURUH 15 Route Handler baca yang tersisa (EP-01, EP-02, EP-03, EP-04, EP-05, EP-06, EP-09, EP-10, EP-11, EP-12, EP-13, EP-14, EP-15, EP-16, EP-17) dicabut, digantikan Server Action SA-24..38 — techlead_03 v2.9. Proyek ini TANPA Route Handler sama sekali (app/api/ dihapus total dari struktur folder, techlead_04 v2.9); publik maupun admin, baca maupun mutasi, semuanya Server Action dipanggil langsung dari Server Component/form. EP-01..17 TIDAK dipakai ulang untuk ID lain (seluruh slot pensiun) — meneruskan pola D-021. MENYIMPANG dari TEAM_STACK.md (techlead-agent/TEAM_STACK.md tetap 'Route Handlers + Server Actions', TIDAK diminta diperbarui kali ini — beda dari D-020 core→shared yang eksplisit diminta permanen) — deviasi khusus proyek Portfolio Developer, bukan default baru tim. docs/issues/ISS-012 (sudah SA-only, tidak tersentuh) & ISS-013 (EP-01/EP-02, sedang dikerjakan user) di-compile ULANG; issue.yaml (serves seluruh issue backend ISS-013..024) turut disinkron",
+      reason: "Permintaan eksplisit user, dua tahap dalam sesi yang sama: pertama login/keluar (D-021), lalu ditegaskan 'kita akan menggunakan server action untuk semuanya' — dikonfirmasi user mencakup SELURUH 15 Route Handler tersisa (baca publik & baca admin), bukan cuma operasi admin. Next.js tidak mengharuskan Server Action khusus mutasi — Server Component/Client Component sah memanggilnya untuk query baca juga; keputusan gaya arsitektur milik user, bukan batasan teknis framework",
+      time: "2026-07-17" }
+  - { id: D-023, decision: "Seluruh 9 folder fitur (features/<fitur>/) pindah dari layout bersarang domain/·application/·infrastructure/·presentation/ ke pola flat 4-file bersuffix: <fitur>.action.ts (Server Action, entry tipis, 'use server'), <fitur>.services.ts (use case/aturan bisnis — melebur bekas domain+application), <fitur>.repository.ts (akses data/Prisma — bekas infrastructure), <fitur>.schema.ts (validasi Zod) — techlead_04 v2.10. Folder presentation/ dihapus total: komponen UI khas satu fitur pindah co-located ke app/ (route pemanggilnya), komponen dipakai ≥2 fitur tetap naik ke shared/ (tidak berubah). features/dashboard/ (tanpa entitas sendiri) terkecuali: hanya dashboard.action.ts + dashboard.services.ts + dashboard.repository.ts, tanpa .schema.ts (SA-37 tanpa input). MENYIMPANG dari TEAM_STACK.md (Struktur Folder Baku, masih domain/application/infrastructure/presentation) — TIDAK diminta diperbarui kali ini (deviasi khusus proyek ini, pola sama dengan D-022). docs/issues/ISS-012 & ISS-013 (dua-duanya sudah compiled, referensi Struktur File lama) di-compile ULANG",
+      reason: "Permintaan eksplisit user: pola flat bersuffix, dicontohkan lewat features/auth/ (auth.action.ts, auth.services.ts, auth.repository.ts, auth.schema.ts) — dikonfirmasi berlaku ke seluruh 9 folder fitur (bukan cuma auth), dan presentation/ dihapus total (bukan dipertahankan di samping 4 file). Skala proyek ini (1 admin, 8 entitas, tanpa business rule kompleks) tidak sepadan dengan ongkos navigasi 4 sub-folder Clean Architecture penuh per fitur; flat-file lebih cepat ditelusuri untuk tim/skala sekecil ini — keputusan gaya folder milik user, TEAM_STACK.md sendiri hanya menyediakan baseline 'jalur 1', bukan satu-satunya jalur yang sah dipakai",
+      time: "2026-07-17" }
+
+validation_result:
+  traceability: PASS        # semua ENT/SA ber-serves (EP kosong sejak v2.9 D-022); semua tech_stack ber-source; semua folder fitur ber-serves
+  coverage: PASS             # 19/19 layar & 23/23 flow terlayani; AC-001-4 via arsitektur (D-007); AC-006-2/negatif via Scope (tanpa endpoint komentar); Dashboard (SCR-09) via SA-37 (v2.9: dulu EP-16), non-blocking (G-009); SCR-01 Keahlian publik via SA-38 (v2.9: dulu EP-17, D-016)
+  consistency: PASS          # Glossary BA dipatuhi (Tulisan bukan Post/Artikel di dokumen); nama tabel/path/folder konsisten; jalur Prisma+shape TS seragam; bahasa campuran sisi admin dicatat eksplisit (bukan penyimpangan diam-diam)
+  constraint_compliance: PASS # TEAM_STACK kini menutup SELURUH kapabilitas termasuk storage (v2.4, Cloudflare R2 — D-017 mencabut D-002); mobile/bahasa sudah domain UI/UX; label admin Inggris = referensi desain client eksplisit (pm_01 D009)
+  scope: PASS                 # tanpa komentar/dua bahasa/newsletter; tanpa endpoint hapus Pesan; tanpa fitur Later (tidak ada); Tag/Media/changePassword semua tertelusur ke US/AC BA
+  completeness: PASS          # inventory-stack-entitas-endpoint-server_action-folder utuh; 8/8 entitas, 17/17 Route Handler, 21/21 Server Action tercatat
+  missing: []
+  architecture_complete: true
