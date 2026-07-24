@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FaRegFileLines } from "react-icons/fa6";
-import type { PublishStatus } from "@/generated/prisma/client";
+import type { PublishStatus } from "@/shared/publish-status";
 
 type SummaryRowProps = {
 	createdAt: string;

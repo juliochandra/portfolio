@@ -20,6 +20,8 @@
 # next.js
 /.next/
 /.next-e2e/
+/.open-next/
+/.wrangler/
 /out/
 
 # production
@@ -38,6 +40,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+
+# Cloudflare local secrets
+.dev.vars*
+
+# Prisma CLI local database
+/prisma/d1-local.db*
 
 # vercel
 .vercel

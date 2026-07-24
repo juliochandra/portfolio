@@ -32,7 +32,7 @@ import {
 	getProjectsAdminPage,
 	updateProject,
 } from "@/features/projects/projects.action";
-import { PublishStatus } from "@/generated/prisma/client";
+import { PublishStatus } from "@/shared/publish-status";
 
 function projectFormData(values: Partial<Record<string, string>> = {}): FormData {
 	const formData = new FormData();

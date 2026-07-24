@@ -1,5 +1,13 @@
+import { redirect } from "next/navigation";
+import { getServerSession } from "@/shared/auth/server-session";
 import { AdminNav } from "@/shared/components/AdminNav";
-export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+
+export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+	const session = await getServerSession();
+	if (!session) {
+		redirect("/login");
+	}
+
 	return (
 		<div className="min-h-screen lg:flex">
 			<AdminNav />

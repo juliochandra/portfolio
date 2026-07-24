@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MessageStatus } from "@/generated/prisma/client";
+import { MessageStatus } from "@/shared/message-status";
 
 const mocks = vi.hoisted(() => ({
 	count: vi.fn(),

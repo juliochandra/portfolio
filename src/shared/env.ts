@@ -4,7 +4,6 @@ import { z } from "zod";
 const envSchema: z.ZodObject<{
 	ADMIN_PASSWORD: z.ZodString;
 	ADMIN_USERNAME: z.ZodString;
-	DATABASE_URL: z.ZodURL;
 	JWT_ACCESS_SECRET: z.ZodString;
 	JWT_REFRESH_SECRET: z.ZodString;
 	R2_ACCOUNT_ID: z.ZodString;
@@ -15,7 +14,6 @@ const envSchema: z.ZodObject<{
 }> = z.object({
 	ADMIN_PASSWORD: z.string().min(8),
 	ADMIN_USERNAME: z.string().min(1),
-	DATABASE_URL: z.url(),
 	JWT_ACCESS_SECRET: z.string().min(32),
 	JWT_REFRESH_SECRET: z.string().min(32),
 	R2_ACCOUNT_ID: z.string().min(1),

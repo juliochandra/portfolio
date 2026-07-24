@@ -6,8 +6,6 @@ describe("env", () => {
 	const validEnv = {
 		ADMIN_PASSWORD: "test-admin-password",
 		ADMIN_USERNAME: "admin",
-		// biome-ignore lint/nursery/noSecrets: test fixture, not a real credential
-		DATABASE_URL: "postgresql://user:pass@localhost:5432/db",
 		JWT_ACCESS_SECRET: "test-access-secret-with-sufficient-entropy",
 		JWT_REFRESH_SECRET: "test-refresh-secret-with-sufficient-entropy",
 		R2_ACCOUNT_ID: "test-account-id",

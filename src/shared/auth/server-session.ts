@@ -26,10 +26,6 @@ export async function getServerSession(): Promise<AuthSession | null> {
 		return null;
 	}
 
-	if (resolved.accessToken) {
-		cookieStore.set(ACCESS_TOKEN_COOKIE, resolved.accessToken, accessCookieOptions());
-	}
-
 	return resolved.session;
 }
 

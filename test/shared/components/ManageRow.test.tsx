@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PublishStatus } from "@/generated/prisma/client";
 import { ManageRow } from "@/shared/components/ManageRow";
+import { PublishStatus } from "@/shared/publish-status";
 
 describe("ManageRow", () => {
 	beforeEach(() => {

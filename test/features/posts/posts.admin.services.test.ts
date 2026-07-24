@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PublishStatus } from "@/generated/prisma/client";
+import { PublishStatus } from "@/shared/publish-status";
 
 const mocks = vi.hoisted(() => ({
 	createPostRecord: vi.fn(),

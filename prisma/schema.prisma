@@ -4,36 +4,29 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model User {
   id           String @id @default(cuid())
-  username     String @unique @db.VarChar(50)
+  username     String @unique
   passwordHash String
-}
-
-enum PublishStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
 }
 
 model Project {
   id             String        @id @default(cuid())
-  title          String        @db.VarChar(200)
-  slug           String        @unique @db.VarChar(220)
-  description    String?       @db.VarChar(300)
-  content        String        @db.Text
-  demoUrl        String?       @db.VarChar(255)
-  repositoryUrl  String?       @db.VarChar(255)
-  thumbnailImage String?       @db.VarChar(255)
-  status         PublishStatus @default(DRAFT)
+  title          String
+  slug           String        @unique
+  description    String?
+  content        String
+  demoUrl        String?
+  repositoryUrl  String?
+  thumbnailImage String?
+  status         String        @default("DRAFT")
   publishedAt    DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -47,13 +40,13 @@ model Project {
 
 model Post {
   id             String        @id @default(cuid())
-  title          String        @db.VarChar(200)
-  slug           String        @unique @db.VarChar(220)
-  description    String?       @db.VarChar(300)
-  content        String        @db.Text
+  title          String
+  slug           String        @unique
+  description    String?
+  content        String
   readingTime    Int
-  thumbnailImage String?       @db.VarChar(255)
-  status         PublishStatus @default(DRAFT)
+  thumbnailImage String?
+  status         String        @default("DRAFT")
   publishedAt    DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -66,8 +59,8 @@ model Post {
 
 model Tag {
   id        String   @id @default(cuid())
-  name      String   @unique @db.VarChar(50)
-  slug      String   @unique @db.VarChar(60)
+  name      String   @unique
+  slug      String   @unique
   createdAt DateTime @default(now())
 
   posts    Post[]
@@ -76,9 +69,9 @@ model Tag {
 
 model Skill {
   id        String   @id @default(cuid())
-  name      String   @unique @db.VarChar(50)
-  slug      String   @unique @db.VarChar(60)
-  icon      String?  @db.VarChar(100)
+  name      String   @unique
+  slug      String   @unique
+  icon      String?
   createdAt DateTime @default(now())
 
   projects Project[]
@@ -86,11 +79,11 @@ model Skill {
 
 model Media {
   id        String   @id @default(cuid())
-  fileName  String   @db.VarChar(255)
-  objectKey String   @unique @db.VarChar(255)
-  url       String   @db.VarChar(500)
-  mimeType  String   @db.VarChar(100)
-  extension String   @db.VarChar(20)
+  fileName  String
+  objectKey String   @unique
+  url       String
+  mimeType  String
+  extension String
   size      Int
   createdAt DateTime @default(now())
   folderId  String?
@@ -101,24 +94,18 @@ model Media {
 
 model MediaFolder {
   id        String   @id @default(cuid())
-  name      String   @unique @db.VarChar(100)
+  name      String   @unique
   createdAt DateTime @default(now())
 
   media Media[]
 }
 
-enum MessageStatus {
-  UNREAD
-  READ
-  ARCHIVED
-}
-
 model Message {
   id        String        @id @default(cuid())
-  name      String        @db.VarChar(100)
-  email     String        @db.VarChar(255)
-  message   String        @db.Text
-  status    MessageStatus @default(UNREAD)
+  name      String
+  email     String
+  message   String
+  status    String        @default("UNREAD")
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
@@ -127,7 +114,7 @@ model Message {
 
 model ContactInfo {
   id    String  @id @default(cuid())
-  label String  @db.VarChar(100)
-  value String  @db.VarChar(255)
-  icon  String? @db.VarChar(100)
+  label String
+  value String
+  icon  String?
 }

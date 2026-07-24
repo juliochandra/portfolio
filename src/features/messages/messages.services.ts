@@ -7,7 +7,7 @@ import {
 	updateMessageStatus,
 } from "@/features/messages/messages.repository";
 import type { SendMessageInput } from "@/features/messages/messages.schema";
-import { MessageStatus } from "@/generated/prisma/client";
+import { MessageStatus, toMessageStatus } from "@/shared/message-status";
 
 export type SentMessage = { id: string };
 
@@ -41,6 +41,7 @@ function toAdminMessage(message: MessageListRecord): AdminMessage {
 	return {
 		...message,
 		createdAt: message.createdAt.toISOString(),
+		status: toMessageStatus(message.status),
 	};
 }
 
