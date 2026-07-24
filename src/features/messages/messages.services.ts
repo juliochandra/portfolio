@@ -1,4 +1,5 @@
 import {
+	countMessages,
 	createMessage,
 	findMessageStatus,
 	findMessages,
@@ -21,6 +22,14 @@ export type AdminMessage = {
 	status: MessageStatus;
 };
 
+export const ADMIN_MESSAGES_PER_PAGE = 10;
+
+export type AdminMessagesPage = {
+	currentPage: number;
+	messages: AdminMessage[];
+	totalPages: number;
+};
+
 export function createPublicMessage(input: SendMessageInput): Promise<SentMessage> {
 	return createMessage({
 		...input,
@@ -36,9 +45,30 @@ function toAdminMessage(message: MessageListRecord): AdminMessage {
 }
 
 export async function getAdminMessages(tab: MessageTab): Promise<AdminMessage[]> {
-	const statuses = tab === "arsip" ? [MessageStatus.ARCHIVED] : [MessageStatus.UNREAD, MessageStatus.READ];
+	const statuses = getMessageStatuses(tab);
 	const messages = await findMessages(statuses);
 	return messages.map(toAdminMessage);
+}
+
+function getMessageStatuses(tab: MessageTab): MessageStatus[] {
+	return tab === "arsip" ? [MessageStatus.ARCHIVED] : [MessageStatus.UNREAD, MessageStatus.READ];
+}
+
+export async function getAdminMessagesPage(tab: MessageTab, page: number): Promise<AdminMessagesPage> {
+	const statuses = getMessageStatuses(tab);
+	const totalMessages = await countMessages(statuses);
+	const totalPages = Math.max(1, Math.ceil(totalMessages / ADMIN_MESSAGES_PER_PAGE));
+	const currentPage = Math.min(page, totalPages);
+	const messages = await findMessages(statuses, {
+		skip: (currentPage - 1) * ADMIN_MESSAGES_PER_PAGE,
+		take: ADMIN_MESSAGES_PER_PAGE,
+	});
+
+	return {
+		currentPage,
+		messages: messages.map(toAdminMessage),
+		totalPages,
+	};
 }
 
 export async function markAdminMessageRead(id: string): Promise<{ id: string } | null> {

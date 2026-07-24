@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MessageStatus } from "@/generated/prisma/client";
 
 const mocks = vi.hoisted(() => ({
+	count: vi.fn(),
 	findMany: vi.fn(),
 	update: vi.fn(),
 }));
@@ -10,6 +11,7 @@ vi.mock("@/shared/database/prisma", () => ({
 	prisma: {
 		message: {
 			create: vi.fn(),
+			count: mocks.count,
 			findMany: mocks.findMany,
 			findUnique: vi.fn(),
 			update: mocks.update,
@@ -17,13 +19,19 @@ vi.mock("@/shared/database/prisma", () => ({
 	},
 }));
 
-import { findMessages, updateMessageStatus } from "@/features/messages/messages.repository";
+import { countMessages, findMessages, updateMessageStatus } from "@/features/messages/messages.repository";
 
 describe("message admin repository", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.findMany.mockResolvedValue([]);
+		mocks.count.mockResolvedValue(0);
 		mocks.update.mockResolvedValue({ id: "message-1" });
+	});
+
+	it("counts messages with the selected statuses", async () => {
+		await expect(countMessages([MessageStatus.ARCHIVED])).resolves.toBe(0);
+		expect(mocks.count).toHaveBeenCalledWith({ where: { status: { in: [MessageStatus.ARCHIVED] } } });
 	});
 
 	it("lists selected statuses ordered by newest creation", async () => {

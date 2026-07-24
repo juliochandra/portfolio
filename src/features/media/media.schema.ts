@@ -6,6 +6,11 @@ const ACCEPTED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const mediaIdSchema = z.string().trim().min(1);
 export const mediaFolderIdSchema = z.string().trim().min(1);
 
+export const mediaGalleryPageSchema = z.object({
+	folderId: z.string().trim().min(1).nullable(),
+	page: z.number().int().positive(),
+});
+
 const mediaFolderInputSchema = z.object({
 	name: z.string().trim().min(1, "Wajib diisi.").max(100),
 });

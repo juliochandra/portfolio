@@ -14,10 +14,12 @@ const optionalText = (maxLength: number) =>
 		.optional()
 		.transform((value) => value || null);
 
+const requiredUrl = (maxLength: number) => z.string().trim().min(1, REQUIRED_MESSAGE).max(maxLength).url("URL tidak valid.");
+
 const contactInfoInputSchema = z.object({
 	icon: optionalText(100),
 	label: requiredText(100),
-	value: requiredText(255),
+	value: requiredUrl(255),
 });
 
 export const createContactInfoSchema = contactInfoInputSchema;

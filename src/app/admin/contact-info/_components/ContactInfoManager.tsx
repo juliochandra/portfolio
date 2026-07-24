@@ -1,16 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, type ReactNode, useState } from "react";
 import { CiAt, CiLink } from "react-icons/ci";
 import { FaLinkedin } from "react-icons/fa";
+import { FaImage } from "react-icons/fa6";
 import { SiGithub, SiX } from "react-icons/si";
 import { createContactInfo, deleteContactInfo, updateContactInfo } from "@/features/contact/contact.action";
 import { createContactInfoSchema, updateContactInfoSchema } from "@/features/contact/contact.schema";
 import { Button } from "@/shared/components/Button";
 import { FormField } from "@/shared/components/FormField";
 import { ManageRow } from "@/shared/components/ManageRow";
+import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
 import { StatusMessage } from "@/shared/components/StatusMessage";
+import { isImageUrl } from "@/shared/validation/is-image-url";
 import { validateWithZod } from "@/shared/validation/zod";
 
 type Contact = {
@@ -21,7 +24,11 @@ type Contact = {
 };
 
 type ContactInfoManagerProps = {
+	folders?: { id: string; name: string }[];
 	initialContacts: Contact[];
+	media?: MediaImagePickerItem[];
+	mediaCurrentPage?: number;
+	mediaTotalPages?: number;
 };
 
 const iconOptions = [
@@ -47,10 +54,30 @@ function getContactIcon(icon: string | null) {
 	return icon ? (iconMap[icon.toLowerCase()] ?? CiLink) : undefined;
 }
 
-export function ContactInfoManager({ initialContacts }: ContactInfoManagerProps) {
+function getContactIconContent(icon: string | null): ReactNode {
+	if (isImageUrl(icon)) {
+		return (
+			// biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin.
+			<img src={icon} alt="" className="size-5 object-contain" />
+		);
+	}
+
+	const Icon = getContactIcon(icon);
+	return Icon ? <Icon aria-hidden="true" /> : undefined;
+}
+
+export function ContactInfoManager({
+	folders = [],
+	initialContacts,
+	media = [],
+	mediaCurrentPage = 1,
+	mediaTotalPages = 1,
+}: ContactInfoManagerProps) {
 	const router = useRouter();
 	const [editingContact, setEditingContact] = useState<Contact | null>(null);
 	const [fields, setFields] = useState<Record<string, string>>({});
+	const [iconUrl, setIconUrl] = useState("");
+	const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState<{ text: string; type: "error" | "success" } | null>(null);
 
@@ -76,6 +103,7 @@ export function ContactInfoManager({ initialContacts }: ContactInfoManagerProps)
 
 			form.reset();
 			setEditingContact(null);
+			setIconUrl("");
 			setMessage({ text: "Info kontak tersimpan.", type: "success" });
 			router.refresh();
 		} finally {
@@ -93,6 +121,7 @@ export function ContactInfoManager({ initialContacts }: ContactInfoManagerProps)
 		if (editingContact?.id === contact.id) {
 			setEditingContact(null);
 			setFields({});
+			setIconUrl("");
 		}
 		setMessage({ text: "Info kontak terhapus.", type: "success" });
 		router.refresh();
@@ -102,6 +131,7 @@ export function ContactInfoManager({ initialContacts }: ContactInfoManagerProps)
 		setFields({});
 		setMessage(null);
 		setEditingContact(contact);
+		setIconUrl(contact.icon ?? "");
 	}
 
 	return (
@@ -122,30 +152,39 @@ export function ContactInfoManager({ initialContacts }: ContactInfoManagerProps)
 						className={inputClassName}
 					/>
 				</FormField>
-				<FormField label="Nilai" required error={fields.value}>
+				<FormField label="URL" required error={fields.value}>
 					<input
 						name="value"
-						aria-label="Nilai"
+						aria-label="URL"
 						defaultValue={editingContact?.value}
 						disabled={isSubmitting}
+						placeholder="https://example.com atau mailto:email@example.com"
+						type="url"
 						className={inputClassName}
 					/>
 				</FormField>
 				<FormField label="Ikon" error={fields.icon}>
-					<select
-						name="icon"
-						aria-label="Ikon"
-						defaultValue={editingContact?.icon ?? ""}
+					<input name="icon" type="hidden" value={iconUrl} />
+					<button
+						aria-label="Pilih ikon"
+						className="flex w-full items-center gap-4 rounded-lg border border-border border-dashed bg-surface p-4 text-left transition-colors hover:border-accent"
 						disabled={isSubmitting}
-						className={inputClassName}
+						onClick={() => setIsIconPickerOpen(true)}
+						type="button"
 					>
-						<option value="">Tanpa ikon</option>
-						{iconOptions.map((icon) => (
-							<option key={icon.value} value={icon.value}>
-								{icon.label}
-							</option>
-						))}
-					</select>
+						{isImageUrl(iconUrl) ? (
+							// biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin.
+							<img src={iconUrl} alt="Pratinjau ikon kontak" className="size-14 rounded-md object-contain" />
+						) : (
+							<span className="grid size-14 place-items-center rounded-md bg-canvas text-text-mute">
+								<FaImage aria-hidden="true" />
+							</span>
+						)}
+						<span>
+							<span className="block font-medium">{isImageUrl(iconUrl) ? "Ganti ikon" : "Pilih ikon"}</span>
+							<span className="mt-1 block text-sm text-text-mute">Pilih gambar dari galeri Media.</span>
+						</span>
+					</button>
 				</FormField>
 				{fields._form ? <StatusMessage message={fields._form} type="error" /> : null}
 				<Button type="submit" isLoading={isSubmitting}>
@@ -163,13 +202,13 @@ export function ContactInfoManager({ initialContacts }: ContactInfoManagerProps)
 				) : (
 					<div className="mt-4 rounded-xl border border-border bg-canvas px-5 sm:px-6">
 						{initialContacts.map((contact) => {
-							const Icon = getContactIcon(contact.icon);
+							const icon = getContactIconContent(contact.icon);
 
 							return (
 								<ManageRow
 									key={contact.id}
 									description={contact.value}
-									icon={Icon ? <Icon aria-hidden="true" /> : undefined}
+									icon={icon}
 									itemType="saluran"
 									onDelete={() => handleDelete(contact)}
 									onEdit={() => startEditing(contact)}
@@ -180,6 +219,19 @@ export function ContactInfoManager({ initialContacts }: ContactInfoManagerProps)
 					</div>
 				)}
 			</section>
+			{isIconPickerOpen ? (
+				<MediaImagePickerModal
+					currentPage={mediaCurrentPage}
+					folders={folders}
+					media={media}
+					onClear={() => setIconUrl("")}
+					onClose={() => setIsIconPickerOpen(false)}
+					onSelect={setIconUrl}
+					selectedUrl={iconUrl}
+					title="Pilih Ikon Kontak"
+					totalPages={mediaTotalPages}
+				/>
+			) : null}
 		</section>
 	);
 }

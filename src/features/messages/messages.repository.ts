@@ -37,12 +37,17 @@ export function createMessage(input: {
 	});
 }
 
-export function findMessages(statuses: MessageStatus[]): Promise<MessageListRecord[]> {
+export function findMessages(statuses: MessageStatus[], params?: { skip: number; take: number }): Promise<MessageListRecord[]> {
 	return prisma.message.findMany({
 		orderBy: { createdAt: "desc" },
 		select: messageListSelect,
+		...(params ? { skip: params.skip, take: params.take } : {}),
 		where: { status: { in: statuses } },
 	});
+}
+
+export function countMessages(statuses: MessageStatus[]): Promise<number> {
+	return prisma.message.count({ where: { status: { in: statuses } } });
 }
 
 export function findMessageStatus(id: string): Promise<MessageStatusRecord | null> {

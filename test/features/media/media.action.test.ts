@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
 	deleteAdminMedia: vi.fn(),
 	deleteAdminMediaFolder: vi.fn(),
 	getMediaFolders: vi.fn(),
-	getMediaGallery: vi.fn(),
+	getMediaGalleryPage: vi.fn(),
 	getServerSession: vi.fn(),
 	uploadAdminMedia: vi.fn(),
 }));
@@ -15,7 +15,7 @@ vi.mock("@/features/media/media.services", () => ({
 	deleteAdminMedia: mocks.deleteAdminMedia,
 	deleteAdminMediaFolder: mocks.deleteAdminMediaFolder,
 	getMediaFolders: mocks.getMediaFolders,
-	getMediaGallery: mocks.getMediaGallery,
+	getMediaGalleryPage: mocks.getMediaGalleryPage,
 	uploadAdminMedia: mocks.uploadAdminMedia,
 }));
 
@@ -24,7 +24,7 @@ import {
 	deleteMedia,
 	deleteMediaFolder,
 	getMediaFolders,
-	getMediaGallery,
+	getMediaGalleryPage,
 	uploadMedia,
 } from "@/features/media/media.action";
 
@@ -40,7 +40,7 @@ describe("media admin actions", () => {
 	});
 	it("requires a session and validates the uploaded file", async () => {
 		mocks.getServerSession.mockResolvedValue(null);
-		await expect(getMediaGallery()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
+		await expect(getMediaGalleryPage({ folderId: null, page: 1 })).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		await expect(getMediaFolders()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		const invalid = new FormData();
@@ -63,6 +63,14 @@ describe("media admin actions", () => {
 		await expect(createMediaFolder({ name: "Portfolio" })).resolves.toEqual({
 			error: { fields: { name: "Nama folder sudah digunakan." } },
 		});
+	});
+	it("gets a validated media gallery page", async () => {
+		mocks.getMediaGalleryPage.mockResolvedValue({ currentPage: 2, media: [], totalPages: 3 });
+
+		await expect(getMediaGalleryPage({ folderId: "folder-1", page: 2 })).resolves.toEqual({
+			data: { currentPage: 2, media: [], totalPages: 3 },
+		});
+		expect(mocks.getMediaGalleryPage).toHaveBeenCalledWith({ folderId: "folder-1", page: 2 });
 	});
 	it("deletes only empty media folders", async () => {
 		await expect(deleteMediaFolder("folder-1")).resolves.toEqual({ data: { id: "folder-1" } });

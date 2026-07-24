@@ -4,6 +4,7 @@ import { MessageStatus } from "@/generated/prisma/client";
 const mocks = vi.hoisted(() => ({
 	archiveAdminMessage: vi.fn(),
 	getAdminMessages: vi.fn(),
+	getAdminMessagesPage: vi.fn(),
 	getServerSession: vi.fn(),
 	markAdminMessageRead: vi.fn(),
 	unarchiveAdminMessage: vi.fn(),
@@ -16,17 +17,25 @@ vi.mock("@/features/messages/messages.services", () => ({
 	archiveAdminMessage: mocks.archiveAdminMessage,
 	createPublicMessage: vi.fn(),
 	getAdminMessages: mocks.getAdminMessages,
+	getAdminMessagesPage: mocks.getAdminMessagesPage,
 	markAdminMessageRead: mocks.markAdminMessageRead,
 	unarchiveAdminMessage: mocks.unarchiveAdminMessage,
 }));
 
-import { archiveMessage, getMessages, markMessageRead, unarchiveMessage } from "@/features/messages/messages.action";
+import {
+	archiveMessage,
+	getMessages,
+	getMessagesPage,
+	markMessageRead,
+	unarchiveMessage,
+} from "@/features/messages/messages.action";
 
 describe("message admin Server Actions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getAdminMessages.mockResolvedValue([]);
+		mocks.getAdminMessagesPage.mockResolvedValue({ currentPage: 1, messages: [], totalPages: 1 });
 		mocks.markAdminMessageRead.mockResolvedValue({ id: "message-1" });
 		mocks.archiveAdminMessage.mockResolvedValue({ id: "message-1" });
 		mocks.unarchiveAdminMessage.mockResolvedValue({ id: "message-1" });
@@ -36,9 +45,19 @@ describe("message admin Server Actions", () => {
 		mocks.getServerSession.mockResolvedValue(null);
 
 		await expect(getMessages()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
+		await expect(getMessagesPage({ page: 1, tab: "aktif" })).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		await expect(markMessageRead("message-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		await expect(archiveMessage("message-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
 		await expect(unarchiveMessage("message-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
+	});
+
+	it("returns a paginated message list", async () => {
+		mocks.getAdminMessagesPage.mockResolvedValue({ currentPage: 2, messages: [], totalPages: 3 });
+
+		await expect(getMessagesPage({ page: 2, tab: "arsip" })).resolves.toEqual({
+			data: { currentPage: 2, messages: [], totalPages: 3 },
+		});
+		expect(mocks.getAdminMessagesPage).toHaveBeenCalledWith("arsip", 2);
 	});
 
 	it("lists active messages by default and archived messages on the archive tab", async () => {

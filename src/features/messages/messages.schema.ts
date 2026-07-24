@@ -8,4 +8,9 @@ export const sendMessageSchema = z.object({
 	name: z.string().trim().min(1, REQUIRED_MESSAGE).max(100, "Maksimal 100 karakter."),
 });
 
+export const adminMessagesPageSchema = z.object({
+	page: z.number().int().positive(),
+	tab: z.enum(["aktif", "arsip"]),
+});
+
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;

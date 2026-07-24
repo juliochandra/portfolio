@@ -1,12 +1,18 @@
 "use server";
 
-import { createMediaFolderSchema, mediaFolderIdSchema, mediaIdSchema, mediaUploadSchema } from "@/features/media/media.schema";
+import {
+	createMediaFolderSchema,
+	mediaFolderIdSchema,
+	mediaGalleryPageSchema,
+	mediaIdSchema,
+	mediaUploadSchema,
+} from "@/features/media/media.schema";
 import {
 	createAdminMediaFolder,
 	deleteAdminMedia,
 	deleteAdminMediaFolder,
 	getMediaFolders as getFolders,
-	getMediaGallery as getGallery,
+	getMediaGalleryPage as getGalleryPage,
 	uploadAdminMedia,
 } from "@/features/media/media.services";
 import { getServerSession } from "@/shared/auth/server-session";
@@ -14,7 +20,7 @@ import { validateWithZod } from "@/shared/validation/zod";
 
 const MEDIA_NOT_FOUND_MESSAGE = "Media tidak ditemukan.";
 const UNAUTHORIZED = { error: { message: "UNAUTHORIZED" } } as const;
-type GalleryResult = { data: Awaited<ReturnType<typeof getGallery>> } | { error: { message: "UNAUTHORIZED" } };
+type GalleryPageResult = { data: Awaited<ReturnType<typeof getGalleryPage>> } | { error: { message: "UNAUTHORIZED" } };
 type FoldersResult = { data: Awaited<ReturnType<typeof getFolders>> } | { error: { message: "UNAUTHORIZED" } };
 type CreateFolderResult =
 	| { data: { id: string; name: string } }
@@ -29,9 +35,11 @@ type UploadResult =
 	| { error: { message: "UNAUTHORIZED" } };
 type DeleteResult = { data: { id: string } } | { error: { message: "Media tidak ditemukan." | "UNAUTHORIZED" } };
 
-export async function getMediaGallery(): Promise<GalleryResult> {
+export async function getMediaGalleryPage(input: unknown): Promise<GalleryPageResult> {
 	if (!(await getServerSession())) return UNAUTHORIZED;
-	return { data: await getGallery() };
+	const validation = validateWithZod(mediaGalleryPageSchema, input);
+	const params = validation.success ? validation.data : { folderId: null, page: 1 };
+	return { data: await getGalleryPage(params) };
 }
 
 export async function getMediaFolders(): Promise<FoldersResult> {

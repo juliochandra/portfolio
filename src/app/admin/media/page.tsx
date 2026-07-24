@@ -1,11 +1,14 @@
 import { MediaManager } from "@/app/admin/media/_components/MediaManager";
-import { getMediaFolders, getMediaGallery } from "@/features/media/media.action";
+import { getMediaFolders, getMediaGalleryPage } from "@/features/media/media.action";
 
 export default async function MediaPage() {
-	const [mediaResult, foldersResult] = await Promise.all([getMediaGallery(), getMediaFolders()]);
+	const [mediaResult, foldersResult] = await Promise.all([
+		getMediaGalleryPage({ folderId: null, page: 1 }),
+		getMediaFolders(),
+	]);
 	if ("error" in mediaResult || "error" in foldersResult) {
 		return null;
 	}
 
-	return <MediaManager media={mediaResult.data} folders={foldersResult.data} />;
+	return <MediaManager folders={foldersResult.data} gallery={mediaResult.data} />;
 }

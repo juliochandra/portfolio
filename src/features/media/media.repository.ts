@@ -15,6 +15,10 @@ const mediaGallerySelect = {
 const mediaDeleteSelect = { id: true, objectKey: true } satisfies Prisma.MediaSelect;
 const mediaMutationSelect = { id: true, url: true } satisfies Prisma.MediaSelect;
 const mediaFolderSelect = { id: true, name: true } satisfies Prisma.MediaFolderSelect;
+const mediaFolderListSelect = {
+	...mediaFolderSelect,
+	_count: { select: { media: true } },
+} satisfies Prisma.MediaFolderSelect;
 const r2 = new S3Client({
 	credentials: { accessKeyId: env.R2_ACCESS_KEY_ID, secretAccessKey: env.R2_SECRET_ACCESS_KEY },
 	endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -24,17 +28,32 @@ const r2 = new S3Client({
 export type MediaGalleryRecord = Prisma.MediaGetPayload<{ select: typeof mediaGallerySelect }>;
 export type MediaDeleteRecord = Prisma.MediaGetPayload<{ select: typeof mediaDeleteSelect }>;
 export type MediaFolderRecord = Prisma.MediaFolderGetPayload<{ select: typeof mediaFolderSelect }>;
+export type MediaFolderListRecord = Prisma.MediaFolderGetPayload<{ select: typeof mediaFolderListSelect }>;
 
-export function findMediaGallery(): Promise<MediaGalleryRecord[]> {
-	return prisma.media.findMany({ orderBy: { createdAt: "desc" }, select: mediaGallerySelect });
+export function countMediaGallery(folderId: string | null): Promise<number> {
+	return prisma.media.count({ where: { folderId } });
+}
+
+export function findMediaGallery(params: {
+	folderId: string | null;
+	skip: number;
+	take: number;
+}): Promise<MediaGalleryRecord[]> {
+	return prisma.media.findMany({
+		orderBy: [{ fileName: "asc" }, { createdAt: "desc" }],
+		select: mediaGallerySelect,
+		skip: params.skip,
+		take: params.take,
+		where: { folderId: params.folderId },
+	});
 }
 
 export function findMediaForDelete(id: string): Promise<MediaDeleteRecord | null> {
 	return prisma.media.findUnique({ select: mediaDeleteSelect, where: { id } });
 }
 
-export function findMediaFolders(): Promise<MediaFolderRecord[]> {
-	return prisma.mediaFolder.findMany({ orderBy: { name: "asc" }, select: mediaFolderSelect });
+export function findMediaFolders(): Promise<MediaFolderListRecord[]> {
+	return prisma.mediaFolder.findMany({ orderBy: { name: "asc" }, select: mediaFolderListSelect });
 }
 
 export function findMediaFolderById(id: string): Promise<{ id: string } | null> {

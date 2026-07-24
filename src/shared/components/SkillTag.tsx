@@ -13,6 +13,7 @@ import {
 	SiTailwindcss,
 	SiTypescript,
 } from "react-icons/si";
+import { isImageUrl } from "@/shared/validation/is-image-url";
 
 const skillIcons: Record<string, IconType> = {
 	docker: SiDocker,
@@ -41,10 +42,6 @@ function normalizeIconName(icon: string | null | undefined): string {
 	return icon?.toLowerCase().replaceAll(/[^a-z0-9]/g, "") ?? "";
 }
 
-export function isSkillImageUrl(icon: string | null | undefined): icon is string {
-	return Boolean(icon && /^https?:\/\//iu.test(icon));
-}
-
 export function getSkillIcon(icon: string | null | undefined): IconType | undefined {
 	return skillIcons[normalizeIconName(icon)];
 }
@@ -53,7 +50,7 @@ export function SkillTag({ icon, name }: SkillTagProps) {
 	const Icon = getSkillIcon(icon);
 	let iconContent: ReactNode = null;
 
-	if (isSkillImageUrl(icon)) {
+	if (isImageUrl(icon)) {
 		iconContent = (
 			// biome-ignore lint/performance/noImgElement: URL gambar dipilih dari galeri Media yang dikelola admin.
 			<img src={icon} alt="" className="size-3.5 object-contain" />

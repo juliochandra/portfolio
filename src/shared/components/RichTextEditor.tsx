@@ -45,6 +45,8 @@ type RichTextEditorProps = {
 	initialContent: string;
 	label: string;
 	media?: MediaImagePickerItem[];
+	mediaCurrentPage?: number;
+	mediaTotalPages?: number;
 	name: string;
 };
 
@@ -110,6 +112,8 @@ export function RichTextEditor({
 	initialContent,
 	label,
 	media = [],
+	mediaCurrentPage = 1,
+	mediaTotalPages = 1,
 	name,
 }: RichTextEditorProps) {
 	const [content, setContent] = useState(initialContent);
@@ -484,11 +488,13 @@ export function RichTextEditor({
 			<EditorContent editor={editor} />
 			{isImagePickerOpen ? (
 				<MediaImagePickerModal
+					currentPage={mediaCurrentPage}
 					folders={folders}
 					media={media}
 					onClose={() => setIsImagePickerOpen(false)}
 					onSelect={insertImage}
 					title="Insert Image"
+					totalPages={mediaTotalPages}
 				/>
 			) : null}
 		</div>

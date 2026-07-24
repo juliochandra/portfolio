@@ -29,7 +29,7 @@ import {
 function contactInfoInput(values: Record<string, unknown> = {}): Record<string, unknown> {
 	return {
 		label: "Email",
-		value: "hello@example.com",
+		value: "mailto:hello@example.com",
 		...values,
 	};
 }
@@ -69,7 +69,7 @@ describe("contact info admin Server Actions", () => {
 		expect(mocks.createAdminContactInfo).toHaveBeenCalledWith({
 			icon: null,
 			label: "Email",
-			value: "hello@example.com",
+			value: "mailto:hello@example.com",
 		});
 	});
 
@@ -80,6 +80,13 @@ describe("contact info admin Server Actions", () => {
 		expect(mocks.createAdminContactInfo).not.toHaveBeenCalled();
 	});
 
+	it("rejects a value that is not a URL", async () => {
+		const result = await createContactInfo(contactInfoInput({ value: "hello@example.com" }));
+
+		expect(result).toEqual({ error: { fields: { value: "URL tidak valid." } } });
+		expect(mocks.createAdminContactInfo).not.toHaveBeenCalled();
+	});
+
 	it("updates and deletes contact information for an authenticated admin", async () => {
 		await expect(updateContactInfo("contact-1", contactInfoInput({ icon: "SiMail" }))).resolves.toEqual({
 			data: { id: "contact-1" },
@@ -87,7 +94,7 @@ describe("contact info admin Server Actions", () => {
 		expect(mocks.updateAdminContactInfo).toHaveBeenCalledWith("contact-1", {
 			icon: "SiMail",
 			label: "Email",
-			value: "hello@example.com",
+			value: "mailto:hello@example.com",
 		});
 
 		await expect(deleteContactInfo("contact-1")).resolves.toEqual({ data: { id: "contact-1" } });

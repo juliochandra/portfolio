@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+	countMediaGallery,
 	createMediaFolderRecord,
 	createMediaRecord,
 	deleteEmptyMediaFolderRecord,
@@ -24,14 +25,36 @@ export type MediaGalleryItem = {
 	url: string;
 };
 
-export type MediaFolder = { id: string; name: string };
+export type MediaFolder = { id: string; mediaCount: number; name: string };
 
-export async function getMediaGallery(): Promise<MediaGalleryItem[]> {
-	return (await findMediaGallery()).map((media) => ({ ...media, createdAt: media.createdAt.toISOString() }));
+export const MEDIA_PER_PAGE = 24;
+
+export type MediaGalleryPage = {
+	currentPage: number;
+	media: MediaGalleryItem[];
+	totalPages: number;
+};
+
+export async function getMediaGalleryPage(params: { folderId: string | null; page: number }): Promise<MediaGalleryPage> {
+	const totalMedia = await countMediaGallery(params.folderId);
+	const totalPages = Math.max(1, Math.ceil(totalMedia / MEDIA_PER_PAGE));
+	const currentPage = Math.min(params.page, totalPages);
+	const media = await findMediaGallery({
+		folderId: params.folderId,
+		skip: (currentPage - 1) * MEDIA_PER_PAGE,
+		take: MEDIA_PER_PAGE,
+	});
+
+	return {
+		currentPage,
+		media: media.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })),
+		totalPages,
+	};
 }
 
-export function getMediaFolders(): Promise<MediaFolder[]> {
-	return findMediaFolders();
+export async function getMediaFolders(): Promise<MediaFolder[]> {
+	const folders = await findMediaFolders();
+	return folders.map((folder) => ({ id: folder.id, mediaCount: folder._count.media, name: folder.name }));
 }
 
 export async function createAdminMediaFolder(
