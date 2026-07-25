@@ -122,24 +122,38 @@ CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Project_slug_key" ON "Project"("slug");
+
+-- CreateIndex
 CREATE INDEX "Project_slug_idx" ON "Project"("slug");
+
+-- CreateIndex
 CREATE INDEX "Project_status_publishedAt_idx" ON "Project"("status", "publishedAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Post_slug_key" ON "Post"("slug");
+
+-- CreateIndex
 CREATE INDEX "Post_slug_idx" ON "Post"("slug");
+
+-- CreateIndex
 CREATE INDEX "Post_status_publishedAt_idx" ON "Post"("status", "publishedAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Tag_slug_key" ON "Tag"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Skill_name_key" ON "Skill"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Skill_slug_key" ON "Skill"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Media_objectKey_key" ON "Media"("objectKey");
+
+-- CreateIndex
 CREATE INDEX "Media_folderId_idx" ON "Media"("folderId");
 
 -- CreateIndex
@@ -150,12 +164,18 @@ CREATE INDEX "Message_status_createdAt_idx" ON "Message"("status", "createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_ProjectToTag_AB_unique" ON "_ProjectToTag"("A", "B");
+
+-- CreateIndex
 CREATE INDEX "_ProjectToTag_B_index" ON "_ProjectToTag"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_ProjectToSkill_AB_unique" ON "_ProjectToSkill"("A", "B");
+
+-- CreateIndex
 CREATE INDEX "_ProjectToSkill_B_index" ON "_ProjectToSkill"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PostToTag_AB_unique" ON "_PostToTag"("A", "B");
+
+-- CreateIndex
 CREATE INDEX "_PostToTag_B_index" ON "_PostToTag"("B");

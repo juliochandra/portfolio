@@ -6,12 +6,10 @@
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
-  runtime  = "cloudflare"
-  compilerBuild = "small"
 }
 
 datasource db {
-  provider = "sqlite"
+	provider = "sqlite"
 }
 
 model User {

@@ -46,6 +46,7 @@ yarn-error.log*
 
 # Prisma CLI local database
 /prisma/d1-local.db*
+/prisma/dev.db*
 
 # vercel
 .vercel
