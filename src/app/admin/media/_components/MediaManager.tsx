@@ -39,6 +39,7 @@ export function MediaManager({ folders, gallery: initialGallery }: MediaManagerP
 	const [isDeletingFolder, setIsDeletingFolder] = useState(false);
 	const [isFolderFormOpen, setIsFolderFormOpen] = useState(false);
 	const [isLoadingGallery, setIsLoadingGallery] = useState(false);
+	const [isUploading, setIsUploading] = useState(false);
 	const [message, setMessage] = useState<{ text: string; type: "error" | "success" } | null>(null);
 	const activeFolder = folders.find((folder) => folder.id === activeFolderId) ?? null;
 	const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number } | null>(null);
@@ -60,30 +61,39 @@ export function MediaManager({ folders, gallery: initialGallery }: MediaManagerP
 	}
 
 	async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+		if (isUploading) return;
+
 		const fileInput = event.currentTarget;
 		const files = Array.from(fileInput.files ?? []);
 		if (files.length === 0) return;
 
+		const targetFolderId = activeFolderId;
 		setFields({});
 		setMessage(null);
+		setIsUploading(true);
 		setUploadProgress({ completed: 0, total: files.length });
 		const uploadErrors: string[] = [];
 		let uploadedCount = 0;
 		try {
 			for (const [index, file] of files.entries()) {
-				const formData = new FormData();
-				formData.set("file", file);
-				formData.set("folderId", activeFolderId ?? "");
-				const result = await uploadMedia(formData);
-				if ("error" in result) {
-					const errorMessage =
-						("fields" in result.error ? Object.values(result.error.fields)[0] : result.error.message) ??
-						"Gagal mengunggah gambar.";
-					uploadErrors.push(`${file.name}: ${errorMessage}`);
-				} else {
-					uploadedCount += 1;
+				try {
+					const formData = new FormData();
+					formData.set("file", file);
+					formData.set("folderId", targetFolderId ?? "");
+					const result = await uploadMedia(formData);
+					if ("error" in result) {
+						const errorMessage =
+							("fields" in result.error ? Object.values(result.error.fields)[0] : result.error.message) ??
+							"Gagal mengunggah gambar.";
+						uploadErrors.push(`${file.name}: ${errorMessage}`);
+					} else {
+						uploadedCount += 1;
+					}
+				} catch {
+					uploadErrors.push(`${file.name}: Gagal mengunggah gambar. Coba lagi.`);
+				} finally {
+					setUploadProgress({ completed: index + 1, total: files.length });
 				}
-				setUploadProgress({ completed: index + 1, total: files.length });
 			}
 
 			if (uploadErrors.length > 0) {
@@ -91,11 +101,12 @@ export function MediaManager({ folders, gallery: initialGallery }: MediaManagerP
 			}
 			if (uploadedCount > 0) {
 				setMessage({ text: `${uploadedCount} gambar berhasil diunggah.`, type: "success" });
-				await loadGallery(activeFolderId, 1);
+				await loadGallery(targetFolderId, 1);
 				router.refresh();
 			}
 		} finally {
 			fileInput.value = "";
+			setIsUploading(false);
 			setUploadProgress(null);
 		}
 	}
@@ -170,7 +181,7 @@ export function MediaManager({ folders, gallery: initialGallery }: MediaManagerP
 							+ Buat Folder
 						</Button>
 					) : null}
-					<Button type="button" onClick={() => fileInputRef.current?.click()}>
+					<Button type="button" disabled={isUploading} onClick={() => fileInputRef.current?.click()}>
 						+ Unggah Gambar
 					</Button>
 				</div>

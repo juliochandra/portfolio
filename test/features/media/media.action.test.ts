@@ -55,6 +55,15 @@ describe("media admin actions", () => {
 		await expect(uploadMedia(formData)).resolves.toEqual({ data: { id: "media-1", url: "https://cdn.example/media/a.jpg" } });
 		await expect(deleteMedia("media-1")).resolves.toEqual({ data: { id: "media-1" } });
 	});
+	it("returns a structured error when storage or database upload fails", async () => {
+		mocks.uploadAdminMedia.mockRejectedValue(new Error("R2 unavailable"));
+		const formData = new FormData();
+		formData.set("file", new File(["x"], "x.png", { type: "image/png" }));
+
+		await expect(uploadMedia(formData)).resolves.toEqual({
+			error: { message: "Gagal mengunggah gambar. Coba lagi." },
+		});
+	});
 	it("creates and lists media folders for an authenticated admin", async () => {
 		await expect(createMediaFolder({ name: "Portfolio" })).resolves.toEqual({ data: { id: "folder-1", name: "Portfolio" } });
 		await expect(getMediaFolders()).resolves.toEqual({ data: [] });
