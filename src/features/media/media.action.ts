@@ -19,6 +19,7 @@ import { getServerSession } from "@/shared/auth/server-session";
 import { validateWithZod } from "@/shared/validation/zod";
 
 const MEDIA_NOT_FOUND_MESSAGE = "Media tidak ditemukan.";
+const MEDIA_UPLOAD_FAILED_MESSAGE = "Gagal mengunggah gambar. Coba lagi.";
 const UNAUTHORIZED = { error: { message: "UNAUTHORIZED" } } as const;
 type GalleryPageResult = { data: Awaited<ReturnType<typeof getGalleryPage>> } | { error: { message: "UNAUTHORIZED" } };
 type FoldersResult = { data: Awaited<ReturnType<typeof getFolders>> } | { error: { message: "UNAUTHORIZED" } };
@@ -32,7 +33,7 @@ type DeleteFolderResult =
 type UploadResult =
 	| { data: { id: string; url: string } }
 	| { error: { fields: Record<string, string> } }
-	| { error: { message: "UNAUTHORIZED" } };
+	| { error: { message: "Gagal mengunggah gambar. Coba lagi." | "UNAUTHORIZED" } };
 type DeleteResult = { data: { id: string } } | { error: { message: "Media tidak ditemukan." | "UNAUTHORIZED" } };
 
 export async function getMediaGalleryPage(input: unknown): Promise<GalleryPageResult> {
@@ -71,8 +72,14 @@ export async function uploadMedia(formData: FormData): Promise<UploadResult> {
 		folderId: formData.get("folderId") ?? undefined,
 	});
 	if (!validation.success) return { error: { fields: validation.fields } };
-	const media = await uploadAdminMedia(validation.data);
-	return media === "folder_not_found" ? { error: { fields: { folderId: "Folder tidak ditemukan." } } } : { data: media };
+
+	try {
+		const media = await uploadAdminMedia(validation.data);
+		return media === "folder_not_found" ? { error: { fields: { folderId: "Folder tidak ditemukan." } } } : { data: media };
+	} catch (error) {
+		console.error("Media upload failed.", error);
+		return { error: { message: MEDIA_UPLOAD_FAILED_MESSAGE } };
+	}
 }
 
 export async function deleteMedia(id: string): Promise<DeleteResult> {

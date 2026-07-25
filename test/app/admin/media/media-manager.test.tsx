@@ -56,6 +56,24 @@ describe("MediaManager", () => {
 		expect(mocks.refresh).toHaveBeenCalledOnce();
 	});
 
+	it("continues uploading the remaining files when one upload fails unexpectedly", async () => {
+		mocks.uploadMedia
+			.mockResolvedValueOnce({ data: { id: "media-1", url: "https://cdn.example/first.png" } })
+			.mockRejectedValueOnce(new Error("R2 unavailable"))
+			.mockResolvedValueOnce({ data: { id: "media-3", url: "https://cdn.example/third.png" } });
+		const manager = render(<MediaManager folders={[]} gallery={emptyGallery} />);
+		const firstFile = new File(["image"], "first.png", { type: "image/png" });
+		const secondFile = new File(["image"], "second.png", { type: "image/png" });
+		const thirdFile = new File(["image"], "third.png", { type: "image/png" });
+
+		fireEvent.change(manager.getByLabelText("Pilih gambar untuk diunggah"), {
+			target: { files: [firstFile, secondFile, thirdFile] },
+		});
+
+		await waitFor(() => expect(mocks.uploadMedia).toHaveBeenCalledTimes(3));
+		await waitFor(() => expect(mocks.getMediaGalleryPage).toHaveBeenCalledWith({ folderId: null, page: 1 }));
+	});
+
 	it("loads the selected page of the gallery", async () => {
 		mocks.getMediaGalleryPage.mockResolvedValue({
 			data: {
