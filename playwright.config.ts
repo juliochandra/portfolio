@@ -19,7 +19,7 @@ export default defineConfig({
 	webServer: {
 		command:
 			// biome-ignore lint/nursery/noSecrets: Command only clears the isolated E2E build output before the E2E server starts.
-			"set \"NEXT_DIST_DIR=.next-e2e\" && node -e \"require('fs').rmSync('.next-e2e', { recursive: true, force: true })\" && npm run build && npm run start -- -p 3001",
+			"set \"NEXT_DIST_DIR=.next-e2e\" && node -e \"require('fs').rmSync('.next-e2e', { recursive: true, force: true })\" && npm run build:next && npm run start -- -p 3001",
 		url: e2eBaseUrl,
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000,
