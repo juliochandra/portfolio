@@ -4,6 +4,16 @@ import { PrismaClient } from "@/generated/prisma/client";
 // @ts-expect-error `.open-next/worker.js` is generated at build time
 import { default as handler } from "./.open-next/worker.js";
 
+function redirectWwwToRootDomain(request: Request): Response | null {
+	const url = new URL(request.url);
+	if (url.hostname !== "www.julio.my.id") {
+		return null;
+	}
+
+	url.hostname = "julio.my.id";
+	return Response.redirect(url, 308);
+}
+
 async function runMediaReconciliation(env: Env): Promise<void> {
 	const prisma = new PrismaClient({ adapter: new PrismaD1(env.portfolio_db) });
 	try {
@@ -17,7 +27,10 @@ async function runMediaReconciliation(env: Env): Promise<void> {
 }
 
 export default {
-	fetch: handler.fetch,
+	fetch(request, env, ctx) {
+		const redirectResponse = redirectWwwToRootDomain(request);
+		return redirectResponse ?? handler.fetch(request, env, ctx);
+	},
 	scheduled(_event, env, ctx) {
 		ctx.waitUntil(runMediaReconciliation(env));
 	},
