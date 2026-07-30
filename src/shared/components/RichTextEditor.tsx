@@ -126,7 +126,7 @@ export function RichTextEditor({
 		editorProps: {
 			attributes: {
 				"aria-label": label,
-				class: "min-h-72 p-4 outline-none [&_a]:text-accent [&_a]:underline [&_blockquote]:my-4 [&_blockquote]:border-accent [&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_h1]:mt-6 [&_h1]:font-bold [&_h1]:text-4xl [&_h2]:mt-5 [&_h2]:font-bold [&_h2]:text-3xl [&_h3]:mt-4 [&_h3]:font-bold [&_h3]:text-2xl [&_h4]:mt-4 [&_h4]:font-bold [&_h4]:text-xl [&_h5]:mt-4 [&_h5]:font-bold [&_h5]:text-lg [&_hr]:my-6 [&_img]:my-4 [&_img]:mx-auto [&_img]:block [&_img]:max-w-full [&_img]:rounded-lg [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-surface [&_pre]:p-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6",
+				class: "min-h-screen p-4 outline-none [&_a]:text-accent [&_a]:underline [&_blockquote]:my-4 [&_blockquote]:border-accent [&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_h1]:mt-6 [&_h1]:font-bold [&_h1]:text-4xl [&_h2]:mt-5 [&_h2]:font-bold [&_h2]:text-3xl [&_h3]:mt-4 [&_h3]:font-bold [&_h3]:text-2xl [&_h4]:mt-4 [&_h4]:font-bold [&_h4]:text-xl [&_h5]:mt-4 [&_h5]:font-bold [&_h5]:text-lg [&_hr]:my-6 [&_img]:my-4 [&_img]:mx-auto [&_img]:block [&_img]:max-w-full [&_img]:rounded-lg [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-surface [&_pre]:p-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6",
 				role: "textbox",
 			},
 		},
