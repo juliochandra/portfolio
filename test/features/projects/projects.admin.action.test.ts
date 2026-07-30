@@ -33,12 +33,20 @@ import {
 	updateProject,
 } from "@/features/projects/projects.action";
 import { PublishStatus } from "@/shared/publish-status";
+import type { RichTextDocument } from "@/shared/tiptap/json";
+
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Isi project", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
+
+const serializedContent = JSON.stringify(content);
 
 function projectFormData(values: Partial<Record<string, string>> = {}): FormData {
 	const formData = new FormData();
 	formData.set("title", values.title ?? "Project Baru");
 	formData.set("description", values.description ?? "Deskripsi project");
-	formData.set("content", values.content ?? "Isi project");
+	formData.set("content", values.content ?? serializedContent);
 	formData.set("demoUrl", values.demoUrl ?? "");
 	// biome-ignore lint/nursery/noSecrets: form field name, not a credential
 	formData.set("thumbnailImage", values.thumbnailImage ?? "");
@@ -57,7 +65,7 @@ describe("project admin Server Actions", () => {
 		mocks.getProjectsAdmin.mockResolvedValue([]);
 		mocks.getProjectsAdminPage.mockResolvedValue({ currentPage: 1, projects: [], totalPages: 1 });
 		mocks.getProjectAdminById.mockResolvedValue({
-			content: "Isi project",
+			content: serializedContent,
 			demoUrl: null,
 			description: "Deskripsi project",
 			id: "project-1",
@@ -115,7 +123,7 @@ describe("project admin Server Actions", () => {
 			data: { id: "project-1", slug: "project-baru" },
 		});
 		expect(mocks.createAdminProject).toHaveBeenCalledWith({
-			content: "Isi project",
+			content,
 			demoUrl: null,
 			description: "Deskripsi project",
 			repositoryUrl: null,

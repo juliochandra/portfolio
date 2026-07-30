@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PublishStatus } from "@/shared/publish-status";
+import type { RichTextDocument } from "@/shared/tiptap/json";
+
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Isi project", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
+
+const serializedContent = JSON.stringify(content);
 
 const mocks = vi.hoisted(() => ({
 	createProjectRecord: vi.fn(),
@@ -35,7 +43,7 @@ import {
 } from "@/features/projects/projects.services";
 
 const input = {
-	content: "Isi project",
+	content,
 	demoUrl: null,
 	description: "Deskripsi project",
 	repositoryUrl: null,
@@ -88,7 +96,7 @@ describe("project admin services", () => {
 
 	it("maps project relations to selected IDs for the edit form", async () => {
 		mocks.findProjectDetailForAdmin.mockResolvedValue({
-			content: "Isi project",
+			content: serializedContent,
 			demoUrl: null,
 			description: "Deskripsi project",
 			id: "project-1",
@@ -110,6 +118,7 @@ describe("project admin services", () => {
 		expect(mocks.isProjectSlugAvailable).toHaveBeenCalledWith("project-baru");
 		expect(mocks.createProjectRecord).toHaveBeenCalledWith({
 			...input,
+			content: serializedContent,
 			publishedAt: new Date("2026-07-17T10:00:00.000Z"),
 			slug: "project-baru",
 		});

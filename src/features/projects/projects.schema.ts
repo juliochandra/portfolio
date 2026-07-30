@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/nursery/noSecrets: <> */
 import { z } from "zod";
 import { publishStatuses } from "@/shared/publish-status";
+import { emptyRichTextDocument, hasRichTextContent, parseRichTextDocument } from "@/shared/tiptap/json";
 
 export const getProjectsParamsSchema = z
 	.object({
@@ -34,8 +35,20 @@ const optionalUrl = (maxLength: number) =>
 		.refine((value) => value.length === 0 || z.url().safeParse(value).success, "URL tidak valid.")
 		.transform((value) => value || null);
 
+const requiredRichTextDocument = z
+	.string()
+	.trim()
+	.min(1, REQUIRED_MESSAGE)
+	.superRefine((value, context) => {
+		const document = parseRichTextDocument(value);
+		if (!document || !hasRichTextContent(document)) {
+			context.addIssue({ code: "custom", message: REQUIRED_MESSAGE });
+		}
+	})
+	.transform((value) => parseRichTextDocument(value) ?? emptyRichTextDocument);
+
 const projectInputSchema = z.object({
-	content: requiredText(Number.MAX_SAFE_INTEGER),
+	content: requiredRichTextDocument,
 	demoUrl: optionalText(255),
 	description: requiredText(300),
 	repositoryUrl: optionalText(255),

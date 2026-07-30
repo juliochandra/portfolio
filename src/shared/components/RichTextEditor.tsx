@@ -1,14 +1,7 @@
 "use client";
 
-import Color from "@tiptap/extension-color";
-import Highlight from "@tiptap/extension-highlight";
-import Image from "@tiptap/extension-image";
-import Subscript from "@tiptap/extension-subscript";
-import Superscript from "@tiptap/extension-superscript";
-import TextAlign from "@tiptap/extension-text-align";
-import { TextStyle } from "@tiptap/extension-text-style";
+import type { JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import { type ReactNode, useEffect, useState } from "react";
 import {
 	FaAlignCenter,
@@ -38,11 +31,12 @@ import {
 	type MediaImagePickerItem,
 	MediaImagePickerModal,
 } from "@/shared/components/MediaImagePickerModal";
+import { createRichTextExtensions } from "@/shared/tiptap/extensions";
 
 type RichTextEditorProps = {
 	disabled?: boolean;
 	folders?: MediaImagePickerFolder[];
-	initialContent: string;
+	initialContent: JSONContent;
 	label: string;
 	media?: MediaImagePickerItem[];
 	mediaCurrentPage?: number;
@@ -57,8 +51,6 @@ type ToolbarButtonProps = {
 	label: string;
 	onClick: () => void;
 };
-
-const headingLevels = [1, 2, 3] as const;
 
 type ColorPickerType = "highlight" | "text";
 
@@ -116,7 +108,7 @@ export function RichTextEditor({
 	mediaTotalPages = 1,
 	name,
 }: RichTextEditorProps) {
-	const [content, setContent] = useState(initialContent);
+	const [content, setContent] = useState(() => JSON.stringify(initialContent));
 	const [colorPickerType, setColorPickerType] = useState<ColorPickerType | null>(null);
 	const [colorSelection, setColorSelection] = useState<EditorSelection | null>(null);
 	const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
@@ -128,29 +120,9 @@ export function RichTextEditor({
 	const editor = useEditor({
 		content: initialContent,
 		editable: !disabled,
-		extensions: [
-			StarterKit.configure({
-				heading: { levels: [...headingLevels] },
-				link: {
-					HTMLAttributes: {
-						rel: "noopener noreferrer",
-						target: "_blank",
-					},
-					autolink: true,
-					defaultProtocol: "https",
-					openOnClick: false,
-				},
-			}),
-			TextStyle,
-			Color,
-			Highlight.configure({ multicolor: true }),
-			Subscript,
-			Superscript,
-			TextAlign.configure({ types: ["heading", "paragraph"] }),
-			Image.configure({ allowBase64: false }),
-		],
+		extensions: createRichTextExtensions(),
 		immediatelyRender: false,
-		onUpdate: ({ editor: updatedEditor }) => setContent(updatedEditor.getHTML()),
+		onUpdate: ({ editor: updatedEditor }) => setContent(JSON.stringify(updatedEditor.getJSON())),
 		editorProps: {
 			attributes: {
 				"aria-label": label,

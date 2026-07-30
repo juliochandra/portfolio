@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PublishStatus } from "@/shared/publish-status";
+import type { RichTextDocument } from "@/shared/tiptap/json";
+
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Isi lengkap tulisan.", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
+
+const serializedContent = JSON.stringify(content);
 
 const mocks = vi.hoisted(() => ({
 	findPostBySlug: vi.fn(),
@@ -61,7 +69,7 @@ describe("post public services", () => {
 	it("returns published post detail with stored reading time and tags", async () => {
 		mocks.findPostBySlug.mockResolvedValue({
 			...postRecord,
-			content: "Isi lengkap tulisan.",
+			content: serializedContent,
 		});
 
 		const post = await getPublishedPostBySlug("memahami-server-actions");
@@ -71,7 +79,7 @@ describe("post public services", () => {
 			status: PublishStatus.PUBLISHED,
 		});
 		expect(post).toMatchObject({
-			content: "Isi lengkap tulisan.",
+			content,
 			nextPost: null,
 			publishedAt: publishedAt.toISOString(),
 			prevPost: null,
@@ -83,7 +91,7 @@ describe("post public services", () => {
 	});
 
 	it("includes the adjacent published posts in detail navigation", async () => {
-		mocks.findPostBySlug.mockResolvedValue({ ...postRecord, content: "Isi lengkap tulisan." });
+		mocks.findPostBySlug.mockResolvedValue({ ...postRecord, content: serializedContent });
 		mocks.findPreviousPublishedPost.mockResolvedValue({ slug: "tulisan-baru", title: "Tulisan Baru" });
 		mocks.findNextPublishedPost.mockResolvedValue({ slug: "tulisan-lama", title: "Tulisan Lama" });
 
@@ -99,7 +107,7 @@ describe("post public services", () => {
 
 		mocks.findPostBySlug.mockResolvedValue({
 			...postRecord,
-			content: "Isi lengkap tulisan.",
+			content: serializedContent,
 			publishedAt: null,
 		});
 		await expect(getPublishedPostBySlug("inconsistent-post")).resolves.toBeNull();

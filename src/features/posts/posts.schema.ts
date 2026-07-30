@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { publishStatuses } from "@/shared/publish-status";
+import { emptyRichTextDocument, hasRichTextContent, parseRichTextDocument } from "@/shared/tiptap/json";
 
 export const getPostsParamsSchema = z
 	.object({
@@ -18,17 +19,17 @@ const REQUIRED_MESSAGE = "Wajib diisi.";
 
 const requiredText = (maxLength: number) => z.string().trim().min(1, REQUIRED_MESSAGE).max(maxLength);
 
-const requiredRichText = z
+const requiredRichTextDocument = z
 	.string()
 	.trim()
-	.refine(
-		(value) =>
-			value
-				.replace(/<[^>]*>/gu, " ")
-				.replace(/&nbsp;/gu, " ")
-				.trim().length > 0,
-		REQUIRED_MESSAGE,
-	);
+	.min(1, REQUIRED_MESSAGE)
+	.superRefine((value, context) => {
+		const document = parseRichTextDocument(value);
+		if (!document || !hasRichTextContent(document)) {
+			context.addIssue({ code: "custom", message: REQUIRED_MESSAGE });
+		}
+	})
+	.transform((value) => parseRichTextDocument(value) ?? emptyRichTextDocument);
 
 const optionalText = (maxLength: number) =>
 	z
@@ -48,7 +49,7 @@ const optionalUrl = (maxLength: number) =>
 		.transform((value) => value || null);
 
 const postInputSchema = z.object({
-	content: requiredRichText,
+	content: requiredRichTextDocument,
 	description: optionalText(300),
 	tagIds: z.array(z.string().trim().min(1)).default([]),
 	thumbnailImage: optionalUrl(255),

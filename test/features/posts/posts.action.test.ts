@@ -11,6 +11,12 @@ vi.mock("@/features/posts/posts.services", () => ({
 }));
 
 import { getPostBySlug, getPosts } from "@/features/posts/posts.action";
+import type { RichTextDocument } from "@/shared/tiptap/json";
+
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Isi lengkap tulisan.", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
 
 const postListItem = {
 	description: "Ringkasan tulisan",
@@ -25,7 +31,7 @@ const postListItem = {
 
 const postDetail = {
 	...postListItem,
-	content: "Isi lengkap tulisan.",
+	content,
 	nextPost: null,
 	prevPost: null,
 };

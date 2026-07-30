@@ -13,6 +13,7 @@ import { RichTextEditor } from "@/shared/components/RichTextEditor";
 import { StatusMessage } from "@/shared/components/StatusMessage";
 import { StatusSelect } from "@/shared/components/StatusSelect";
 import type { PublishStatus } from "@/shared/publish-status";
+import { emptyRichTextDocument, parseRichTextDocument } from "@/shared/tiptap/json";
 import { validateWithZod } from "@/shared/validation/zod";
 
 type PostFormPost = {
@@ -119,7 +120,7 @@ export function PostForm({ folders, media, mediaCurrentPage = 1, mediaTotalPages
 					<RichTextEditor
 						disabled={isSubmitting}
 						folders={folders}
-						initialContent={post?.content ?? ""}
+						initialContent={post ? (parseRichTextDocument(post.content) ?? emptyRichTextDocument) : emptyRichTextDocument}
 						label="Isi"
 						media={media}
 						mediaCurrentPage={mediaCurrentPage}
