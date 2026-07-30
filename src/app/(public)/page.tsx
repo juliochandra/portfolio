@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { CiMail } from "react-icons/ci";
 import { SkillCard } from "@/app/(public)/_components/SkillCard";
 import { getContactInfo } from "@/features/contact/contact.action";
 import { getPosts } from "@/features/posts/posts.action";
 import { getProjects } from "@/features/projects/projects.action";
 import { getSkills } from "@/features/skills/skills.action";
+import { ButtonLink } from "@/shared/components/ButtonLink";
 import { PostItem } from "@/shared/components/PostItem";
 import { ProjectCard } from "@/shared/components/ProjectCard";
 import { Section } from "@/shared/components/Section";
@@ -42,12 +42,12 @@ export default async function Home() {
 				/>
 
 				<div className="mt-8 flex flex-wrap justify-center gap-3">
-					<Link href="/portfolio" className="rounded-md bg-primary px-5 py-3 font-semibold text-white hover:opacity-90">
+					<ButtonLink href="/portfolio" size="lg">
 						Lihat Portfolio
-					</Link>
-					<Link href="/contact" className="rounded-md border border-border px-5 py-3 font-semibold hover:bg-surface">
+					</ButtonLink>
+					<ButtonLink href="/contact" size="lg" variant="secondary">
 						Hubungi Saya
-					</Link>
+					</ButtonLink>
 				</div>
 			</Section>
 
@@ -84,12 +84,9 @@ export default async function Home() {
 					<p className="mt-12 text-center text-text-mute">Belum ada project yang ditampilkan.</p>
 				)}
 				<div className="mt-10 text-center">
-					<Link
-						href="/portfolio"
-						className="inline-flex rounded-md border border-border px-5 py-3 font-semibold text-accent hover:bg-surface"
-					>
+					<ButtonLink href="/portfolio" size="lg" variant="outline">
 						Lihat Semua Project &rarr;
-					</Link>
+					</ButtonLink>
 				</div>
 			</Section>
 
@@ -109,12 +106,9 @@ export default async function Home() {
 					<p className="mt-12 text-center text-text-mute">Belum ada artikel yang ditampilkan.</p>
 				)}
 				<div className="mt-10 text-center">
-					<Link
-						href="/blog"
-						className="inline-flex rounded-md border border-border px-5 py-3 font-semibold text-accent hover:bg-surface"
-					>
+					<ButtonLink href="/blog" size="lg" variant="outline">
 						Lihat Semua Tulisan &rarr;
-					</Link>
+					</ButtonLink>
 				</div>
 			</Section>
 
@@ -126,17 +120,18 @@ export default async function Home() {
 						description="Saya saat ini terbuka untuk project freelance maupun kesempatan penuh waktu. Mari diskusikan bagaimana mewujudkan ide Anda."
 					/>
 					<div className="mt-8 flex flex-wrap justify-center gap-3">
-						<Link href="/contact" className="rounded-md bg-primary px-5 py-3 font-semibold text-white hover:opacity-90">
+						<ButtonLink href="/contact" size="lg">
 							Hubungi Saya &rarr;
-						</Link>
+						</ButtonLink>
 						{emailHref ? (
-							<a
+							<ButtonLink
 								href={emailHref}
-								className="inline-flex items-center gap-2 rounded-md border border-border px-5 py-3 font-semibold hover:bg-canvas"
+								icon={<CiMail className="text-xl" aria-hidden="true" />}
+								size="lg"
+								variant="secondary"
 							>
-								<CiMail className="text-xl" aria-hidden="true" />
 								Kirim Email
-							</a>
+							</ButtonLink>
 						) : null}
 					</div>
 				</div>
