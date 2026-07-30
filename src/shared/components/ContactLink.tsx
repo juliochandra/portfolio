@@ -32,8 +32,20 @@ function getContactHref(value: string): string {
 	return value.includes("@") ? `mailto:${value}` : value;
 }
 
-export function ContactLink({ icon, label, value }: ContactLinkProps) {
+function ContactIcon({ icon, className }: Pick<ContactLinkProps, "icon"> & { className?: string }) {
 	const Icon = contactIcons[normalizeIconName(icon)] ?? CiLink;
+
+	if (isImageUrl(icon)) {
+		return (
+			// biome-ignore lint/performance/noImgElement: URL gambar dipilih admin dari galeri Media.
+			<img src={icon} alt="" className={className ?? "size-5 object-contain"} />
+		);
+	}
+
+	return <Icon className={className ?? "text-accent text-lg"} aria-hidden="true" />;
+}
+
+export function ContactLink({ icon, label, value }: ContactLinkProps) {
 	const isExternalLink = value.startsWith("http");
 
 	return (
@@ -43,13 +55,24 @@ export function ContactLink({ icon, label, value }: ContactLinkProps) {
 			target={isExternalLink ? "_blank" : undefined}
 			rel={isExternalLink ? "noreferrer" : undefined}
 		>
-			{isImageUrl(icon) ? (
-				// biome-ignore lint/performance/noImgElement: URL gambar dipilih admin dari galeri Media.
-				<img src={icon} alt="" className="size-5 object-contain" />
-			) : (
-				<Icon className="text-accent text-lg" aria-hidden="true" />
-			)}
+			<ContactIcon icon={icon} />
 			<span className="font-semibold">{label}</span>
+		</a>
+	);
+}
+
+export function ContactIconLink({ icon, label, value }: ContactLinkProps) {
+	const isExternalLink = value.startsWith("http");
+
+	return (
+		<a
+			href={getContactHref(value)}
+			aria-label={label}
+			className="transition-colors hover:text-accent"
+			target={isExternalLink ? "_blank" : undefined}
+			rel={isExternalLink ? "noreferrer" : undefined}
+		>
+			<ContactIcon icon={icon} className="size-8" />
 		</a>
 	);
 }

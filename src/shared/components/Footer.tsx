@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { CiMail, CiSquareChevUp } from "react-icons/ci";
-import { FaLinkedin } from "react-icons/fa";
-import { SiGithub, SiX } from "react-icons/si";
+import { ContactIconLink } from "@/shared/components/ContactLink";
 
 const navigation = [
 	["Home", "/"],
@@ -16,30 +15,34 @@ const resources = [
 	["Resume", "/resume"],
 	["Tech Stack", "/about"],
 ] as const;
-export function Footer() {
+type FooterContactInfo = {
+	icon: string | null;
+	id: string;
+	label: string;
+	value: string;
+};
+
+type FooterProps = {
+	contactInfo?: FooterContactInfo[];
+};
+
+export function Footer({ contactInfo = [] }: FooterProps) {
 	return (
 		<footer className="border-border border-t bg-canvas px-6 py-14 lg:px-16">
 			<div className="mx-auto max-w-7xl">
 				<div className="grid gap-12 md:grid-cols-2 xl:grid-cols-[1.35fr_0.9fr_0.9fr_1.1fr]">
 					<div>
 						<p className="font-bold text-3xl tracking-[-0.08em]">JULIO.</p>
-						<p className="mt-6 max-w-70 text-text-mute leading-8">
+						<p className="mt-6 max-w-85 text-text-mute leading-8">
 							Full-stack developer who builds modern, fast, and scalable web applications.
 						</p>
-						<div className="mt-8 flex items-center gap-6 text-2xl text-text-mute">
-							<a href="https://github.com" aria-label="GitHub">
-								<SiGithub />
-							</a>
-							<a href="https://linkedin.com" aria-label="LinkedIn">
-								<FaLinkedin />
-							</a>
-							<a href="https://x.com" aria-label="X">
-								<SiX />
-							</a>
-							<a href="mailto:hello@example.com" aria-label="Email">
-								<CiMail />
-							</a>
-						</div>
+						{contactInfo.length > 0 ? (
+							<div className="mt-8 flex flex-wrap items-center gap-2 text-text-mute">
+								{contactInfo.map((contact) => (
+									<ContactIconLink key={contact.id} {...contact} />
+								))}
+							</div>
+						) : null}
 					</div>
 					<FooterLinks title="Navigation" links={navigation} />
 					<FooterLinks title="Resources" links={resources} />
