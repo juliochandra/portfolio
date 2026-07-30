@@ -3,11 +3,21 @@ import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { RichTextEditor } from "@/shared/components/RichTextEditor";
 
+const initialContent = {
+	content: [{ content: [{ text: "Isi awal", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
+
+const emptyContent = {
+	content: [{ type: "paragraph" }],
+	type: "doc",
+};
+
 describe("RichTextEditor", () => {
 	afterEach(() => cleanup());
 
 	it("renders the editor and its formatting controls", async () => {
-		const editor = render(<RichTextEditor initialContent="<p>Isi awal</p>" label="Isi" name="content" />);
+		const editor = render(<RichTextEditor initialContent={initialContent} label="Isi" name="content" />);
 
 		await waitFor(() => expect(editor.getByRole("textbox", { name: "Isi" })).toBeInTheDocument());
 		expect(editor.getByRole("toolbar", { name: "Rich text toolbar" })).toHaveClass("sticky", "top-0");
@@ -23,14 +33,23 @@ describe("RichTextEditor", () => {
 		expect(editor.getByRole("button", { name: "Heading 2" })).toBeInTheDocument();
 		expect(editor.getByRole("button", { name: "Heading 3" })).toBeInTheDocument();
 		expect(editor.getByRole("button", { name: "Bullet list" })).toBeInTheDocument();
-		expect(editor.container.querySelector('input[name="content"]')).toHaveValue("<p>Isi awal</p>");
+		const submittedContent = editor.container.querySelector('input[name="content"]') as HTMLInputElement;
+		expect(JSON.parse(submittedContent.value)).toMatchObject(initialContent);
+	});
+
+	it("uses a JSON document as the submitted value", async () => {
+		const editor = render(<RichTextEditor initialContent={initialContent} label="Isi" name="content" />);
+
+		await waitFor(() => expect(editor.getByRole("textbox", { name: "Isi" })).toBeInTheDocument());
+		const submittedContent = editor.container.querySelector('input[name="content"]') as HTMLInputElement;
+		expect(JSON.parse(submittedContent.value)).toMatchObject(initialContent);
 	});
 
 	it("opens the media gallery to insert an image", async () => {
 		const editor = render(
 			<RichTextEditor
 				folders={[{ id: "folder-1", name: "Galeri" }]}
-				initialContent=""
+				initialContent={emptyContent}
 				label="Isi"
 				media={[{ fileName: "gambar.jpg", folderId: null, id: "media-1", url: "https://example.com/gambar.jpg" }]}
 				name="content"
@@ -51,7 +70,7 @@ describe("RichTextEditor", () => {
 	});
 
 	it("opens a text color palette", async () => {
-		const editor = render(<RichTextEditor initialContent="<p>Isi awal</p>" label="Isi" name="content" />);
+		const editor = render(<RichTextEditor initialContent={initialContent} label="Isi" name="content" />);
 
 		await waitFor(() => expect(editor.getByRole("button", { name: "Text color" })).not.toBeDisabled());
 		fireEvent.click(editor.getByRole("button", { name: "Text color" }));
@@ -64,7 +83,7 @@ describe("RichTextEditor", () => {
 	});
 
 	it("opens a link popover with a URL input", async () => {
-		const editor = render(<RichTextEditor initialContent="<p>Isi awal</p>" label="Isi" name="content" />);
+		const editor = render(<RichTextEditor initialContent={initialContent} label="Isi" name="content" />);
 
 		await waitFor(() => expect(editor.getByRole("button", { name: "Link" })).not.toBeDisabled());
 		fireEvent.click(editor.getByRole("button", { name: "Link" }));
@@ -76,7 +95,7 @@ describe("RichTextEditor", () => {
 	});
 
 	it("inserts the supplied text as a link", async () => {
-		const editor = render(<RichTextEditor initialContent="<p></p>" label="Isi" name="content" />);
+		const editor = render(<RichTextEditor initialContent={emptyContent} label="Isi" name="content" />);
 
 		await waitFor(() => expect(editor.getByRole("button", { name: "Link" })).not.toBeDisabled());
 		fireEvent.click(editor.getByRole("button", { name: "Link" }));
@@ -91,7 +110,7 @@ describe("RichTextEditor", () => {
 	});
 
 	it("shows an error for an unsupported link URL", async () => {
-		const editor = render(<RichTextEditor initialContent="<p>Isi awal</p>" label="Isi" name="content" />);
+		const editor = render(<RichTextEditor initialContent={initialContent} label="Isi" name="content" />);
 
 		await waitFor(() => expect(editor.getByRole("button", { name: "Link" })).not.toBeDisabled());
 		fireEvent.click(editor.getByRole("button", { name: "Link" }));

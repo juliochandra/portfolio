@@ -17,12 +17,21 @@ vi.mock("@/features/projects/projects.action", () => ({
 vi.mock("@/features/media/media.action", () => ({ getMediaGalleryPage: mocks.getMediaGalleryPage }));
 // biome-ignore lint/nursery/noSecrets: Module path, not a secret.
 vi.mock("@/shared/components/RichTextEditor", () => ({
-	RichTextEditor: ({ initialContent, label, name }: { initialContent: string; label: string; name: string }) => (
-		<textarea aria-label={label} defaultValue={initialContent} name={name} />
+	RichTextEditor: ({ initialContent, label, name }: { initialContent: string | object; label: string; name: string }) => (
+		<textarea
+			aria-label={label}
+			defaultValue={typeof initialContent === "string" ? initialContent : JSON.stringify(initialContent)}
+			name={name}
+		/>
 	),
 }));
 
 import { ProjectForm } from "@/app/admin/projects/_components/ProjectForm";
+
+const content = JSON.stringify({
+	content: [{ content: [{ text: "Isi project", type: "text" }], type: "paragraph" }],
+	type: "doc",
+});
 
 describe("ProjectForm", () => {
 	beforeEach(() => {
@@ -109,7 +118,7 @@ describe("ProjectForm", () => {
 		fireEvent.change(projectForm.getByRole("textbox", { name: "Deskripsi" }), {
 			target: { value: "Deskripsi project" },
 		});
-		fireEvent.change(projectForm.getByRole("textbox", { name: "Deskripsi lengkap" }), { target: { value: "Isi project" } });
+		fireEvent.change(projectForm.getByRole("textbox", { name: "Deskripsi lengkap" }), { target: { value: content } });
 
 		fireEvent.submit(projectForm.getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
@@ -123,7 +132,7 @@ describe("ProjectForm", () => {
 				folders={[]}
 				media={[]}
 				project={{
-					content: "Isi project",
+					content,
 					demoUrl: null,
 					description: "Deskripsi project",
 					id: "project-1",

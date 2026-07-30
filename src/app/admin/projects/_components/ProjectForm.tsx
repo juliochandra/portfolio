@@ -14,6 +14,7 @@ import { getSkillIcon } from "@/shared/components/SkillTag";
 import { StatusMessage } from "@/shared/components/StatusMessage";
 import { StatusSelect } from "@/shared/components/StatusSelect";
 import type { PublishStatus } from "@/shared/publish-status";
+import { emptyRichTextDocument, parseRichTextDocument } from "@/shared/tiptap/json";
 import { isImageUrl } from "@/shared/validation/is-image-url";
 import { validateWithZod } from "@/shared/validation/zod";
 
@@ -145,7 +146,9 @@ export function ProjectForm({
 					<RichTextEditor
 						disabled={isSubmitting}
 						folders={folders}
-						initialContent={project?.content ?? ""}
+						initialContent={
+							project ? (parseRichTextDocument(project.content) ?? emptyRichTextDocument) : emptyRichTextDocument
+						}
 						label="Deskripsi lengkap"
 						media={media}
 						mediaCurrentPage={mediaCurrentPage}

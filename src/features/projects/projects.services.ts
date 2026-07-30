@@ -15,6 +15,12 @@ import {
 import type { CreateProjectInput, UpdateProjectInput } from "@/features/projects/projects.schema";
 import { PublishStatus, toPublishStatus } from "@/shared/publish-status";
 import { generateUniqueSlug } from "@/shared/slug";
+import {
+	emptyRichTextDocument,
+	parseRichTextDocument,
+	type RichTextDocument,
+	serializeRichTextDocument,
+} from "@/shared/tiptap/json";
 
 export type ProjectSkill = {
 	icon: string;
@@ -33,7 +39,7 @@ export type PublicProjectListItem = {
 };
 
 export type PublicProjectDetail = PublicProjectListItem & {
-	content: string;
+	content: RichTextDocument;
 	publishedAt: Date | null;
 	tags: { name: string }[];
 };
@@ -78,7 +84,7 @@ function toPublicProjectListItem(project: ProjectListRecord): PublicProjectListI
 function toPublicProjectDetail(project: ProjectDetailRecord): PublicProjectDetail {
 	return {
 		...toPublicProjectListItem(project),
-		content: project.content,
+		content: parseRichTextDocument(project.content) ?? emptyRichTextDocument,
 		publishedAt: project.publishedAt,
 		tags: project.tags,
 	};
@@ -146,6 +152,7 @@ export async function createAdminProject(input: CreateProjectInput): Promise<{ i
 
 	return createProjectRecord({
 		...input,
+		content: serializeRichTextDocument(input.content),
 		publishedAt,
 		slug,
 	});
@@ -165,6 +172,7 @@ export async function updateAdminProject(id: string, input: UpdateProjectInput):
 
 	return updateProjectRecord(id, {
 		...input,
+		content: serializeRichTextDocument(input.content),
 		publishedAt,
 		slug,
 	});

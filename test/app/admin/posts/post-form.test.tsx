@@ -18,12 +18,21 @@ vi.mock("@/features/posts/posts.action", () => ({
 vi.mock("@/features/media/media.action", () => ({ getMediaGalleryPage: mocks.getMediaGalleryPage }));
 // biome-ignore lint/nursery/noSecrets: Module path, not a secret.
 vi.mock("@/shared/components/RichTextEditor", () => ({
-	RichTextEditor: ({ initialContent, label, name }: { initialContent: string; label: string; name: string }) => (
-		<textarea name={name} aria-label={label} defaultValue={initialContent} />
+	RichTextEditor: ({ initialContent, label, name }: { initialContent: string | object; label: string; name: string }) => (
+		<textarea
+			name={name}
+			aria-label={label}
+			defaultValue={typeof initialContent === "string" ? initialContent : JSON.stringify(initialContent)}
+		/>
 	),
 }));
 
 import { PostForm } from "@/app/admin/posts/_components/PostForm";
+
+const content = JSON.stringify({
+	content: [{ content: [{ text: "Isi tulisan", type: "text" }], type: "paragraph" }],
+	type: "doc",
+});
 
 describe("PostForm", () => {
 	beforeEach(() => {
@@ -64,7 +73,7 @@ describe("PostForm", () => {
 			/>,
 		);
 		fireEvent.change(postForm.getByRole("textbox", { name: "Judul" }), { target: { value: "Tulisan Baru" } });
-		fireEvent.change(postForm.getByRole("textbox", { name: "Isi" }), { target: { value: "Isi tulisan" } });
+		fireEvent.change(postForm.getByRole("textbox", { name: "Isi" }), { target: { value: content } });
 		fireEvent.click(postForm.getByRole("button", { name: "zod" }));
 		fireEvent.click(postForm.getByRole("button", { name: "typescript" }));
 
@@ -119,7 +128,7 @@ describe("PostForm", () => {
 	it("creates a post and opens its edit page after a successful save", async () => {
 		const postForm = render(<PostForm folders={[]} media={[]} tags={[]} />);
 		fireEvent.change(postForm.getByRole("textbox", { name: "Judul" }), { target: { value: "Tulisan Baru" } });
-		fireEvent.change(postForm.getByRole("textbox", { name: "Isi" }), { target: { value: "Isi tulisan" } });
+		fireEvent.change(postForm.getByRole("textbox", { name: "Isi" }), { target: { value: content } });
 
 		fireEvent.submit(postForm.getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
@@ -135,7 +144,7 @@ describe("PostForm", () => {
 				folders={[]}
 				media={[]}
 				post={{
-					content: "Isi tulisan",
+					content,
 					description: null,
 					id: "post-1",
 					status: "DRAFT",

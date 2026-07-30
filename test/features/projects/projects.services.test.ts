@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PublishStatus } from "@/shared/publish-status";
+import type { RichTextDocument } from "@/shared/tiptap/json";
+
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Deskripsi lengkap dan peran saya.", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
+
+const serializedContent = JSON.stringify(content);
 
 const mocks = vi.hoisted(() => ({
 	findProjectBySlug: vi.fn(),
@@ -51,7 +59,7 @@ describe("project public services", () => {
 	it("queries project detail with the published status", async () => {
 		mocks.findProjectBySlug.mockResolvedValue({
 			...projectRecord,
-			content: "Deskripsi lengkap dan peran saya.",
+			content: serializedContent,
 			demoUrl: "https://demo.example.com",
 			publishedAt: new Date("2026-07-20T00:00:00.000Z"),
 			repositoryUrl: "https://github.com/example/project",
@@ -65,7 +73,7 @@ describe("project public services", () => {
 			status: PublishStatus.PUBLISHED,
 		});
 		expect(project).toMatchObject({
-			content: "Deskripsi lengkap dan peran saya.",
+			content,
 			publishedAt: new Date("2026-07-20T00:00:00.000Z"),
 			repositoryUrl: "https://github.com/example/project",
 			tags: [{ name: "Portfolio" }],

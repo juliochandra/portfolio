@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PublishStatus } from "@/shared/publish-status";
+import type { RichTextDocument } from "@/shared/tiptap/json";
 
 const mocks = vi.hoisted(() => ({
 	createPostRecord: vi.fn(),
@@ -35,8 +36,15 @@ import {
 	updateAdminPost,
 } from "@/features/posts/posts.services";
 
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Isi tulisan", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
+
+const serializedContent = JSON.stringify(content);
+
 const input = {
-	content: "Isi tulisan",
+	content,
 	description: null,
 	status: PublishStatus.PUBLISHED,
 	tagIds: ["tag-1"],
@@ -86,7 +94,7 @@ describe("post admin services", () => {
 
 	it("returns an admin post detail with selected tag IDs", async () => {
 		mocks.findPostDetailForAdmin.mockResolvedValue({
-			content: "Isi tulisan",
+			content: serializedContent,
 			description: null,
 			id: "post-1",
 			status: PublishStatus.DRAFT,
@@ -96,7 +104,7 @@ describe("post admin services", () => {
 		});
 
 		await expect(getPostAdminById("post-1")).resolves.toEqual({
-			content: "Isi tulisan",
+			content: serializedContent,
 			description: null,
 			id: "post-1",
 			status: PublishStatus.DRAFT,
@@ -116,6 +124,7 @@ describe("post admin services", () => {
 		expect(mocks.isPostSlugAvailable).toHaveBeenCalledWith("tulisan-baru");
 		expect(mocks.createPostRecord).toHaveBeenCalledWith({
 			...input,
+			content: serializedContent,
 			publishedAt: new Date("2026-07-17T10:00:00.000Z"),
 			readingTime: 1,
 			slug: "tulisan-baru",
@@ -132,7 +141,12 @@ describe("post admin services", () => {
 
 		await updateAdminPost("post-1", {
 			...input,
-			content: Array.from({ length: 201 }, () => "kata").join(" "),
+			content: {
+				content: [
+					{ content: [{ text: Array.from({ length: 201 }, () => "kata").join(" "), type: "text" }], type: "paragraph" },
+				],
+				type: "doc",
+			},
 			status: PublishStatus.ARCHIVED,
 		});
 		expect(mocks.isPostSlugAvailable).not.toHaveBeenCalled();
