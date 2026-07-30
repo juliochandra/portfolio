@@ -27,6 +27,6 @@ describe("Contact page", () => {
 
 		expect(mocks.getContactInfoAdmin).toHaveBeenCalledOnce();
 		expect(contactPage.getByRole("heading", { name: "Contact Info" })).toBeInTheDocument();
-		expect(contactPage.getByRole("button", { name: "+ Tambah" })).toBeInTheDocument();
+		expect(contactPage.getByRole("button", { name: "Tambah Contact" })).toBeInTheDocument();
 	});
 });

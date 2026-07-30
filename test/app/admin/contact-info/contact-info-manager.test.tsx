@@ -32,21 +32,25 @@ describe("ContactInfoManager", () => {
 
 	it("shows validation errors without creating an incomplete contact", async () => {
 		const manager = render(<ContactInfoManager initialContacts={[]} />);
+		fireEvent.click(manager.getByRole("button", { name: "Tambah Contact" }));
+		const dialog = manager.getByRole("dialog", { name: "Tambah Contact Info" });
 
-		fireEvent.submit(manager.getByRole("button", { name: "+ Tambah" }).closest("form") as HTMLFormElement);
+		fireEvent.submit(within(dialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
 		await waitFor(() => {
-			expect(manager.getAllByText("Wajib diisi.")).toHaveLength(2);
+			expect(within(dialog).getAllByText("Wajib diisi.")).toHaveLength(2);
 		});
 		expect(mocks.createContactInfo).not.toHaveBeenCalled();
 	});
 
 	it("creates contact information without requiring an icon", async () => {
 		const manager = render(<ContactInfoManager initialContacts={[]} />);
-		fireEvent.change(manager.getByRole("textbox", { name: "Label" }), { target: { value: "Email" } });
-		fireEvent.change(manager.getByRole("textbox", { name: "URL" }), { target: { value: "mailto:hello@example.com" } });
+		fireEvent.click(manager.getByRole("button", { name: "Tambah Contact" }));
+		const dialog = manager.getByRole("dialog", { name: "Tambah Contact Info" });
+		fireEvent.change(within(dialog).getByRole("textbox", { name: "Label" }), { target: { value: "Email" } });
+		fireEvent.change(within(dialog).getByRole("textbox", { name: "URL" }), { target: { value: "mailto:hello@example.com" } });
 
-		fireEvent.submit(manager.getByRole("button", { name: "+ Tambah" }).closest("form") as HTMLFormElement);
+		fireEvent.submit(within(dialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
 		await waitFor(() => {
 			expect(mocks.createContactInfo).toHaveBeenCalledWith({ icon: "", label: "Email", value: "mailto:hello@example.com" });
@@ -62,12 +66,14 @@ describe("ContactInfoManager", () => {
 				media={[{ fileName: "email.png", folderId: null, id: "media-1", url: iconUrl }]}
 			/>,
 		);
-		fireEvent.change(manager.getByRole("textbox", { name: "Label" }), { target: { value: "Email" } });
-		fireEvent.change(manager.getByRole("textbox", { name: "URL" }), { target: { value: "mailto:hello@example.com" } });
+		fireEvent.click(manager.getByRole("button", { name: "Tambah Contact" }));
+		const dialog = manager.getByRole("dialog", { name: "Tambah Contact Info" });
+		fireEvent.change(within(dialog).getByRole("textbox", { name: "Label" }), { target: { value: "Email" } });
+		fireEvent.change(within(dialog).getByRole("textbox", { name: "URL" }), { target: { value: "mailto:hello@example.com" } });
 
-		fireEvent.click(manager.getByRole("button", { name: "Pilih ikon" }));
+		fireEvent.click(within(dialog).getByRole("button", { name: "Pilih ikon" }));
 		fireEvent.click(screen.getByRole("button", { name: "Pilih email.png" }));
-		fireEvent.submit(manager.getByRole("button", { name: "+ Tambah" }).closest("form") as HTMLFormElement);
+		fireEvent.submit(within(dialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
 		await waitFor(() => {
 			expect(mocks.createContactInfo).toHaveBeenCalledWith({
@@ -85,11 +91,14 @@ describe("ContactInfoManager", () => {
 			/>,
 		);
 
-		fireEvent.click(screen.getByRole("button", { name: "Ubah" }));
-		expect(manager.getByRole("textbox", { name: "Label" })).toHaveValue("Email");
+		fireEvent.click(screen.getByRole("button", { name: "Email" }));
+		const formDialog = manager.getByRole("dialog", { name: "Ubah Contact Info" });
+		expect(within(formDialog).getByRole("textbox", { name: "Label" })).toHaveValue("Email");
 
-		fireEvent.change(manager.getByRole("textbox", { name: "URL" }), { target: { value: "mailto:new@example.com" } });
-		fireEvent.submit(manager.getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
+		fireEvent.change(within(formDialog).getByRole("textbox", { name: "URL" }), {
+			target: { value: "mailto:new@example.com" },
+		});
+		fireEvent.submit(within(formDialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
 		await waitFor(() => {
 			expect(mocks.updateContactInfo).toHaveBeenCalledWith("contact-1", {
@@ -99,7 +108,9 @@ describe("ContactInfoManager", () => {
 			});
 		});
 
-		fireEvent.click(screen.getByRole("button", { name: "Hapus" }));
+		fireEvent.click(screen.getByRole("button", { name: "Email" }));
+		const deleteFormDialog = manager.getByRole("dialog", { name: "Ubah Contact Info" });
+		fireEvent.click(within(deleteFormDialog).getByRole("button", { name: "Hapus" }));
 		fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Hapus" }));
 		await waitFor(() => expect(mocks.deleteContactInfo).toHaveBeenCalledWith("contact-1"));
 	});

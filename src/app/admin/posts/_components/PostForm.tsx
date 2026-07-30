@@ -116,18 +116,6 @@ export function PostForm({ folders, media, mediaCurrentPage = 1, mediaTotalPages
 						className={inputClassName}
 					/>
 				</FormField>
-				<FormField label="Isi" required error={fields.content}>
-					<RichTextEditor
-						disabled={isSubmitting}
-						folders={folders}
-						initialContent={post ? (parseRichTextDocument(post.content) ?? emptyRichTextDocument) : emptyRichTextDocument}
-						label="Isi"
-						media={media}
-						mediaCurrentPage={mediaCurrentPage}
-						mediaTotalPages={mediaTotalPages}
-						name="content"
-					/>
-				</FormField>
 				<FormField label="Gambar Sampul" error={fields.thumbnailImage}>
 					<div>
 						<input type="hidden" name="thumbnailImage" value={thumbnailImage} />
@@ -199,6 +187,18 @@ export function PostForm({ folders, media, mediaCurrentPage = 1, mediaTotalPages
 				</FormField>
 				<FormField label="Status" error={fields.status}>
 					<StatusSelect name="status" aria-label="Status" defaultValue={post?.status} disabled={isSubmitting} />
+				</FormField>
+				<FormField label="Isi" required error={fields.content}>
+					<RichTextEditor
+						disabled={isSubmitting}
+						folders={folders}
+						initialContent={post ? (parseRichTextDocument(post.content) ?? emptyRichTextDocument) : emptyRichTextDocument}
+						label="Isi"
+						media={media}
+						mediaCurrentPage={mediaCurrentPage}
+						mediaTotalPages={mediaTotalPages}
+						name="content"
+					/>
 				</FormField>
 				<Button type="submit" isLoading={isSubmitting}>
 					Simpan

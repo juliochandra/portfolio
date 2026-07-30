@@ -142,20 +142,6 @@ export function ProjectForm({
 						rows={3}
 					/>
 				</FormField>
-				<FormField label="Deskripsi lengkap" required error={fields.content}>
-					<RichTextEditor
-						disabled={isSubmitting}
-						folders={folders}
-						initialContent={
-							project ? (parseRichTextDocument(project.content) ?? emptyRichTextDocument) : emptyRichTextDocument
-						}
-						label="Deskripsi lengkap"
-						media={media}
-						mediaCurrentPage={mediaCurrentPage}
-						mediaTotalPages={mediaTotalPages}
-						name="content"
-					/>
-				</FormField>
 				<div className="grid gap-6 sm:grid-cols-2">
 					<FormField label="Tautan demo" error={fields.demoUrl}>
 						<input
@@ -277,6 +263,20 @@ export function ProjectForm({
 				</FormField>
 				<FormField label="Status" error={fields.status}>
 					<StatusSelect aria-label="Status" defaultValue={project?.status} disabled={isSubmitting} name="status" />
+				</FormField>
+				<FormField label="Deskripsi lengkap" required error={fields.content}>
+					<RichTextEditor
+						disabled={isSubmitting}
+						folders={folders}
+						initialContent={
+							project ? (parseRichTextDocument(project.content) ?? emptyRichTextDocument) : emptyRichTextDocument
+						}
+						label="Deskripsi lengkap"
+						media={media}
+						mediaCurrentPage={mediaCurrentPage}
+						mediaTotalPages={mediaTotalPages}
+						name="content"
+					/>
 				</FormField>
 				<Button isLoading={isSubmitting} type="submit">
 					Simpan
