@@ -56,7 +56,7 @@ export function ContactLink({ icon, label, value }: ContactLinkProps) {
 			rel={isExternalLink ? "noreferrer" : undefined}
 		>
 			<ContactIcon icon={icon} />
-			<span className="font-semibold">{label}</span>
+			<span className="font-semibold capitalize">{label}</span>
 		</a>
 	);
 }

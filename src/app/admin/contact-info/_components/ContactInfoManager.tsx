@@ -175,7 +175,7 @@ export function ContactInfoManager({
 									type="button"
 								>
 									<ContactIcon icon={contact.icon} />
-									{contact.label}
+									<span className="capitalize">{contact.label}</span>
 								</button>
 							</li>
 						))}

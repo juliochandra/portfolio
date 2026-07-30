@@ -64,11 +64,13 @@ describe("contact info admin Server Actions", () => {
 		});
 	});
 
-	it("validates object input and creates contact information", async () => {
-		await expect(createContactInfo(contactInfoInput())).resolves.toEqual({ data: { id: "contact-1" } });
+	it("validates object input and creates contact information with a capitalized label", async () => {
+		await expect(createContactInfo(contactInfoInput({ label: "github profile" }))).resolves.toEqual({
+			data: { id: "contact-1" },
+		});
 		expect(mocks.createAdminContactInfo).toHaveBeenCalledWith({
 			icon: null,
-			label: "Email",
+			label: "Github Profile",
 			value: "mailto:hello@example.com",
 		});
 	});
