@@ -15,8 +15,8 @@ import {
 	type PublicContactInfo,
 	updateAdminContactInfo,
 } from "@/features/contact/contact.services";
+import { validateWithZod } from "@/lib/validation/zod";
 import { getServerSession } from "@/shared/auth/server-session";
-import { validateWithZod } from "@/shared/validation/zod";
 
 type GetContactInfoResult = { data: PublicContactInfo[] };
 

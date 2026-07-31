@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { PublicSkill } from "@/features/skills/skills.services";
+import { isImageUrl } from "@/lib/validation/is-image-url";
 import { getSkillIcon } from "@/shared/components/SkillTag";
-import { isImageUrl } from "@/shared/validation/is-image-url";
 
 export function SkillCard({ skill }: { skill: PublicSkill }) {
 	const Icon = getSkillIcon(skill.icon);

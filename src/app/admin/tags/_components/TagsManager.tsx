@@ -5,11 +5,11 @@ import { type FormEvent, useState } from "react";
 import { FaCheck, FaMagnifyingGlass, FaPlus, FaTrash, FaXmark } from "react-icons/fa6";
 import { createTag, deleteTag, updateTag } from "@/features/tags/tags.action";
 import { createTagSchema, updateTagSchema } from "@/features/tags/tags.schema";
+import { validateWithZod } from "@/lib/validation/zod";
 import { Button } from "@/shared/components/Button";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { FormField } from "@/shared/components/FormField";
 import { StatusMessage } from "@/shared/components/StatusMessage";
-import { validateWithZod } from "@/shared/validation/zod";
 
 type Tag = {
 	id: string;
