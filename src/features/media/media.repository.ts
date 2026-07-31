@@ -1,6 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { Prisma } from "@/generated/prisma/client";
-import { prisma } from "@/shared/database/prisma";
+import { prisma } from "@/lib/database/prisma";
 
 const mediaGallerySelect = {
 	createdAt: true,

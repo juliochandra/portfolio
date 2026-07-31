@@ -1,5 +1,5 @@
 import type { AuthUser } from "@/features/auth/auth.type";
-import { prisma } from "@/shared/database/prisma";
+import { prisma } from "@/lib/database/prisma";
 
 const authUserSelect = {
 	id: true,
