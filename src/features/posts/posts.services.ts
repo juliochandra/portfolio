@@ -15,6 +15,7 @@ import {
 	updatePostRecord,
 } from "@/features/posts/posts.repository";
 import type { CreatePostInput, UpdatePostInput } from "@/features/posts/posts.schema";
+import { generateUniqueSlug } from "@/lib/slug";
 import {
 	emptyRichTextDocument,
 	parseRichTextDocument,
@@ -23,7 +24,6 @@ import {
 	serializeRichTextDocument,
 } from "@/lib/tiptap/json";
 import { PublishStatus, toPublishStatus } from "@/shared/publish-status";
-import { generateUniqueSlug } from "@/shared/slug";
 
 export type PublicPostListItem = {
 	description: string | null;

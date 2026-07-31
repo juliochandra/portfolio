@@ -8,7 +8,7 @@ import {
 	updateTagRecord,
 } from "@/features/tags/tags.repository";
 import type { CreateTagInput, UpdateTagInput } from "@/features/tags/tags.schema";
-import { generateUniqueSlug } from "@/shared/slug";
+import { generateUniqueSlug } from "@/lib/slug";
 
 export type AdminTagMutationResult = { id: string } | "name_taken" | null;
 

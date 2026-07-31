@@ -10,7 +10,7 @@ import {
 	updateSkillRecord,
 } from "@/features/skills/skills.repository";
 import type { CreateSkillInput, UpdateSkillInput } from "@/features/skills/skills.schema";
-import { generateUniqueSlug } from "@/shared/slug";
+import { generateUniqueSlug } from "@/lib/slug";
 
 export type PublicSkill = {
 	icon: string | null;
