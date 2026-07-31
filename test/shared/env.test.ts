@@ -22,13 +22,13 @@ describe("env", () => {
 
 	it("parses a valid env", async () => {
 		Object.assign(process.env, validEnv);
-		const { env } = await import("@/shared/env");
+		const { env } = await import("@/lib/env");
 		expect(env).toMatchObject(validEnv);
 	});
 
 	it.each(Object.keys(validEnv) as (keyof typeof validEnv)[])("throws when %s is missing", async (name) => {
 		Object.assign(process.env, validEnv);
 		delete process.env[name];
-		await expect(import("@/shared/env")).rejects.toThrow();
+		await expect(import("@/lib/env")).rejects.toThrow();
 	});
 });
