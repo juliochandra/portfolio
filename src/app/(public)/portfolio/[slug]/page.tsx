@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { CiExport } from "react-icons/ci";
 import { SiGithub } from "react-icons/si";
 import { getProjectBySlug } from "@/features/projects/projects.action";
+import { renderRichTextDocument } from "@/lib/tiptap/render";
 import { BackLink } from "@/shared/components/BackLink";
 import { Section } from "@/shared/components/Section";
 import { SkillTag } from "@/shared/components/SkillTag";
-import { renderRichTextDocument } from "@/shared/tiptap/render";
 
 type ProjectDetailPageProps = {
 	params: Promise<{ slug: string }>;

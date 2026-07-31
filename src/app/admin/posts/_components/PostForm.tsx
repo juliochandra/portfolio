@@ -5,6 +5,7 @@ import { type FormEvent, useState } from "react";
 import { FaImage } from "react-icons/fa";
 import { createPost, updatePost } from "@/features/posts/posts.action";
 import { createPostSchema, postFormDataToInput, updatePostSchema } from "@/features/posts/posts.schema";
+import { emptyRichTextDocument, parseRichTextDocument } from "@/lib/tiptap/json";
 import { validateWithZod } from "@/lib/validation/zod";
 import { BackLink } from "@/shared/components/BackLink";
 import { Button } from "@/shared/components/Button";
@@ -14,7 +15,6 @@ import { RichTextEditor } from "@/shared/components/RichTextEditor";
 import { StatusMessage } from "@/shared/components/StatusMessage";
 import { StatusSelect } from "@/shared/components/StatusSelect";
 import type { PublishStatus } from "@/shared/publish-status";
-import { emptyRichTextDocument, parseRichTextDocument } from "@/shared/tiptap/json";
 
 type PostFormPost = {
 	content: string;

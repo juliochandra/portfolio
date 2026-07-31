@@ -11,7 +11,7 @@ vi.mock("@/features/projects/projects.services", () => ({
 }));
 
 import { getProjectBySlug, getProjects } from "@/features/projects/projects.action";
-import type { RichTextDocument } from "@/shared/tiptap/json";
+import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const content: RichTextDocument = {
 	content: [{ content: [{ text: "Deskripsi lengkap dan peran saya.", type: "text" }], type: "paragraph" }],

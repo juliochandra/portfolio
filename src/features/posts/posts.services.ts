@@ -15,15 +15,15 @@ import {
 	updatePostRecord,
 } from "@/features/posts/posts.repository";
 import type { CreatePostInput, UpdatePostInput } from "@/features/posts/posts.schema";
-import { PublishStatus, toPublishStatus } from "@/shared/publish-status";
-import { generateUniqueSlug } from "@/shared/slug";
 import {
 	emptyRichTextDocument,
 	parseRichTextDocument,
 	type RichTextDocument,
 	richTextDocumentToPlainText,
 	serializeRichTextDocument,
-} from "@/shared/tiptap/json";
+} from "@/lib/tiptap/json";
+import { PublishStatus, toPublishStatus } from "@/shared/publish-status";
+import { generateUniqueSlug } from "@/shared/slug";
 
 export type PublicPostListItem = {
 	description: string | null;

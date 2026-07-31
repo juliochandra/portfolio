@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({ notFound: mocks.notFound }));
 vi.mock("@/features/posts/posts.action", () => ({ getPostBySlug: mocks.getPostBySlug }));
 
 import PostDetailPage from "@/app/(public)/blog/[slug]/page";
-import type { RichTextDocument } from "@/shared/tiptap/json";
+import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const content: RichTextDocument = {
 	content: [{ content: [{ text: "Isi lengkap tulisan contoh.", type: "text" }], type: "paragraph" }],
