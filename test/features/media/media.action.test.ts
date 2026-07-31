@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
 	getServerSession: vi.fn(),
 	uploadAdminMedia: vi.fn(),
 }));
-vi.mock("@/shared/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
+vi.mock("@/lib/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
 vi.mock("@/features/media/media.services", () => ({
 	createAdminMediaFolder: mocks.createAdminMediaFolder,
 	deleteAdminMedia: mocks.deleteAdminMedia,

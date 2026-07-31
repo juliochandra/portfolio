@@ -15,8 +15,8 @@ import {
 	getMediaGalleryPage as getGalleryPage,
 	uploadAdminMedia,
 } from "@/features/media/media.services";
+import { getServerSession } from "@/lib/auth/server-session";
 import { validateWithZod } from "@/lib/validation/zod";
-import { getServerSession } from "@/shared/auth/server-session";
 
 const MEDIA_NOT_FOUND_MESSAGE = "Media tidak ditemukan.";
 const MEDIA_UPLOAD_FAILED_MESSAGE = "Gagal mengunggah gambar. Coba lagi.";

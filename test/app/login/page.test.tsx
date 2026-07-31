@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/features/auth/auth.action", () => ({ login: vi.fn() }));
-vi.mock("@/shared/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
+vi.mock("@/lib/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect, useRouter: () => ({ replace: vi.fn() }) }));
 
 import LoginPage from "@/app/login/page";

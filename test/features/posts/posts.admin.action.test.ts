@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => ({
 	updateAdminPost: vi.fn(),
 }));
 
-vi.mock("@/shared/auth/server-session", () => ({
+vi.mock("@/lib/auth/server-session", () => ({
 	getServerSession: mocks.getServerSession,
 }));
 vi.mock("@/features/posts/posts.services", () => ({

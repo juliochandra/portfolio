@@ -12,8 +12,8 @@ import {
 	type SentMessage,
 	unarchiveAdminMessage,
 } from "@/features/messages/messages.services";
+import { getServerSession } from "@/lib/auth/server-session";
 import { validateWithZod } from "@/lib/validation/zod";
-import { getServerSession } from "@/shared/auth/server-session";
 
 type SendMessageResult = { data: SentMessage } | { error: { fields: Record<string, string> } };
 

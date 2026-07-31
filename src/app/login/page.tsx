@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/app/login/_components/LoginForm";
-import { getServerSession } from "@/shared/auth/server-session";
+import { getServerSession } from "@/lib/auth/server-session";
 
 export default async function LoginPage() {
 	if (await getServerSession()) {
