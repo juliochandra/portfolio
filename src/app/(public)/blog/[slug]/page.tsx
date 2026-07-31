@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { PostNav } from "@/app/(public)/blog/[slug]/_components/PostNav";
 import { ShareLinks } from "@/app/(public)/blog/[slug]/_components/ShareLinks";
 import { getPostBySlug } from "@/features/posts/posts.action";
+import { renderRichTextDocument } from "@/lib/tiptap/render";
 import { BackLink } from "@/shared/components/BackLink";
 import { Section } from "@/shared/components/Section";
 import { SkillTag } from "@/shared/components/SkillTag";
-import { renderRichTextDocument } from "@/shared/tiptap/render";
 
 type PostDetailPageProps = {
 	params: Promise<{ slug: string }>;

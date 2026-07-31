@@ -1,6 +1,6 @@
 import { z } from "zod";
+import { emptyRichTextDocument, hasRichTextContent, parseRichTextDocument } from "@/lib/tiptap/json";
 import { publishStatuses } from "@/shared/publish-status";
-import { emptyRichTextDocument, hasRichTextContent, parseRichTextDocument } from "@/shared/tiptap/json";
 
 export const getPostsParamsSchema = z
 	.object({

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { RichTextDocument } from "@/lib/tiptap/json";
 import { PublishStatus } from "@/shared/publish-status";
-import type { RichTextDocument } from "@/shared/tiptap/json";
 
 const mocks = vi.hoisted(() => ({
 	createPostRecord: vi.fn(),

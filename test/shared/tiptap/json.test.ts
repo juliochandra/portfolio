@@ -5,8 +5,8 @@ import {
 	type RichTextDocument,
 	richTextDocumentToPlainText,
 	serializeRichTextDocument,
-} from "@/shared/tiptap/json";
-import { renderRichTextDocument } from "@/shared/tiptap/render";
+} from "@/lib/tiptap/json";
+import { renderRichTextDocument } from "@/lib/tiptap/render";
 
 const document: RichTextDocument = {
 	content: [

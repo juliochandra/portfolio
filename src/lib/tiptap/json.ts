@@ -1,5 +1,5 @@
 import { generateText, type JSONContent } from "@tiptap/core";
-import { createRichTextExtensions } from "@/shared/tiptap/extensions";
+import { createRichTextExtensions } from "@/lib/tiptap/extensions";
 
 export type RichTextDocument = JSONContent & {
 	content: JSONContent[];
