@@ -1,15 +1,11 @@
 import { findUserById, findUserByUsername, updateUserPassword } from "@/features/auth/auth.repository";
-import type { LoginInput } from "@/features/auth/auth.schema";
+import type {
+	AuthenticatedUser,
+	ChangeUserPasswordInput,
+	ChangeUserPasswordResult,
+	LoginInput,
+} from "@/features/auth/auth.type";
 import { comparePassword, hashPassword } from "@/shared/auth/password";
-
-export type AuthenticatedUser = {
-	id: string;
-	username: string;
-};
-
-export type ChangeUserPasswordResult =
-	| { success: true }
-	| { reason: "OLD_PASSWORD_MISMATCH" | "USER_NOT_FOUND"; success: false };
 
 export async function authenticateUser(input: LoginInput): Promise<AuthenticatedUser | null> {
 	const user = await findUserByUsername(input.username);
@@ -20,11 +16,7 @@ export async function authenticateUser(input: LoginInput): Promise<Authenticated
 	return { id: user.id, username: user.username };
 }
 
-export async function changeUserPassword(input: {
-	newPassword: string;
-	oldPassword: string;
-	userId: string;
-}): Promise<ChangeUserPasswordResult> {
+export async function changeUserPassword(input: ChangeUserPasswordInput): Promise<ChangeUserPasswordResult> {
 	const user = await findUserById(input.userId);
 	if (!user) {
 		return { reason: "USER_NOT_FOUND", success: false };

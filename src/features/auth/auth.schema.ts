@@ -7,8 +7,6 @@ export const loginSchema = z.object({
 	username: z.string().trim().min(1, "Wajib diisi."),
 });
 
-export type LoginInput = z.infer<typeof loginSchema>;
-
 export const changePasswordSchema = z
 	.object({
 		confirmPassword: requiredPassword,
@@ -20,5 +18,3 @@ export const changePasswordSchema = z
 		// biome-ignore lint/nursery/noSecrets: field name, not a credential
 		path: ["confirmPassword"],
 	});
-
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
