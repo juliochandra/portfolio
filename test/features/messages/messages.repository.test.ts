@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
 	create: vi.fn(),
 }));
 
-vi.mock("@/shared/database/prisma", () => ({
+vi.mock("@/lib/database/prisma", () => ({
 	prisma: {
 		message: {
 			create: mocks.create,

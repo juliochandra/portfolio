@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
 	findMany: vi.fn(),
 }));
 
-vi.mock("@/shared/database/prisma", () => ({
+vi.mock("@/lib/database/prisma", () => ({
 	prisma: {
 		post: {
 			findFirst: mocks.findFirst,

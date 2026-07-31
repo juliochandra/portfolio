@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
 	tagCount: vi.fn(),
 }));
 
-vi.mock("@/shared/database/prisma", () => ({
+vi.mock("@/lib/database/prisma", () => ({
 	prisma: {
 		post: { count: mocks.postCount, findMany: mocks.postFindMany },
 		project: { count: mocks.projectCount, findMany: mocks.projectFindMany },
