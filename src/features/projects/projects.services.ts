@@ -13,6 +13,7 @@ import {
 	updateProjectRecord,
 } from "@/features/projects/projects.repository";
 import type { CreateProjectInput, UpdateProjectInput } from "@/features/projects/projects.schema";
+import { generateUniqueSlug } from "@/lib/slug";
 import {
 	emptyRichTextDocument,
 	parseRichTextDocument,
@@ -20,7 +21,6 @@ import {
 	serializeRichTextDocument,
 } from "@/lib/tiptap/json";
 import { PublishStatus, toPublishStatus } from "@/shared/publish-status";
-import { generateUniqueSlug } from "@/shared/slug";
 
 export type ProjectSkill = {
 	icon: string;

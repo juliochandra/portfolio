@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { generateUniqueSlug, slugify } from "@/shared/slug";
+import { generateUniqueSlug, slugify } from "@/lib/slug";
 
 describe("slug helpers", () => {
 	it("normalizes whitespace, punctuation, and diacritics", () => {
