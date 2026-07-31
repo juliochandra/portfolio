@@ -24,8 +24,8 @@ import {
 	type PublicProjectListItem,
 	updateAdminProject,
 } from "@/features/projects/projects.services";
+import { validateWithZod } from "@/lib/validation/zod";
 import { getServerSession } from "@/shared/auth/server-session";
-import { validateWithZod } from "@/shared/validation/zod";
 
 const INVALID_PROJECT_PARAMS_MESSAGE = "Parameter project tidak valid.";
 const PROJECT_NOT_FOUND_MESSAGE = "Project tidak ditemukan.";

@@ -15,8 +15,8 @@ import {
 	type PublicSkill,
 	updateAdminSkill,
 } from "@/features/skills/skills.services";
+import { validateWithZod } from "@/lib/validation/zod";
 import { getServerSession } from "@/shared/auth/server-session";
-import { validateWithZod } from "@/shared/validation/zod";
 
 type GetSkillsResult = { data: PublicSkill[] };
 

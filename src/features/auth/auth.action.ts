@@ -9,8 +9,8 @@ import type {
 	LoginResult,
 	LogoutResult,
 } from "@/features/auth/auth.type";
+import { validateWithZod } from "@/lib/validation/zod";
 import { clearServerSession, getServerSession, setServerSession } from "@/shared/auth/server-session";
-import { validateWithZod } from "@/shared/validation/zod";
 
 const INVALID_CREDENTIALS_MESSAGE = "Username atau kata sandi salah.";
 const UNAUTHORIZED = { error: { message: "UNAUTHORIZED" } } as const;

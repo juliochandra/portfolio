@@ -23,8 +23,8 @@ import {
 	type PublicPostListItem,
 	updateAdminPost,
 } from "@/features/posts/posts.services";
+import { validateWithZod } from "@/lib/validation/zod";
 import { getServerSession } from "@/shared/auth/server-session";
-import { validateWithZod } from "@/shared/validation/zod";
 
 const INVALID_POST_PARAMS_MESSAGE = "Parameter tulisan tidak valid.";
 const POST_NOT_FOUND_MESSAGE = "Tulisan tidak ditemukan.";

@@ -13,7 +13,7 @@ import {
 	SiTailwindcss,
 	SiTypescript,
 } from "react-icons/si";
-import { isImageUrl } from "@/shared/validation/is-image-url";
+import { isImageUrl } from "@/lib/validation/is-image-url";
 
 const skillIcons: Record<string, IconType> = {
 	docker: SiDocker,

@@ -4,10 +4,10 @@ import { type FormEvent, useRef, useState } from "react";
 import { FaLock, FaPaperPlane } from "react-icons/fa";
 import { sendMessage } from "@/features/messages/messages.action";
 import { sendMessageSchema } from "@/features/messages/messages.schema";
+import { validateWithZod } from "@/lib/validation/zod";
 import { Button } from "@/shared/components/Button";
 import { FormField } from "@/shared/components/FormField";
 import { StatusMessage } from "@/shared/components/StatusMessage";
-import { validateWithZod } from "@/shared/validation/zod";
 
 type FormErrors = Record<string, string>;
 

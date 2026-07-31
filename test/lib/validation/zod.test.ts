@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { validateWithZod } from "@/shared/validation/zod";
+import { validateWithZod } from "@/lib/validation/zod";
 
 // biome-ignore lint/nursery/noSecrets: helper name, not a credential
 describe("validateWithZod", () => {

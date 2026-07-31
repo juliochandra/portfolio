@@ -5,6 +5,8 @@ import { type FormEvent, useState } from "react";
 import { FaImage } from "react-icons/fa";
 import { createProject, updateProject } from "@/features/projects/projects.action";
 import { createProjectSchema, projectFormDataToInput, updateProjectSchema } from "@/features/projects/projects.schema";
+import { isImageUrl } from "@/lib/validation/is-image-url";
+import { validateWithZod } from "@/lib/validation/zod";
 import { BackLink } from "@/shared/components/BackLink";
 import { Button } from "@/shared/components/Button";
 import { FormField } from "@/shared/components/FormField";
@@ -15,8 +17,6 @@ import { StatusMessage } from "@/shared/components/StatusMessage";
 import { StatusSelect } from "@/shared/components/StatusSelect";
 import type { PublishStatus } from "@/shared/publish-status";
 import { emptyRichTextDocument, parseRichTextDocument } from "@/shared/tiptap/json";
-import { isImageUrl } from "@/shared/validation/is-image-url";
-import { validateWithZod } from "@/shared/validation/zod";
 
 type ProjectFormProject = {
 	content: string;

@@ -5,10 +5,10 @@ import { type FormEvent, useState } from "react";
 import { FaEye, FaEyeSlash, FaLock, FaUser } from "react-icons/fa";
 import { login } from "@/features/auth/auth.action";
 import { loginSchema } from "@/features/auth/auth.schema";
+import { validateWithZod } from "@/lib/validation/zod";
 import { Button } from "@/shared/components/Button";
 import { FormField } from "@/shared/components/FormField";
 import { StatusMessage } from "@/shared/components/StatusMessage";
-import { validateWithZod } from "@/shared/validation/zod";
 
 const INVALID_CREDENTIALS_MESSAGE = "Data masuk keliru. Periksa kembali.";
 const TEMPORARY_ADMIN_USERNAME = "admin";

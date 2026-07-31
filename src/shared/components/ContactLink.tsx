@@ -2,7 +2,7 @@ import type { IconType } from "react-icons";
 import { CiAt, CiLink } from "react-icons/ci";
 import { FaLinkedin } from "react-icons/fa";
 import { SiGithub, SiX } from "react-icons/si";
-import { isImageUrl } from "@/shared/validation/is-image-url";
+import { isImageUrl } from "@/lib/validation/is-image-url";
 
 type ContactLinkProps = {
 	icon: string | null;
