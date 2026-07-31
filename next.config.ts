@@ -8,7 +8,7 @@ type WebpackExternalRequest = {
 
 type WebpackExternalCallback = (error?: Error | null, result?: string) => void;
 
-const PRISMA_QUERY_COMPILER_REQUEST = "query_compiler_fast_bg.wasm?module";
+const PRISMA_QUERY_COMPILER_REQUEST = "query_compiler_small_bg.wasm?module";
 const PRISMA_QUERY_COMPILER_PATH = resolve(process.cwd(), `src/generated/prisma/internal/${PRISMA_QUERY_COMPILER_REQUEST}`);
 
 if (process.env.NODE_ENV === "development") {

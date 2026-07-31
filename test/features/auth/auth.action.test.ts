@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/shared/auth/cookies";
-import { createSessionTokens } from "@/shared/auth/session";
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/auth/cookies";
+import { createSessionTokens } from "@/lib/auth/session";
 
 const mocks = vi.hoisted(() => ({
 	authenticateUser: vi.fn(),

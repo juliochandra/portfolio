@@ -6,6 +6,9 @@ const REQUIRED_MESSAGE = "Wajib diisi.";
 
 const requiredText = (maxLength: number) => z.string().trim().min(1, REQUIRED_MESSAGE).max(maxLength);
 
+const contactLabel = (maxLength: number) =>
+	requiredText(maxLength).transform((value) => value.replaceAll(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase("id-ID")));
+
 const optionalText = (maxLength: number) =>
 	z
 		.string()
@@ -18,7 +21,7 @@ const requiredUrl = (maxLength: number) => z.string().trim().min(1, REQUIRED_MES
 
 const contactInfoInputSchema = z.object({
 	icon: optionalText(100),
-	label: requiredText(100),
+	label: contactLabel(100),
 	value: requiredUrl(255),
 });
 

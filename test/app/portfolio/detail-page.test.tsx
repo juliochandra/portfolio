@@ -11,9 +11,15 @@ vi.mock("next/navigation", () => ({ notFound: mocks.notFound }));
 vi.mock("@/features/projects/projects.action", () => ({ getProjectBySlug: mocks.getProjectBySlug }));
 
 import ProjectDetailPage from "@/app/(public)/portfolio/[slug]/page";
+import type { RichTextDocument } from "@/lib/tiptap/json";
+
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Project ini dibangun untuk pengguna.", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
 
 const project = {
-	content: "## Key Features\n\nProject ini dibangun untuk pengguna.",
+	content,
 	demoUrl: "https://demo.example.com",
 	description: "Gambaran project contoh.",
 	id: "project-1",

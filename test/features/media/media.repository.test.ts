@@ -10,7 +10,7 @@ vi.mock("@opennextjs/cloudflare", () => ({
 	getCloudflareContext: mocks.getCloudflareContext,
 }));
 
-vi.mock("@/shared/database/prisma", () => ({ prisma: {} }));
+vi.mock("@/lib/database/prisma", () => ({ prisma: {} }));
 
 import { deleteMediaObject, uploadMediaObject } from "@/features/media/media.repository";
 

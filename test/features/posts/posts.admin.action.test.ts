@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { RichTextDocument } from "@/lib/tiptap/json";
 import { PublishStatus } from "@/shared/publish-status";
+
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Isi tulisan", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
+
+const serializedContent = JSON.stringify(content);
 
 const mocks = vi.hoisted(() => ({
 	createAdminPost: vi.fn(),
@@ -11,7 +19,7 @@ const mocks = vi.hoisted(() => ({
 	updateAdminPost: vi.fn(),
 }));
 
-vi.mock("@/shared/auth/server-session", () => ({
+vi.mock("@/lib/auth/server-session", () => ({
 	getServerSession: mocks.getServerSession,
 }));
 vi.mock("@/features/posts/posts.services", () => ({
@@ -36,7 +44,7 @@ import {
 
 function postInput(values: Record<string, unknown> = {}): Record<string, unknown> {
 	return {
-		content: "Isi tulisan",
+		content: serializedContent,
 		status: PublishStatus.DRAFT,
 		title: "Tulisan Baru",
 		...values,
@@ -50,7 +58,7 @@ describe("post admin Server Actions", () => {
 		mocks.getPostsAdmin.mockResolvedValue([]);
 		mocks.getPostsAdminPage.mockResolvedValue({ currentPage: 1, posts: [], totalPages: 1 });
 		mocks.getPostAdminById.mockResolvedValue({
-			content: "Isi tulisan",
+			content: serializedContent,
 			description: null,
 			id: "post-1",
 			status: PublishStatus.DRAFT,
@@ -101,11 +109,11 @@ describe("post admin Server Actions", () => {
 	});
 
 	it("validates an object input and creates a draft by default", async () => {
-		await expect(createPost({ content: "Isi tulisan", title: "Tulisan Baru" })).resolves.toEqual({
+		await expect(createPost({ content: serializedContent, title: "Tulisan Baru" })).resolves.toEqual({
 			data: { id: "post-1", slug: "tulisan-baru" },
 		});
 		expect(mocks.createAdminPost).toHaveBeenCalledWith({
-			content: "Isi tulisan",
+			content,
 			description: null,
 			status: PublishStatus.DRAFT,
 			tagIds: [],
@@ -120,6 +128,20 @@ describe("post admin Server Actions", () => {
 		expect(result).toEqual({
 			error: { fields: { content: "Wajib diisi.", title: "Wajib diisi." } },
 		});
+		expect(mocks.createAdminPost).not.toHaveBeenCalled();
+	});
+
+	it("rejects content that is not a Tiptap JSON document", async () => {
+		const result = await createPost(postInput({ content: "<p>Isi lama</p>" }));
+
+		expect(result).toEqual({ error: { fields: { content: "Wajib diisi." } } });
+		expect(mocks.createAdminPost).not.toHaveBeenCalled();
+	});
+
+	it("rejects a JSON document with an unsupported node", async () => {
+		const result = await createPost(postInput({ content: '{"type":"doc","content":[{"type":"script"}]}' }));
+
+		expect(result).toEqual({ error: { fields: { content: "Wajib diisi." } } });
 		expect(mocks.createAdminPost).not.toHaveBeenCalled();
 	});
 

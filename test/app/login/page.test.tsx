@@ -1,14 +1,33 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+	getServerSession: vi.fn(),
+	redirect: vi.fn(),
+}));
 
 vi.mock("@/features/auth/auth.action", () => ({ login: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn() }) }));
+vi.mock("@/lib/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
+vi.mock("next/navigation", () => ({ redirect: mocks.redirect, useRouter: () => ({ replace: vi.fn() }) }));
 
 import LoginPage from "@/app/login/page";
 
 describe("Login page", () => {
-	it("renders the standalone dashboard login screen", () => {
-		const loginPage = render(<LoginPage />);
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("redirects an authenticated visitor to the admin dashboard", async () => {
+		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
+
+		await LoginPage();
+
+		expect(mocks.redirect).toHaveBeenCalledWith("/admin");
+	});
+
+	it("renders the standalone dashboard login screen for an unauthenticated visitor", async () => {
+		mocks.getServerSession.mockResolvedValue(null);
+		const loginPage = render(await LoginPage());
 
 		expect(loginPage.getByText("Personal Dashboard")).toBeInTheDocument();
 		expect(loginPage.getByRole("heading", { name: "Login" })).toBeInTheDocument();

@@ -15,9 +15,15 @@ import {
 	updatePostRecord,
 } from "@/features/posts/posts.repository";
 import type { CreatePostInput, UpdatePostInput } from "@/features/posts/posts.schema";
+import { generateUniqueSlug } from "@/lib/slug";
+import {
+	emptyRichTextDocument,
+	parseRichTextDocument,
+	type RichTextDocument,
+	richTextDocumentToPlainText,
+	serializeRichTextDocument,
+} from "@/lib/tiptap/json";
 import { PublishStatus, toPublishStatus } from "@/shared/publish-status";
-import { richTextToPlainText, sanitizeRichText } from "@/shared/rich-text";
-import { generateUniqueSlug } from "@/shared/slug";
 
 export type PublicPostListItem = {
 	description: string | null;
@@ -31,7 +37,7 @@ export type PublicPostListItem = {
 };
 
 export type PublicPostDetail = PublicPostListItem & {
-	content: string;
+	content: RichTextDocument;
 	nextPost: PublicPostNavigationItem | null;
 	prevPost: PublicPostNavigationItem | null;
 };
@@ -88,7 +94,7 @@ function toPublicPostDetail(
 ): PublicPostDetail {
 	return {
 		...toPublicPostListItem(post),
-		content: post.content,
+		content: parseRichTextDocument(post.content) ?? emptyRichTextDocument,
 		nextPost,
 		prevPost: previousPost,
 	};
@@ -174,13 +180,13 @@ export function calculateReadingTime(content: string): number {
 export async function createAdminPost(input: CreatePostInput): Promise<{ id: string; slug: string }> {
 	const slug = await generateUniqueSlug(input.title, isPostSlugAvailable);
 	const publishedAt = input.status === PublishStatus.PUBLISHED ? new Date() : null;
-	const content = sanitizeRichText(input.content);
+	const content = serializeRichTextDocument(input.content);
 
 	return createPostRecord({
 		...input,
 		content,
 		publishedAt,
-		readingTime: calculateReadingTime(richTextToPlainText(content)),
+		readingTime: calculateReadingTime(richTextDocumentToPlainText(input.content)),
 		slug,
 	});
 }
@@ -196,13 +202,13 @@ export async function updateAdminPost(id: string, input: UpdatePostInput): Promi
 			? existing.slug
 			: await generateUniqueSlug(input.title, (candidate) => isPostSlugAvailable(candidate, id));
 	const publishedAt = existing.publishedAt ?? (input.status === PublishStatus.PUBLISHED ? new Date() : null);
-	const content = sanitizeRichText(input.content);
+	const content = serializeRichTextDocument(input.content);
 
 	return updatePostRecord(id, {
 		...input,
 		content,
 		publishedAt,
-		readingTime: calculateReadingTime(richTextToPlainText(content)),
+		readingTime: calculateReadingTime(richTextDocumentToPlainText(input.content)),
 		slug,
 	});
 }

@@ -5,6 +5,8 @@ import { type FormEvent, useState } from "react";
 import { FaImage } from "react-icons/fa";
 import { createPost, updatePost } from "@/features/posts/posts.action";
 import { createPostSchema, postFormDataToInput, updatePostSchema } from "@/features/posts/posts.schema";
+import { emptyRichTextDocument, parseRichTextDocument } from "@/lib/tiptap/json";
+import { validateWithZod } from "@/lib/validation/zod";
 import { BackLink } from "@/shared/components/BackLink";
 import { Button } from "@/shared/components/Button";
 import { FormField } from "@/shared/components/FormField";
@@ -13,7 +15,6 @@ import { RichTextEditor } from "@/shared/components/RichTextEditor";
 import { StatusMessage } from "@/shared/components/StatusMessage";
 import { StatusSelect } from "@/shared/components/StatusSelect";
 import type { PublishStatus } from "@/shared/publish-status";
-import { validateWithZod } from "@/shared/validation/zod";
 
 type PostFormPost = {
 	content: string;
@@ -115,18 +116,6 @@ export function PostForm({ folders, media, mediaCurrentPage = 1, mediaTotalPages
 						className={inputClassName}
 					/>
 				</FormField>
-				<FormField label="Isi" required error={fields.content}>
-					<RichTextEditor
-						disabled={isSubmitting}
-						folders={folders}
-						initialContent={post?.content ?? ""}
-						label="Isi"
-						media={media}
-						mediaCurrentPage={mediaCurrentPage}
-						mediaTotalPages={mediaTotalPages}
-						name="content"
-					/>
-				</FormField>
 				<FormField label="Gambar Sampul" error={fields.thumbnailImage}>
 					<div>
 						<input type="hidden" name="thumbnailImage" value={thumbnailImage} />
@@ -198,6 +187,18 @@ export function PostForm({ folders, media, mediaCurrentPage = 1, mediaTotalPages
 				</FormField>
 				<FormField label="Status" error={fields.status}>
 					<StatusSelect name="status" aria-label="Status" defaultValue={post?.status} disabled={isSubmitting} />
+				</FormField>
+				<FormField label="Isi" required error={fields.content}>
+					<RichTextEditor
+						disabled={isSubmitting}
+						folders={folders}
+						initialContent={post ? (parseRichTextDocument(post.content) ?? emptyRichTextDocument) : emptyRichTextDocument}
+						label="Isi"
+						media={media}
+						mediaCurrentPage={mediaCurrentPage}
+						mediaTotalPages={mediaTotalPages}
+						name="content"
+					/>
 				</FormField>
 				<Button type="submit" isLoading={isSubmitting}>
 					Simpan

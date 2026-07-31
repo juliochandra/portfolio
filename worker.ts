@@ -1,7 +1,6 @@
 import { PrismaD1 } from "@prisma/adapter-d1";
 import { reconcileMediaStorage } from "@/features/media/media.reconcile";
 import { PrismaClient } from "@/generated/prisma/client";
-// @ts-expect-error `.open-next/worker.js` is generated at build time
 import { default as handler } from "./.open-next/worker.js";
 
 function redirectWwwToRootDomain(request: Request): Response | null {

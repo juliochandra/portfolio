@@ -1,10 +1,5 @@
-import { prisma } from "@/shared/database/prisma";
-
-export type AuthUser = {
-	id: string;
-	passwordHash: string;
-	username: string;
-};
+import type { AuthUser } from "@/features/auth/auth.type";
+import { prisma } from "@/lib/database/prisma";
 
 const authUserSelect = {
 	id: true,

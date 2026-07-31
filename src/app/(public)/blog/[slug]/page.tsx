@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { PostNav } from "@/app/(public)/blog/[slug]/_components/PostNav";
 import { ShareLinks } from "@/app/(public)/blog/[slug]/_components/ShareLinks";
 import { getPostBySlug } from "@/features/posts/posts.action";
+import { renderRichTextDocument } from "@/lib/tiptap/render";
 import { BackLink } from "@/shared/components/BackLink";
 import { Section } from "@/shared/components/Section";
 import { SkillTag } from "@/shared/components/SkillTag";
-import { sanitizeRichText } from "@/shared/rich-text";
 
 type PostDetailPageProps = {
 	params: Promise<{ slug: string }>;
@@ -64,8 +64,8 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 			<article className="mt-12 w-full text-text-mute leading-8">
 				<div
 					className="w-full whitespace-pre-wrap [&_a]:text-accent [&_a]:underline [&_blockquote]:my-6 [&_blockquote]:border-accent [&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-surface [&_code]:px-1.5 [&_h1]:mt-10 [&_h1]:font-bold [&_h1]:text-4xl [&_h2]:mt-8 [&_h2]:font-bold [&_h2]:text-3xl [&_h3]:mt-6 [&_h3]:font-bold [&_h3]:text-2xl [&_h4]:mt-5 [&_h4]:font-bold [&_h4]:text-xl [&_h5]:mt-4 [&_h5]:font-bold [&_h5]:text-lg [&_hr]:my-8 [&_img]:mx-auto [&_img]:my-6 [&_img]:block [&_img]:max-w-full [&_img]:rounded-xl [&_mark]:rounded [&_mark]:px-1 [&_ol]:my-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-5 [&_pre]:my-6 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-surface [&_pre]:p-4 [&_ul]:my-5 [&_ul]:list-disc [&_ul]:pl-6"
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized by sanitizeRichText before rendering.
-					dangerouslySetInnerHTML={{ __html: sanitizeRichText(post.content) }}
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is generated from Tiptap JSON and sanitized before rendering.
+					dangerouslySetInnerHTML={{ __html: renderRichTextDocument(post.content) }}
 				/>
 			</article>
 			<PostNav prevPost={post.prevPost} nextPost={post.nextPost} />

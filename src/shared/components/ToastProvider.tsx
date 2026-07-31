@@ -5,6 +5,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 export function ToastProvider() {
 	return (
-		<ToastContainer autoClose={5000} closeOnClick draggable newestOnTop pauseOnFocusLoss pauseOnHover position="top-right" />
+		<ToastContainer autoClose={5000} closeOnClick draggable newestOnTop pauseOnFocusLoss pauseOnHover position="top-center" />
 	);
 }

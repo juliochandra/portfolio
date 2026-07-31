@@ -11,6 +11,12 @@ vi.mock("@/features/projects/projects.services", () => ({
 }));
 
 import { getProjectBySlug, getProjects } from "@/features/projects/projects.action";
+import type { RichTextDocument } from "@/lib/tiptap/json";
+
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Deskripsi lengkap dan peran saya.", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
 
 const projectListItem = {
 	demoUrl: "https://demo.example.com",
@@ -25,7 +31,7 @@ const projectListItem = {
 
 const projectDetail = {
 	...projectListItem,
-	content: "Deskripsi lengkap dan peran saya.",
+	content,
 	demoUrl: "https://demo.example.com",
 	publishedAt: new Date("2026-07-20T00:00:00.000Z"),
 	repositoryUrl: null,

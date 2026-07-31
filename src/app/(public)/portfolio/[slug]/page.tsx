@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CiExport } from "react-icons/ci";
 import { SiGithub } from "react-icons/si";
 import { getProjectBySlug } from "@/features/projects/projects.action";
+import { renderRichTextDocument } from "@/lib/tiptap/render";
 import { BackLink } from "@/shared/components/BackLink";
 import { Section } from "@/shared/components/Section";
 import { SkillTag } from "@/shared/components/SkillTag";
@@ -73,7 +74,11 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
 				<h2 id="project-overview-title" className="font-bold text-2xl tracking-tight">
 					Overview
 				</h2>
-				<div className="mt-5 whitespace-pre-wrap text-text-mute leading-8">{project.content}</div>
+				<div
+					className="mt-5 text-text-mute leading-8 [&_a]:text-accent [&_a]:underline [&_blockquote]:my-6 [&_blockquote]:border-accent [&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-surface [&_code]:px-1.5 [&_h1]:mt-10 [&_h1]:font-bold [&_h1]:text-4xl [&_h2]:mt-8 [&_h2]:font-bold [&_h2]:text-3xl [&_h3]:mt-6 [&_h3]:font-bold [&_h3]:text-2xl [&_h4]:mt-5 [&_h4]:font-bold [&_h4]:text-xl [&_h5]:mt-4 [&_h5]:font-bold [&_h5]:text-lg [&_hr]:my-8 [&_img]:mx-auto [&_img]:my-6 [&_img]:block [&_img]:max-w-full [&_img]:rounded-xl [&_mark]:rounded [&_mark]:px-1 [&_ol]:my-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-5 [&_pre]:my-6 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-surface [&_pre]:p-4 [&_ul]:my-5 [&_ul]:list-disc [&_ul]:pl-6"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is generated from Tiptap JSON and sanitized before rendering.
+					dangerouslySetInnerHTML={{ __html: renderRichTextDocument(project.content) }}
+				/>
 			</section>
 
 			{project.tags.length > 0 ? (

@@ -1,5 +1,5 @@
 import type { Prisma } from "@/generated/prisma/client";
-import { prisma } from "@/shared/database/prisma";
+import { prisma } from "@/lib/database/prisma";
 import type { PublishStatus } from "@/shared/publish-status";
 
 const projectListSelect = {

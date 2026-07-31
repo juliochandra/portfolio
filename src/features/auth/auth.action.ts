@@ -1,21 +1,19 @@
 "use server";
 
-import { type ChangePasswordInput, changePasswordSchema, type LoginInput, loginSchema } from "@/features/auth/auth.schema";
+import { changePasswordSchema, loginSchema } from "@/features/auth/auth.schema";
 import { authenticateUser, changeUserPassword } from "@/features/auth/auth.services";
-import { clearServerSession, getServerSession, setServerSession } from "@/shared/auth/server-session";
-import { validateWithZod } from "@/shared/validation/zod";
+import type {
+	ChangePasswordInput,
+	ChangePasswordResult,
+	LoginInput,
+	LoginResult,
+	LogoutResult,
+} from "@/features/auth/auth.type";
+import { clearServerSession, getServerSession, setServerSession } from "@/lib/auth/server-session";
+import { validateWithZod } from "@/lib/validation/zod";
 
 const INVALID_CREDENTIALS_MESSAGE = "Username atau kata sandi salah.";
 const UNAUTHORIZED = { error: { message: "UNAUTHORIZED" } } as const;
-
-type LoginResult = { data: { username: string } } | { error: { message: string } };
-
-type LogoutResult = { data: { success: true } } | { error: { message: "UNAUTHORIZED" } };
-
-type ChangePasswordResult =
-	| { data: { success: true } }
-	| { error: { fields: Record<string, string> } }
-	| { error: { message: "UNAUTHORIZED" } };
 
 export async function login(data: LoginInput): Promise<LoginResult> {
 	const validation = validateWithZod(loginSchema, data);

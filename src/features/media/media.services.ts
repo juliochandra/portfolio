@@ -13,7 +13,7 @@ import {
 	uploadMediaObject,
 } from "@/features/media/media.repository";
 import type { CreateMediaFolderInput, MediaUploadInput } from "@/features/media/media.schema";
-import { env } from "@/shared/env";
+import { env } from "@/lib/env";
 
 export type MediaGalleryItem = {
 	createdAt: string;

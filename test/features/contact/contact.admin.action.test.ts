@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 	updateAdminContactInfo: vi.fn(),
 }));
 
-vi.mock("@/shared/auth/server-session", () => ({
+vi.mock("@/lib/auth/server-session", () => ({
 	getServerSession: mocks.getServerSession,
 }));
 vi.mock("@/features/contact/contact.services", () => ({
@@ -64,11 +64,13 @@ describe("contact info admin Server Actions", () => {
 		});
 	});
 
-	it("validates object input and creates contact information", async () => {
-		await expect(createContactInfo(contactInfoInput())).resolves.toEqual({ data: { id: "contact-1" } });
+	it("validates object input and creates contact information with a capitalized label", async () => {
+		await expect(createContactInfo(contactInfoInput({ label: "github profile" }))).resolves.toEqual({
+			data: { id: "contact-1" },
+		});
 		expect(mocks.createAdminContactInfo).toHaveBeenCalledWith({
 			icon: null,
-			label: "Email",
+			label: "Github Profile",
 			value: "mailto:hello@example.com",
 		});
 	});

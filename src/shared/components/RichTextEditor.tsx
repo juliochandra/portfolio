@@ -1,14 +1,7 @@
 "use client";
 
-import Color from "@tiptap/extension-color";
-import Highlight from "@tiptap/extension-highlight";
-import Image from "@tiptap/extension-image";
-import Subscript from "@tiptap/extension-subscript";
-import Superscript from "@tiptap/extension-superscript";
-import TextAlign from "@tiptap/extension-text-align";
-import { TextStyle } from "@tiptap/extension-text-style";
+import type { JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import { type ReactNode, useEffect, useState } from "react";
 import {
 	FaAlignCenter,
@@ -33,6 +26,7 @@ import {
 	FaUnderline,
 } from "react-icons/fa";
 import { FaRotateLeft, FaRotateRight } from "react-icons/fa6";
+import { createRichTextExtensions } from "@/lib/tiptap/extensions";
 import {
 	type MediaImagePickerFolder,
 	type MediaImagePickerItem,
@@ -42,7 +36,7 @@ import {
 type RichTextEditorProps = {
 	disabled?: boolean;
 	folders?: MediaImagePickerFolder[];
-	initialContent: string;
+	initialContent: JSONContent;
 	label: string;
 	media?: MediaImagePickerItem[];
 	mediaCurrentPage?: number;
@@ -57,8 +51,6 @@ type ToolbarButtonProps = {
 	label: string;
 	onClick: () => void;
 };
-
-const headingLevels = [1, 2, 3] as const;
 
 type ColorPickerType = "highlight" | "text";
 
@@ -116,7 +108,7 @@ export function RichTextEditor({
 	mediaTotalPages = 1,
 	name,
 }: RichTextEditorProps) {
-	const [content, setContent] = useState(initialContent);
+	const [content, setContent] = useState(() => JSON.stringify(initialContent));
 	const [colorPickerType, setColorPickerType] = useState<ColorPickerType | null>(null);
 	const [colorSelection, setColorSelection] = useState<EditorSelection | null>(null);
 	const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
@@ -128,33 +120,13 @@ export function RichTextEditor({
 	const editor = useEditor({
 		content: initialContent,
 		editable: !disabled,
-		extensions: [
-			StarterKit.configure({
-				heading: { levels: [...headingLevels] },
-				link: {
-					HTMLAttributes: {
-						rel: "noopener noreferrer",
-						target: "_blank",
-					},
-					autolink: true,
-					defaultProtocol: "https",
-					openOnClick: false,
-				},
-			}),
-			TextStyle,
-			Color,
-			Highlight.configure({ multicolor: true }),
-			Subscript,
-			Superscript,
-			TextAlign.configure({ types: ["heading", "paragraph"] }),
-			Image.configure({ allowBase64: false }),
-		],
+		extensions: createRichTextExtensions(),
 		immediatelyRender: false,
-		onUpdate: ({ editor: updatedEditor }) => setContent(updatedEditor.getHTML()),
+		onUpdate: ({ editor: updatedEditor }) => setContent(JSON.stringify(updatedEditor.getJSON())),
 		editorProps: {
 			attributes: {
 				"aria-label": label,
-				class: "min-h-72 p-4 outline-none [&_a]:text-accent [&_a]:underline [&_blockquote]:my-4 [&_blockquote]:border-accent [&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_h1]:mt-6 [&_h1]:font-bold [&_h1]:text-4xl [&_h2]:mt-5 [&_h2]:font-bold [&_h2]:text-3xl [&_h3]:mt-4 [&_h3]:font-bold [&_h3]:text-2xl [&_h4]:mt-4 [&_h4]:font-bold [&_h4]:text-xl [&_h5]:mt-4 [&_h5]:font-bold [&_h5]:text-lg [&_hr]:my-6 [&_img]:my-4 [&_img]:mx-auto [&_img]:block [&_img]:max-w-full [&_img]:rounded-lg [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-surface [&_pre]:p-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6",
+				class: "min-h-screen p-4 outline-none [&_a]:text-accent [&_a]:underline [&_blockquote]:my-4 [&_blockquote]:border-accent [&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_h1]:mt-6 [&_h1]:font-bold [&_h1]:text-4xl [&_h2]:mt-5 [&_h2]:font-bold [&_h2]:text-3xl [&_h3]:mt-4 [&_h3]:font-bold [&_h3]:text-2xl [&_h4]:mt-4 [&_h4]:font-bold [&_h4]:text-xl [&_h5]:mt-4 [&_h5]:font-bold [&_h5]:text-lg [&_hr]:my-6 [&_img]:my-4 [&_img]:mx-auto [&_img]:block [&_img]:max-w-full [&_img]:rounded-lg [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-surface [&_pre]:p-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6",
 				role: "textbox",
 			},
 		},

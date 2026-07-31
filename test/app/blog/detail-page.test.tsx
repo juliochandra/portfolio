@@ -11,9 +11,15 @@ vi.mock("next/navigation", () => ({ notFound: mocks.notFound }));
 vi.mock("@/features/posts/posts.action", () => ({ getPostBySlug: mocks.getPostBySlug }));
 
 import PostDetailPage from "@/app/(public)/blog/[slug]/page";
+import type { RichTextDocument } from "@/lib/tiptap/json";
+
+const content: RichTextDocument = {
+	content: [{ content: [{ text: "Isi lengkap tulisan contoh.", type: "text" }], type: "paragraph" }],
+	type: "doc",
+};
 
 const post = {
-	content: "## Catatan\n\nIsi lengkap tulisan contoh.",
+	content,
 	description: "Ringkasan tulisan contoh.",
 	id: "post-1",
 	nextPost: { slug: "tulisan-lama", title: "Tulisan Lama" },
@@ -39,7 +45,11 @@ describe("Post detail page", () => {
 		expect(postPage.getByRole("heading", { level: 1, name: post.title })).toHaveClass("w-full");
 		expect(postPage.getByText(post.description)).toHaveClass("w-full");
 		expect(postPage.getByText(/20 Juli 2026/)).toBeInTheDocument();
-		expect(postPage.getByText(/Isi lengkap tulisan contoh/)).toHaveClass("w-full", "[&_h4]:text-xl", "[&_h5]:text-lg");
+		expect(postPage.getByText(/Isi lengkap tulisan contoh/).parentElement).toHaveClass(
+			"w-full",
+			"[&_h4]:text-xl",
+			"[&_h5]:text-lg",
+		);
 		expect(postPage.getByAltText(`Gambar sampul ${post.title}`)).toHaveClass("max-w-full");
 		expect(postPage.getByAltText(`Gambar sampul ${post.title}`)).not.toHaveClass("w-full", "aspect-video");
 		expect(postPage.getByLabelText(`Tag untuk ${post.title}`)).toHaveTextContent("Next.js");

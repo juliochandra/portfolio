@@ -1,6 +1,12 @@
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/app/login/_components/LoginForm";
+import { getServerSession } from "@/lib/auth/server-session";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+	if (await getServerSession()) {
+		redirect("/admin");
+	}
+
 	return (
 		<main className="grid min-h-screen place-items-center px-6 py-16">
 			<div className="w-full max-w-xl">
