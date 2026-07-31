@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/nursery/noSecrets: HTML fixtures are not secrets. */
 import { describe, expect, it } from "vitest";
-import { richTextToPlainText, sanitizeRichText } from "@/shared/rich-text";
+import { richTextToPlainText, sanitizeRichText } from "@/lib/rich-text";
 
 describe("rich text helpers", () => {
 	it("removes unsafe HTML while keeping supported formatting", () => {
