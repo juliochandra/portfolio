@@ -5,7 +5,7 @@ import type {
 	ChangeUserPasswordResult,
 	LoginInput,
 } from "@/features/auth/auth.type";
-import { comparePassword, hashPassword } from "@/shared/auth/password";
+import { comparePassword, hashPassword } from "@/lib/auth/password";
 
 export async function authenticateUser(input: LoginInput): Promise<AuthenticatedUser | null> {
 	const user = await findUserByUsername(input.username);

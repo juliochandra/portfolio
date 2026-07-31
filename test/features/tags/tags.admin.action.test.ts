@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 	getTagsAdmin: vi.fn(),
 	updateAdminTag: vi.fn(),
 }));
-vi.mock("@/shared/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
+vi.mock("@/lib/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
 vi.mock("@/features/tags/tags.services", () => ({
 	createAdminTag: mocks.createAdminTag,
 	deleteAdminTag: mocks.deleteAdminTag,

@@ -8,8 +8,8 @@ import {
 	updateTagSchema,
 } from "@/features/tags/tags.schema";
 import { createAdminTag, deleteAdminTag, getTagsAdmin as getAdminTags, updateAdminTag } from "@/features/tags/tags.services";
+import { getServerSession } from "@/lib/auth/server-session";
 import { validateWithZod } from "@/lib/validation/zod";
-import { getServerSession } from "@/shared/auth/server-session";
 
 const TAG_NOT_FOUND_MESSAGE = "Tag tidak ditemukan.";
 const TAG_NAME_TAKEN_MESSAGE = "Nama tag sudah digunakan.";

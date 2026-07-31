@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
 	updateAdminProject: vi.fn(),
 }));
 
-vi.mock("@/shared/auth/server-session", () => ({
+vi.mock("@/lib/auth/server-session", () => ({
 	getServerSession: mocks.getServerSession,
 }));
 vi.mock("@/features/projects/projects.services", () => ({

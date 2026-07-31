@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 	updateAdminContactInfo: vi.fn(),
 }));
 
-vi.mock("@/shared/auth/server-session", () => ({
+vi.mock("@/lib/auth/server-session", () => ({
 	getServerSession: mocks.getServerSession,
 }));
 vi.mock("@/features/contact/contact.services", () => ({

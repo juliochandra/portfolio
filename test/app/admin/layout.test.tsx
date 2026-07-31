@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
 	redirect: vi.fn(),
 }));
 
-vi.mock("@/shared/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
+vi.mock("@/lib/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
 vi.mock("next/navigation", () => ({
 	redirect: mocks.redirect,
 	usePathname: () => "/admin",

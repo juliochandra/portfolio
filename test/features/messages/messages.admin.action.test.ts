@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
 	unarchiveAdminMessage: vi.fn(),
 }));
 
-vi.mock("@/shared/auth/server-session", () => ({
+vi.mock("@/lib/auth/server-session", () => ({
 	getServerSession: mocks.getServerSession,
 }));
 vi.mock("@/features/messages/messages.services", () => ({

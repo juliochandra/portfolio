@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { hashPassword } from "@/shared/auth/password";
+import { hashPassword } from "@/lib/auth/password";
 
 const mocks = vi.hoisted(() => ({
 	findUserById: vi.fn(),

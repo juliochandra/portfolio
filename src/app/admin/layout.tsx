@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "@/shared/auth/server-session";
+import { getServerSession } from "@/lib/auth/server-session";
 import { AdminNav } from "@/shared/components/AdminNav";
 
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
