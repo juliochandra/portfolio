@@ -1,6 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/database/prisma";
-import type { MessageStatus } from "@/shared/message-status";
+import type { MessageStatus } from "@/lib/message-status";
 
 const createdMessageSelect = {
 	id: true,
