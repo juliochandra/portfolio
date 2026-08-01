@@ -7,7 +7,7 @@ import {
 	isPostSlugAvailable,
 	updatePostRecord,
 } from "@/features/posts/posts.repository";
-import { PublishStatus } from "@/shared/publish-status";
+import { PublishStatus } from "@/lib/publish-status";
 
 const mocks = vi.hoisted(() => ({
 	create: vi.fn(),

@@ -3,7 +3,7 @@ import {
 	type RecentPostRecord,
 	type RecentProjectRecord,
 } from "@/features/dashboard/dashboard.repository";
-import { type PublishStatus, toPublishStatus } from "@/shared/publish-status";
+import { type PublishStatus, toPublishStatus } from "@/lib/publish-status";
 
 type RecentItem = {
 	createdAt: string;

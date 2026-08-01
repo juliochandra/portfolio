@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { deleteProject } from "@/features/projects/projects.action";
+import type { PublishStatus } from "@/lib/publish-status";
 import { Button } from "@/shared/components/Button";
 import { ManageRow } from "@/shared/components/ManageRow";
 import { StatusMessage } from "@/shared/components/StatusMessage";
-import type { PublishStatus } from "@/shared/publish-status";
 
 type ProjectListItem = {
 	description: string | null;
