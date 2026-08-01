@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/nursery/noSecrets: Component names and HTML fixtures are not secrets. */
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { RichTextEditor } from "@/shared/components/RichTextEditor";
+import { RichTextEditor } from "@/components/editor/RichTextEditor";
 
 const initialContent = {
 	content: [{ content: [{ text: "Isi awal", type: "text" }], type: "paragraph" }],

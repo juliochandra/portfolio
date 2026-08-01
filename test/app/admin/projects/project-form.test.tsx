@@ -16,7 +16,7 @@ vi.mock("@/features/projects/projects.action", () => ({
 }));
 vi.mock("@/features/media/media.action", () => ({ getMediaGalleryPage: mocks.getMediaGalleryPage }));
 // biome-ignore lint/nursery/noSecrets: Module path, not a secret.
-vi.mock("@/shared/components/RichTextEditor", () => ({
+vi.mock("@/components/editor/RichTextEditor", () => ({
 	RichTextEditor: ({ initialContent, label, name }: { initialContent: string | object; label: string; name: string }) => (
 		<textarea
 			aria-label={label}
