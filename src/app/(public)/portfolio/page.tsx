@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaCode, FaFolderOpen, FaHeart } from "react-icons/fa";
+import { Section } from "@/components/layout/Section";
+import { SectionHeader } from "@/components/layout/SectionHeader";
 import { getProjects } from "@/features/projects/projects.action";
 import { ProjectCard } from "@/shared/components/ProjectCard";
-import { Section } from "@/shared/components/Section";
-import { SectionHeader } from "@/shared/components/SectionHeader";
 import { StatCard } from "@/shared/components/StatCard";
 
 const PROJECTS_PER_PAGE = 6;
