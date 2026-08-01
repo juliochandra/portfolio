@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { PublishStatus } from "@/lib/publish-status";
 import { SummaryRow } from "@/shared/components/SummaryRow";
-import { PublishStatus } from "@/shared/publish-status";
 
 describe("SummaryRow", () => {
 	it("renders the item metadata and edit destination", () => {

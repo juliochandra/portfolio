@@ -32,8 +32,8 @@ import {
 	getProjectsAdminPage,
 	updateProject,
 } from "@/features/projects/projects.action";
+import { PublishStatus } from "@/lib/publish-status";
 import type { RichTextDocument } from "@/lib/tiptap/json";
-import { PublishStatus } from "@/shared/publish-status";
 
 const content: RichTextDocument = {
 	content: [{ content: [{ text: "Isi project", type: "text" }], type: "paragraph" }],

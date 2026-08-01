@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PublishStatus } from "@/shared/publish-status";
+import { PublishStatus } from "@/lib/publish-status";
 
 const mocks = vi.hoisted(() => ({
 	create: vi.fn(),
