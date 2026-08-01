@@ -7,7 +7,7 @@ import {
 	updateMessageStatus,
 } from "@/features/messages/messages.repository";
 import type { SendMessageInput } from "@/features/messages/messages.schema";
-import { MessageStatus, toMessageStatus } from "@/shared/message-status";
+import { MessageStatus, toMessageStatus } from "@/lib/message-status";
 
 export type SentMessage = { id: string };
 
