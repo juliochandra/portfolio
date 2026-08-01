@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CiExport } from "react-icons/ci";
 import { SiGithub } from "react-icons/si";
+import { Section } from "@/components/layout/Section";
 import { getProjectBySlug } from "@/features/projects/projects.action";
 import { renderRichTextDocument } from "@/lib/tiptap/render";
 import { BackLink } from "@/shared/components/BackLink";
-import { Section } from "@/shared/components/Section";
 import { SkillTag } from "@/shared/components/SkillTag";
 
 type ProjectDetailPageProps = {

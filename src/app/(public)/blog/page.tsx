@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { FaBookOpen, FaClock, FaPenNib } from "react-icons/fa";
+import { Section } from "@/components/layout/Section";
+import { SectionHeader } from "@/components/layout/SectionHeader";
 import { getPosts } from "@/features/posts/posts.action";
 import { PostItem } from "@/shared/components/PostItem";
-import { Section } from "@/shared/components/Section";
-import { SectionHeader } from "@/shared/components/SectionHeader";
 import { StatCard } from "@/shared/components/StatCard";
 
 export const metadata: Metadata = {
