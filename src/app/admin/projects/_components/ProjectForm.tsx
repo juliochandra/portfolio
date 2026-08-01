@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { FaImage } from "react-icons/fa";
+import { RichTextEditor } from "@/components/editor/RichTextEditor";
 import { createProject, updateProject } from "@/features/projects/projects.action";
 import { createProjectSchema, projectFormDataToInput, updateProjectSchema } from "@/features/projects/projects.schema";
 import { emptyRichTextDocument, parseRichTextDocument } from "@/lib/tiptap/json";
@@ -12,7 +13,6 @@ import { BackLink } from "@/shared/components/BackLink";
 import { Button } from "@/shared/components/Button";
 import { FormField } from "@/shared/components/FormField";
 import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
-import { RichTextEditor } from "@/shared/components/RichTextEditor";
 import { getSkillIcon } from "@/shared/components/SkillTag";
 import { StatusMessage } from "@/shared/components/StatusMessage";
 import { StatusSelect } from "@/shared/components/StatusSelect";
