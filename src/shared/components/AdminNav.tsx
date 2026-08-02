@@ -18,9 +18,9 @@ import {
 	FaTag,
 	FaXmark,
 } from "react-icons/fa6";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { logout } from "@/features/auth/auth.action";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
-import { ThemeToggle } from "@/shared/components/ThemeToggle";
 
 type NavigationItem = {
 	href: string;
