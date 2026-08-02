@@ -1,17 +1,12 @@
 "use server";
 
 import { authenticateUser, changeUserPassword } from "@/features/auth/auth.services";
-import type {
-	ChangePasswordInput,
-	ChangePasswordResult,
-	LoginInput,
-	LoginResult,
-	LogoutResult,
-} from "@/features/auth/auth.type";
+import type { AuthSuccessResponse, ChangePasswordInput, LoginInput, LoginResponse } from "@/features/auth/auth.type";
 import { clearServerSession, requireServerSession, setServerSession } from "@/lib/auth/server-session";
 import { toServerActionFailure } from "@/lib/server-action-exception/to-server-action-failure";
+import type { ServerActionFailure } from "@/lib/server-action-exception/types";
 
-export async function login(data: LoginInput): Promise<LoginResult> {
+export async function login(data: LoginInput): Promise<LoginResponse | ServerActionFailure> {
 	try {
 		const user = await authenticateUser(data);
 		await setServerSession({ userId: user.id, username: user.username });
@@ -22,7 +17,7 @@ export async function login(data: LoginInput): Promise<LoginResult> {
 	}
 }
 
-export async function logout(): Promise<LogoutResult> {
+export async function logout(): Promise<AuthSuccessResponse | ServerActionFailure> {
 	try {
 		await requireServerSession();
 		await clearServerSession();
@@ -33,7 +28,7 @@ export async function logout(): Promise<LogoutResult> {
 	}
 }
 
-export async function changePassword(data: ChangePasswordInput): Promise<ChangePasswordResult> {
+export async function changePassword(data: ChangePasswordInput): Promise<AuthSuccessResponse | ServerActionFailure> {
 	try {
 		const session = await requireServerSession();
 		await changeUserPassword({

@@ -1,5 +1,3 @@
-import type { ServerActionFailure } from "@/lib/server-action-exception/types";
-
 export type LoginInput = {
 	password: string;
 	username: string;
@@ -23,8 +21,14 @@ export type ChangeUserPasswordInput = {
 	userId: string;
 };
 
-export type LoginResult = { data: { username: string } } | ServerActionFailure;
+export type LoginResponse = {
+	data: {
+		username: string;
+	};
+};
 
-export type LogoutResult = { data: { success: true } } | ServerActionFailure;
-
-export type ChangePasswordResult = { data: { success: true } } | ServerActionFailure;
+export type AuthSuccessResponse = {
+	data: {
+		success: true;
+	};
+};
