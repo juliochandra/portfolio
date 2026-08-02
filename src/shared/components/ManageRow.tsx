@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
-import { Button } from "@/shared/components/Button";
+import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import type { PublishStatus } from "@/shared/publish-status";
 

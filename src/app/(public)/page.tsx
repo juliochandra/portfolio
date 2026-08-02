@@ -3,11 +3,11 @@ import { CiMail } from "react-icons/ci";
 import { SkillCard } from "@/app/(public)/_components/SkillCard";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { getContactInfo } from "@/features/contact/contact.action";
 import { getPosts } from "@/features/posts/posts.action";
 import { getProjects } from "@/features/projects/projects.action";
 import { getSkills } from "@/features/skills/skills.action";
-import { ButtonLink } from "@/shared/components/ButtonLink";
 import { PostItem } from "@/shared/components/PostItem";
 import { ProjectCard } from "@/shared/components/ProjectCard";
 

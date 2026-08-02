@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { type ChangeEvent, type FormEvent, useRef, useState } from "react";
 import { FaFolder, FaTrash } from "react-icons/fa6";
 import { MediaCard } from "@/app/admin/media/_components/MediaCard";
+import { Button } from "@/components/ui/Button";
 import { createMediaFolder, deleteMediaFolder, getMediaGalleryPage, uploadMedia } from "@/features/media/media.action";
-import { Button } from "@/shared/components/Button";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { StatusMessage } from "@/shared/components/StatusMessage";
 
