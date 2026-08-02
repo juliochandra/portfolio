@@ -3,10 +3,10 @@
 import { type FormEvent, useState } from "react";
 import { FaEye, FaEyeSlash, FaLock } from "react-icons/fa";
 import { Button } from "@/components/ui/Button";
+import { FormField } from "@/components/ui/FormField";
 import { changePassword } from "@/features/auth/auth.action";
 import { changePasswordSchema } from "@/features/auth/auth.schema";
 import { validateWithZod } from "@/lib/validation/zod";
-import { FormField } from "@/shared/components/FormField";
 import { StatusMessage } from "@/shared/components/StatusMessage";
 
 function getPasswordInputClassName(hasError: boolean): string {
