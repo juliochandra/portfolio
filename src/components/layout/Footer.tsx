@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CiMail, CiSquareChevUp } from "react-icons/ci";
-import { ContactIconLink } from "@/shared/components/ContactLink";
+import { ContactIconLink } from "@/components/ui/ContactLink";
 
 const navigation = [
 	["Home", "/"],

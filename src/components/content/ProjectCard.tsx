@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { CiExport, CiFolderOn } from "react-icons/ci";
 import { SiGithub } from "react-icons/si";
+import { TagList } from "@/components/ui/TagList";
 import type { PublicProjectListItem } from "@/features/projects/projects.services";
-import { TagList } from "@/shared/components/TagList";
 
 type ProjectCardProps = {
 	project: PublicProjectListItem;

@@ -4,17 +4,17 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { FaImage } from "react-icons/fa";
 import { RichTextEditor } from "@/components/editor/RichTextEditor";
+import { type MediaImagePickerItem, MediaImagePickerModal } from "@/components/media/MediaImagePickerModal";
+import { BackLink } from "@/components/ui/BackLink";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { StatusMessage } from "@/components/ui/StatusMessage";
+import { StatusSelect } from "@/components/ui/StatusSelect";
 import { createPost, updatePost } from "@/features/posts/posts.action";
 import { createPostSchema, postFormDataToInput, updatePostSchema } from "@/features/posts/posts.schema";
+import type { PublishStatus } from "@/lib/publish-status";
 import { emptyRichTextDocument, parseRichTextDocument } from "@/lib/tiptap/json";
 import { validateWithZod } from "@/lib/validation/zod";
-import { BackLink } from "@/shared/components/BackLink";
-import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
-import { StatusSelect } from "@/shared/components/StatusSelect";
-import type { PublishStatus } from "@/shared/publish-status";
 
 type PostFormPost = {
 	content: string;

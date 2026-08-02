@@ -1,6 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/database/prisma";
-import { PublishStatus } from "@/shared/publish-status";
+import { PublishStatus } from "@/lib/publish-status";
 
 const postListSelect = {
 	description: true,

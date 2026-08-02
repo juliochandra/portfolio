@@ -26,12 +26,12 @@ import {
 	FaUnderline,
 } from "react-icons/fa";
 import { FaRotateLeft, FaRotateRight } from "react-icons/fa6";
-import { createRichTextExtensions } from "@/lib/tiptap/extensions";
 import {
 	type MediaImagePickerFolder,
 	type MediaImagePickerItem,
 	MediaImagePickerModal,
-} from "@/shared/components/MediaImagePickerModal";
+} from "@/components/media/MediaImagePickerModal";
+import { createRichTextExtensions } from "@/lib/tiptap/extensions";
 
 type RichTextEditorProps = {
 	disabled?: boolean;

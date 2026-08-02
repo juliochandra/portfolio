@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({ getMediaGalleryPage: vi.fn() }));
 
 vi.mock("@/features/media/media.action", () => ({ getMediaGalleryPage: mocks.getMediaGalleryPage }));
 
-import { MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
+import { MediaImagePickerModal } from "@/components/media/MediaImagePickerModal";
 
 // biome-ignore lint/nursery/noSecrets: Component name, not a secret.
 describe("MediaImagePickerModal", () => {

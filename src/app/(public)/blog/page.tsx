@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { FaBookOpen, FaClock, FaPenNib } from "react-icons/fa";
+import { PostItem } from "@/components/content/PostItem";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { StatCard } from "@/components/ui/StatCard";
 import { getPosts } from "@/features/posts/posts.action";
-import { PostItem } from "@/shared/components/PostItem";
-import { StatCard } from "@/shared/components/StatCard";
 
 export const metadata: Metadata = {
 	title: "Blog",

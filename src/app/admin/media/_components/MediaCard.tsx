@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { deleteMedia } from "@/features/media/media.action";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 
 type Media = {
 	createdAt: string;

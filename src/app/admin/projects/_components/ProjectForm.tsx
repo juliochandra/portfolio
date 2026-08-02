@@ -4,19 +4,19 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { FaImage } from "react-icons/fa";
 import { RichTextEditor } from "@/components/editor/RichTextEditor";
+import { type MediaImagePickerItem, MediaImagePickerModal } from "@/components/media/MediaImagePickerModal";
+import { BackLink } from "@/components/ui/BackLink";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
+import { getSkillIcon } from "@/components/ui/SkillTag";
 import { StatusMessage } from "@/components/ui/StatusMessage";
+import { StatusSelect } from "@/components/ui/StatusSelect";
 import { createProject, updateProject } from "@/features/projects/projects.action";
 import { createProjectSchema, projectFormDataToInput, updateProjectSchema } from "@/features/projects/projects.schema";
+import type { PublishStatus } from "@/lib/publish-status";
 import { emptyRichTextDocument, parseRichTextDocument } from "@/lib/tiptap/json";
 import { isImageUrl } from "@/lib/validation/is-image-url";
 import { validateWithZod } from "@/lib/validation/zod";
-import { BackLink } from "@/shared/components/BackLink";
-import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
-import { getSkillIcon } from "@/shared/components/SkillTag";
-import { StatusSelect } from "@/shared/components/StatusSelect";
-import type { PublishStatus } from "@/shared/publish-status";
 
 type ProjectFormProject = {
 	content: string;
