@@ -1,6 +1,6 @@
 import { FaArrowRotateLeft, FaBoxArchive, FaChevronDown } from "react-icons/fa6";
+import { Button } from "@/components/ui/Button";
 import { archiveMessage, unarchiveMessage } from "@/features/messages/messages.action";
-import { Button } from "@/shared/components/Button";
 
 type MessageCardProps = {
 	message: {
