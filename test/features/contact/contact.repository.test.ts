@@ -20,16 +20,9 @@ describe("contact repository", () => {
 		mocks.findMany.mockResolvedValue([]);
 	});
 
-	it("queries every contact information row without filters or forced ordering", async () => {
+	it("queries every contact information row", async () => {
 		await findContactInfo();
 
-		expect(mocks.findMany).toHaveBeenCalledWith({
-			select: {
-				icon: true,
-				id: true,
-				label: true,
-				value: true,
-			},
-		});
+		expect(mocks.findMany).toHaveBeenCalledWith();
 	});
 });

@@ -1,50 +1,53 @@
 import {
-	type ContactInfoRecord,
 	createContactInfoRecord,
 	deleteContactInfoRecord,
 	findContactInfo,
-	findContactInfoAdmin,
 	findContactInfoForAdmin,
 	updateContactInfoRecord,
 } from "@/features/contact/contact.repository";
-import type { CreateContactInfoInput, UpdateContactInfoInput } from "@/features/contact/contact.schema";
+import { createContactInfoSchema, updateContactInfoSchema } from "@/features/contact/contact.schema";
+import type { ContactInfoWriteInput } from "@/features/contact/contact.type";
+import type { ContactInfo } from "@/generated/prisma/client";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
+import { validateWithZod } from "@/lib/validation/zod";
 
-export type PublicContactInfo = {
-	icon: string | null;
-	id: string;
-	label: string;
-	value: string;
-};
-
-function toPublicContactInfo(contactInfo: ContactInfoRecord): PublicContactInfo {
-	return {
-		icon: contactInfo.icon,
-		id: contactInfo.id,
-		label: contactInfo.label,
-		value: contactInfo.value,
-	};
+export function getPublicContactInfo(): Promise<ContactInfo[]> {
+	return findContactInfo();
 }
 
-export async function getPublicContactInfo(): Promise<PublicContactInfo[]> {
-	const contactInfo = await findContactInfo();
-	return contactInfo.map(toPublicContactInfo);
+export function getContactInfoAdmin(): Promise<ContactInfo[]> {
+	return findContactInfo();
 }
 
-export async function getContactInfoAdmin(): Promise<PublicContactInfo[]> {
-	const contactInfo = await findContactInfoAdmin();
-	return contactInfo.map(toPublicContactInfo);
+export async function createAdminContactInfo(input: ContactInfoWriteInput): Promise<ContactInfo> {
+	const validation = validateWithZod(createContactInfoSchema, input);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields);
+	}
+
+	const contactInfo = await createContactInfoRecord(validation.data);
+	return contactInfo;
 }
 
-export function createAdminContactInfo(input: CreateContactInfoInput): Promise<{ id: string }> {
-	return createContactInfoRecord(input);
-}
+export async function updateAdminContactInfo(id: string, input: ContactInfoWriteInput): Promise<ContactInfo> {
+	const validation = validateWithZod(updateContactInfoSchema, input);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields);
+	}
 
-export async function updateAdminContactInfo(id: string, input: UpdateContactInfoInput): Promise<{ id: string } | null> {
 	const existing = await findContactInfoForAdmin(id);
-	return existing ? updateContactInfoRecord(id, input) : null;
+	if (!existing) {
+		throw new NotFoundException("Info kontak tidak ditemukan.");
+	}
+
+	return updateContactInfoRecord(id, validation.data);
 }
 
-export async function deleteAdminContactInfo(id: string): Promise<{ id: string } | null> {
+export async function deleteAdminContactInfo(id: string): Promise<ContactInfo> {
 	const existing = await findContactInfoForAdmin(id);
-	return existing ? deleteContactInfoRecord(id) : null;
+	if (!existing) {
+		throw new NotFoundException("Info kontak tidak ditemukan.");
+	}
+
+	return deleteContactInfoRecord(id);
 }
