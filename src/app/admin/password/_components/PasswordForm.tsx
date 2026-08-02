@@ -4,10 +4,10 @@ import { type FormEvent, useState } from "react";
 import { FaEye, FaEyeSlash, FaLock } from "react-icons/fa";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import { changePassword } from "@/features/auth/auth.action";
 import { changePasswordSchema } from "@/features/auth/auth.schema";
 import { validateWithZod } from "@/lib/validation/zod";
-import { StatusMessage } from "@/shared/components/StatusMessage";
 
 function getPasswordInputClassName(hasError: boolean): string {
 	return `w-full rounded-md border bg-canvas px-12 py-3 outline-none focus:border-accent ${hasError ? "border-danger" : "border-border"}`;
