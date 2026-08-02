@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { FaFileLines } from "react-icons/fa6";
 import { describe, expect, it } from "vitest";
-import { QuickAction } from "@/shared/components/QuickAction";
+import { QuickAction } from "@/components/admin/QuickAction";
 
 describe("QuickAction", () => {
 	it("renders a navigation link with its description", () => {

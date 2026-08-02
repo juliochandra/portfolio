@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PublishStatus } from "@/lib/publish-status";
 import type { RichTextDocument } from "@/lib/tiptap/json";
-import { PublishStatus } from "@/shared/publish-status";
 
 const content: RichTextDocument = {
 	content: [{ content: [{ text: "Isi lengkap tulisan.", type: "text" }], type: "paragraph" }],

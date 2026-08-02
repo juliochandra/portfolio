@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FaRegFileLines } from "react-icons/fa6";
-import type { PublishStatus } from "@/shared/publish-status";
+import type { PublishStatus } from "@/lib/publish-status";
 
 type SummaryRowProps = {
 	createdAt: string;

@@ -1,5 +1,5 @@
 import type { SelectHTMLAttributes } from "react";
-import { publishStatuses, publishStatusLabels } from "@/shared/publish-status";
+import { publishStatuses, publishStatusLabels } from "@/lib/publish-status";
 
 type StatusSelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, "children">;
 

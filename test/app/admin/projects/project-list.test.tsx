@@ -1,6 +1,6 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PublishStatus } from "@/shared/publish-status";
+import { PublishStatus } from "@/lib/publish-status";
 
 const mocks = vi.hoisted(() => ({ refresh: vi.fn() }));
 

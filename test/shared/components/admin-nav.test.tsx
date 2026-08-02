@@ -16,7 +16,7 @@ vi.mock("@/components/ui/ThemeToggle", () => ({
 	ThemeToggle: () => <button type="button">Tema</button>,
 }));
 
-import { AdminNav } from "@/shared/components/AdminNav";
+import { AdminNav } from "@/components/layout/AdminNav";
 
 describe("AdminNav", () => {
 	beforeEach(() => {

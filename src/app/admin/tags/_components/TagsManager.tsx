@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { FaCheck, FaMagnifyingGlass, FaPlus, FaTrash, FaXmark } from "react-icons/fa6";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FormField } from "@/components/ui/FormField";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { createTag, deleteTag, updateTag } from "@/features/tags/tags.action";
 import { createTagSchema, updateTagSchema } from "@/features/tags/tags.schema";
 import { validateWithZod } from "@/lib/validation/zod";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 
 type Tag = {
 	id: string;

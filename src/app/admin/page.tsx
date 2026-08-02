@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { FaBriefcase, FaCode, FaFileLines, FaImage, FaInbox, FaLink, FaTag } from "react-icons/fa6";
+import { QuickAction } from "@/components/admin/QuickAction";
+import { SummaryRow } from "@/components/admin/SummaryRow";
+import { StatCard } from "@/components/ui/StatCard";
 import { getDashboardSummary } from "@/features/dashboard/dashboard.action";
-import { QuickAction } from "@/shared/components/QuickAction";
-import { StatCard } from "@/shared/components/StatCard";
-import { SummaryRow } from "@/shared/components/SummaryRow";
 
 export default async function AdminPage() {
 	const result = await getDashboardSummary();

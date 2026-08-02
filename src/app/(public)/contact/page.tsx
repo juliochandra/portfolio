@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { ContactForm } from "@/app/(public)/contact/_components/ContactForm";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { ContactLink } from "@/components/ui/ContactLink";
 import { getContactInfo } from "@/features/contact/contact.action";
-import { ContactLink } from "@/shared/components/ContactLink";
 
 export const metadata: Metadata = {
 	title: "Contact",

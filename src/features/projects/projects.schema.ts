@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/nursery/noSecrets: <> */
 import { z } from "zod";
+import { publishStatuses } from "@/lib/publish-status";
 import { emptyRichTextDocument, hasRichTextContent, parseRichTextDocument } from "@/lib/tiptap/json";
-import { publishStatuses } from "@/shared/publish-status";
 
 export const getProjectsParamsSchema = z
 	.object({

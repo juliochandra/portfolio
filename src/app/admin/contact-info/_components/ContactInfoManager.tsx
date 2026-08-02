@@ -4,15 +4,15 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useState } from "react";
 import { CiLink } from "react-icons/ci";
 import { FaCheck, FaImage, FaMagnifyingGlass, FaPlus, FaTrash, FaXmark } from "react-icons/fa6";
+import { type MediaImagePickerItem, MediaImagePickerModal } from "@/components/media/MediaImagePickerModal";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FormField } from "@/components/ui/FormField";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { createContactInfo, deleteContactInfo, updateContactInfo } from "@/features/contact/contact.action";
 import { createContactInfoSchema, updateContactInfoSchema } from "@/features/contact/contact.schema";
 import { isImageUrl } from "@/lib/validation/is-image-url";
 import { validateWithZod } from "@/lib/validation/zod";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
-import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
 
 type Contact = {
 	icon: string | null;
