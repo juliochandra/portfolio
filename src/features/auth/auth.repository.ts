@@ -1,22 +1,14 @@
-import type { AuthUser } from "@/features/auth/auth.type";
+import type { User } from "@/generated/prisma/client";
 import { prisma } from "@/lib/database/prisma";
 
-const authUserSelect = {
-	id: true,
-	passwordHash: true,
-	username: true,
-} as const;
-
-export function findUserByUsername(username: string): Promise<AuthUser | null> {
+export function findUserByUsername(username: string): Promise<User | null> {
 	return prisma.user.findUnique({
-		select: authUserSelect,
 		where: { username },
 	});
 }
 
-export function findUserById(id: string): Promise<AuthUser | null> {
+export function findUserById(id: string): Promise<User | null> {
 	return prisma.user.findUnique({
-		select: authUserSelect,
 		where: { id },
 	});
 }
