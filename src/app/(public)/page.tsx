@@ -27,7 +27,8 @@ export default async function Home() {
 		getSkills(),
 	]);
 	const contactResult = await getContactInfo();
-	const email = contactResult.data.find(isEmailContact);
+	const contactInfo = "data" in contactResult ? contactResult.data : [];
+	const email = contactInfo.find(isEmailContact);
 	const emailHref = email ? (email.value.startsWith("mailto:") ? email.value : `mailto:${email.value}`) : "test@mail.com";
 
 	return (

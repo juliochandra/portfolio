@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 
 export default async function ContactPage() {
 	const contactInfoResult = await getContactInfo();
+	const contactInfo = "data" in contactInfoResult ? contactInfoResult.data : [];
 
 	return (
 		<>
@@ -22,7 +23,7 @@ export default async function ContactPage() {
 					description="Punya ide, peluang, atau project yang ingin didiskusikan? Saya akan senang mendengarnya."
 				/>
 				<section className="mt-10 flex flex-wrap justify-center gap-3" aria-label="Info kontak">
-					{contactInfoResult.data.map((contactInfo) => (
+					{contactInfo.map((contactInfo) => (
 						<ContactLink key={contactInfo.id} {...contactInfo} />
 					))}
 				</section>

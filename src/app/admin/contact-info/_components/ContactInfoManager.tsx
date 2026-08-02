@@ -11,6 +11,7 @@ import { FormField } from "@/components/ui/FormField";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { createContactInfo, deleteContactInfo, updateContactInfo } from "@/features/contact/contact.action";
 import { createContactInfoSchema, updateContactInfoSchema } from "@/features/contact/contact.schema";
+import type { ContactInfoWriteInput } from "@/features/contact/contact.type";
 import { isImageUrl } from "@/lib/validation/is-image-url";
 import { validateWithZod } from "@/lib/validation/zod";
 
@@ -32,12 +33,17 @@ type ContactInfoManagerProps = {
 const inputClassName = "w-full rounded-md border border-border bg-canvas px-3 py-3 outline-none focus:border-accent";
 const deletionDescription = "Saluran ini akan dihapus dari daftar Contact Info dan footer.";
 
-function createContactInput(formData: FormData): Record<string, unknown> {
+function createContactInput(formData: FormData): ContactInfoWriteInput {
 	return {
-		icon: formData.get("icon") ?? "",
-		label: formData.get("label") ?? "",
-		value: formData.get("value") ?? "",
+		icon: getTextFormValue(formData, "icon"),
+		label: getTextFormValue(formData, "label"),
+		value: getTextFormValue(formData, "value"),
 	};
+}
+
+function getTextFormValue(formData: FormData, fieldName: string): string {
+	const value = formData.get(fieldName);
+	return typeof value === "string" ? value : "";
 }
 
 export function ContactInfoManager({
@@ -98,7 +104,17 @@ export function ContactInfoManager({
 		try {
 			const result = editingContact ? await updateContactInfo(editingContact.id, input) : await createContactInfo(input);
 			if ("error" in result) {
-				setFields("fields" in result.error ? result.error.fields : { _form: result.error.message });
+				if ("fields" in result.error && result.error.fields) {
+					setFields(result.error.fields);
+					return;
+				}
+
+				if ("message" in result.error) {
+					setFields({ _form: result.error.message });
+					return;
+				}
+
+				setFields({ _form: "Gagal menyimpan info kontak." });
 				return;
 			}
 
