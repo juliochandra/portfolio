@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({
 	useRouter: () => ({ push: mocks.push, refresh: mocks.refresh }),
 }));
 vi.mock("@/features/auth/auth.action", () => ({ logout: mocks.logout }));
-vi.mock("@/shared/components/ThemeToggle", () => ({
+vi.mock("@/components/ui/ThemeToggle", () => ({
 	ThemeToggle: () => <button type="button">Tema</button>,
 }));
 

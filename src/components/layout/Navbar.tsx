@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ThemeToggle } from "@/shared/components/ThemeToggle";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const links = [
 	["HOME", "/"],
