@@ -1,20 +1,12 @@
 import { z } from "zod";
 
-const requiredPassword = z.string().min(1, "Wajib diisi.");
-
 export const loginSchema = z.object({
-	password: requiredPassword,
+	password: z.string().min(1, "Wajib diisi."),
 	username: z.string().trim().min(1, "Wajib diisi."),
 });
 
-export const changePasswordSchema = z
-	.object({
-		confirmPassword: requiredPassword,
-		newPassword: requiredPassword,
-		oldPassword: requiredPassword,
-	})
-	.refine((data) => data.newPassword === data.confirmPassword, {
-		message: "Konfirmasi kata sandi tidak cocok.",
-		// biome-ignore lint/nursery/noSecrets: field name, not a credential
-		path: ["confirmPassword"],
-	});
+export const changePasswordSchema = z.object({
+	confirmPassword: z.string().min(1, "Wajib diisi."),
+	newPassword: z.string().min(1, "Wajib diisi."),
+	oldPassword: z.string().min(1, "Wajib diisi."),
+});

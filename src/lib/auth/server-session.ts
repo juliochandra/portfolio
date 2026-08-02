@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { UnauthorizedException } from "@/lib/server-action-exception/exceptions";
 import {
 	ACCESS_TOKEN_COOKIE,
 	accessCookieOptions,
@@ -27,6 +28,15 @@ export async function getServerSession(): Promise<AuthSession | null> {
 	}
 
 	return resolved.session;
+}
+
+export async function requireServerSession(): Promise<AuthSession> {
+	const session = await getServerSession();
+	if (!session) {
+		throw new UnauthorizedException("UNAUTHORIZED");
+	}
+
+	return session;
 }
 
 export async function clearServerSession(): Promise<void> {

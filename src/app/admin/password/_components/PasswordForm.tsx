@@ -35,11 +35,16 @@ export function PasswordForm() {
 			return;
 		}
 
+		if (newPassword !== confirmPassword) {
+			setFields({ confirmPassword: "Konfirmasi kata sandi tidak cocok." });
+			return;
+		}
+
 		setIsSubmitting(true);
 		try {
 			const result = await changePassword(validation.data);
 			if ("error" in result) {
-				if ("fields" in result.error) {
+				if (result.error.fields) {
 					setFields(result.error.fields);
 					return;
 				}
