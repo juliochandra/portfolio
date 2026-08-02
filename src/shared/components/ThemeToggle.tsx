@@ -2,7 +2,7 @@
 
 import { useContext } from "react";
 import { CiDark, CiLight } from "react-icons/ci";
-import { ThemeContext } from "./ThemeProvider";
+import { ThemeContext } from "@/components/providers/ThemeProvider";
 
 type ThemeToggleProps = {
 	variant?: "icon" | "menu";
