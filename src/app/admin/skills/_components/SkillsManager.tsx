@@ -5,6 +5,7 @@ import { type FormEvent, type ReactNode, useState } from "react";
 import { FaCheck, FaImage, FaMagnifyingGlass, FaPlus, FaTrash, FaXmark } from "react-icons/fa6";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import { createSkill, deleteSkill, updateSkill } from "@/features/skills/skills.action";
 import { createSkillSchema, updateSkillSchema } from "@/features/skills/skills.schema";
 import { isImageUrl } from "@/lib/validation/is-image-url";
@@ -12,7 +13,6 @@ import { validateWithZod } from "@/lib/validation/zod";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
 import { getSkillIcon } from "@/shared/components/SkillTag";
-import { StatusMessage } from "@/shared/components/StatusMessage";
 
 type Skill = {
 	icon: string | null;
