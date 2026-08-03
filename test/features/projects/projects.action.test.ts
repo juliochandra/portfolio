@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
+import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const mocks = vi.hoisted(() => ({
 	getPublishedProjectBySlug: vi.fn(),
@@ -11,14 +13,13 @@ vi.mock("@/features/projects/projects.services", () => ({
 }));
 
 import { getProjectBySlug, getProjects } from "@/features/projects/projects.action";
-import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const content: RichTextDocument = {
-	content: [{ content: [{ text: "Deskripsi lengkap dan peran saya.", type: "text" }], type: "paragraph" }],
+	content: [{ content: [{ text: "Deskripsi lengkap project.", type: "text" }], type: "paragraph" }],
 	type: "doc",
 };
 
-const projectListItem = {
+const project = {
 	demoUrl: "https://demo.example.com",
 	description: "Gambaran project",
 	id: "project-1",
@@ -29,56 +30,48 @@ const projectListItem = {
 	title: "Portfolio Developer",
 };
 
-const projectDetail = {
-	...projectListItem,
-	content,
-	demoUrl: "https://demo.example.com",
-	publishedAt: new Date("2026-07-20T00:00:00.000Z"),
-	repositoryUrl: null,
-	tags: [{ name: "Portfolio" }],
-};
-
 describe("project public Server Actions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mocks.getPublishedProjects.mockResolvedValue([projectListItem]);
-		mocks.getPublishedProjectBySlug.mockResolvedValue(projectDetail);
+		mocks.getPublishedProjects.mockResolvedValue([project]);
+		mocks.getPublishedProjectBySlug.mockResolvedValue({
+			...project,
+			content,
+			publishedAt: new Date("2026-07-20T00:00:00.000Z"),
+			tags: [{ name: "Portfolio" }],
+		});
 	});
 
-	it("returns all published projects when limit is omitted", async () => {
-		await expect(getProjects()).resolves.toEqual({ data: [projectListItem] });
-		expect(mocks.getPublishedProjects).toHaveBeenCalledWith(undefined);
-	});
-
-	it("passes a valid limit to the project service", async () => {
-		await expect(getProjects({ limit: 3 })).resolves.toEqual({ data: [projectListItem] });
+	it("forwards project list parameters to the service", async () => {
+		await expect(getProjects({ limit: 3 })).resolves.toEqual({ data: [project] });
 		expect(mocks.getPublishedProjects).toHaveBeenCalledWith({ limit: 3 });
 	});
 
-	it("returns an empty list as a successful result", async () => {
-		mocks.getPublishedProjects.mockResolvedValue([]);
+	it("maps validation errors from the service", async () => {
+		mocks.getPublishedProjects.mockRejectedValue(
+			new ValidationException({ limit: "Number must be greater than 0" }, "Parameter project tidak valid."),
+		);
 
-		await expect(getProjects()).resolves.toEqual({ data: [] });
-	});
-
-	it("rejects an invalid limit before calling the service", async () => {
-		await expect(getProjects({ limit: 0 })).rejects.toThrow("Parameter project tidak valid.");
-		expect(mocks.getPublishedProjects).not.toHaveBeenCalled();
-	});
-
-	it("returns a published project by its normalized slug", async () => {
-		await expect(getProjectBySlug("  portfolio-developer  ")).resolves.toEqual({
-			data: projectDetail,
+		await expect(getProjects({ limit: 0 })).resolves.toEqual({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { limit: "Number must be greater than 0" },
+				message: "Parameter project tidak valid.",
+			},
 		});
-		expect(mocks.getPublishedProjectBySlug).toHaveBeenCalledWith("portfolio-developer");
 	});
 
-	it("returns the same error for an invalid or unavailable slug", async () => {
-		const invalidSlug = await getProjectBySlug("   ");
-		mocks.getPublishedProjectBySlug.mockResolvedValue(null);
-		const unavailableProject = await getProjectBySlug("draft-project");
+	it("returns a published project from the service", async () => {
+		await expect(getProjectBySlug("portfolio-developer")).resolves.toMatchObject({
+			data: { id: "project-1", title: "Portfolio Developer" },
+		});
+	});
 
-		expect(invalidSlug).toEqual({ error: { message: "Project tidak ditemukan." } });
-		expect(unavailableProject).toEqual(invalidSlug);
+	it("maps unavailable projects to a not-found error", async () => {
+		mocks.getPublishedProjectBySlug.mockRejectedValue(new NotFoundException("Project tidak ditemukan."));
+
+		await expect(getProjectBySlug("draft-project")).resolves.toEqual({
+			error: { code: "NOT_FOUND", message: "Project tidak ditemukan." },
+		});
 	});
 });

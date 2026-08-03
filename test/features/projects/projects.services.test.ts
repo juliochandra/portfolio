@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PublishStatus } from "@/lib/publish-status";
+import { NotFoundException } from "@/lib/server-action-exception/exceptions";
 import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const content: RichTextDocument = {
@@ -80,9 +81,9 @@ describe("project public services", () => {
 		});
 	});
 
-	it("returns null when a published project is unavailable", async () => {
+	it("rejects when a published project is unavailable", async () => {
 		mocks.findProjectBySlug.mockResolvedValue(null);
 
-		await expect(getPublishedProjectBySlug("missing-project")).resolves.toBeNull();
+		await expect(getPublishedProjectBySlug("missing-project")).rejects.toBeInstanceOf(NotFoundException);
 	});
 });

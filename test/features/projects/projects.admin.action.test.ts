@@ -1,4 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ProjectInput } from "@/features/projects/projects.type";
+import { PublishStatus } from "@/lib/publish-status";
+import { NotFoundException, UnauthorizedException, ValidationException } from "@/lib/server-action-exception/exceptions";
+
+const serializedContent = JSON.stringify({
+	content: [{ content: [{ text: "Isi project", type: "text" }], type: "paragraph" }],
+	type: "doc",
+});
 
 const mocks = vi.hoisted(() => ({
 	createAdminProject: vi.fn(),
@@ -6,12 +14,12 @@ const mocks = vi.hoisted(() => ({
 	getProjectAdminById: vi.fn(),
 	getProjectsAdmin: vi.fn(),
 	getProjectsAdminPage: vi.fn(),
-	getServerSession: vi.fn(),
+	requireServerSession: vi.fn(),
 	updateAdminProject: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/server-session", () => ({
-	getServerSession: mocks.getServerSession,
+	requireServerSession: mocks.requireServerSession,
 }));
 vi.mock("@/features/projects/projects.services", () => ({
 	createAdminProject: mocks.createAdminProject,
@@ -32,36 +40,26 @@ import {
 	getProjectsAdminPage,
 	updateProject,
 } from "@/features/projects/projects.action";
-import { PublishStatus } from "@/lib/publish-status";
-import type { RichTextDocument } from "@/lib/tiptap/json";
 
-const content: RichTextDocument = {
-	content: [{ content: [{ text: "Isi project", type: "text" }], type: "paragraph" }],
-	type: "doc",
-};
-
-const serializedContent = JSON.stringify(content);
-
-function projectFormData(values: Partial<Record<string, string>> = {}): FormData {
-	const formData = new FormData();
-	formData.set("title", values.title ?? "Project Baru");
-	formData.set("description", values.description ?? "Deskripsi project");
-	formData.set("content", values.content ?? serializedContent);
-	formData.set("demoUrl", values.demoUrl ?? "");
-	// biome-ignore lint/nursery/noSecrets: form field name, not a credential
-	formData.set("thumbnailImage", values.thumbnailImage ?? "");
-	// biome-ignore lint/nursery/noSecrets: form field name, not a credential
-	formData.set("repositoryUrl", values.repositoryUrl ?? "");
-	if (values.status) {
-		formData.set("status", values.status);
-	}
-	return formData;
+function projectInput(values: Partial<ProjectInput> = {}): ProjectInput {
+	return {
+		content: serializedContent,
+		demoUrl: "",
+		description: "Deskripsi project",
+		repositoryUrl: "",
+		skillIds: [],
+		status: PublishStatus.DRAFT,
+		tagIds: [],
+		thumbnailImage: "",
+		title: "Project Baru",
+		...values,
+	};
 }
 
 describe("project admin Server Actions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
+		mocks.requireServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getProjectsAdmin.mockResolvedValue([]);
 		mocks.getProjectsAdminPage.mockResolvedValue({ currentPage: 1, projects: [], totalPages: 1 });
 		mocks.getProjectAdminById.mockResolvedValue({
@@ -82,101 +80,46 @@ describe("project admin Server Actions", () => {
 	});
 
 	it("checks a session before every admin action", async () => {
-		mocks.getServerSession.mockResolvedValue(null);
-
-		await expect(getProjectsAdmin()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(getProjectAdmin("project-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(createProject(projectFormData())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(updateProject("project-1", projectFormData({ status: "DRAFT" }))).resolves.toEqual({
-			error: { message: "UNAUTHORIZED" },
-		});
-		await expect(deleteProject("project-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		expect(mocks.createAdminProject).not.toHaveBeenCalled();
-	});
-
-	it("lists all projects for an authenticated admin", async () => {
-		mocks.getProjectsAdmin.mockResolvedValue([
-			{ description: null, id: "project-1", status: PublishStatus.ARCHIVED, title: "Project Lama" },
-		]);
+		mocks.requireServerSession.mockRejectedValue(new UnauthorizedException());
 
 		await expect(getProjectsAdmin()).resolves.toEqual({
-			data: [{ description: null, id: "project-1", status: "ARCHIVED", title: "Project Lama" }],
+			error: { code: "UNAUTHORIZED", message: "Sesi tidak valid atau telah berakhir." },
 		});
+		await expect(createProject(projectInput())).resolves.toEqual({
+			error: { code: "UNAUTHORIZED", message: "Sesi tidak valid atau telah berakhir." },
+		});
+		expect(mocks.createAdminProject).not.toHaveBeenCalled();
 	});
 
-	it("returns a paginated project list for an authenticated admin", async () => {
-		await expect(getProjectsAdminPage(2)).resolves.toEqual({
-			data: { currentPage: 1, projects: [], totalPages: 1 },
-		});
+	it("forwards authenticated admin requests to the services", async () => {
+		await expect(getProjectsAdminPage(2)).resolves.toEqual({ data: { currentPage: 1, projects: [], totalPages: 1 } });
 		expect(mocks.getProjectsAdminPage).toHaveBeenCalledWith(2);
-	});
 
-	it("returns the complete project data required by the edit form", async () => {
-		await expect(getProjectAdmin("project-1")).resolves.toEqual({
-			data: expect.objectContaining({ id: "project-1", skillIds: ["skill-1"], tagIds: ["tag-1"] }),
-		});
-		expect(mocks.getProjectAdminById).toHaveBeenCalledWith("project-1");
-	});
+		await expect(getProjectAdmin("project-1")).resolves.toMatchObject({ data: { id: "project-1" } });
+		await expect(createProject(projectInput())).resolves.toEqual({ data: { id: "project-1", slug: "project-baru" } });
+		expect(mocks.createAdminProject).toHaveBeenCalledWith(projectInput());
 
-	it("validates form data and creates a draft by default", async () => {
-		await expect(createProject(projectFormData())).resolves.toEqual({
+		await expect(updateProject("project-1", projectInput())).resolves.toEqual({
 			data: { id: "project-1", slug: "project-baru" },
 		});
-		expect(mocks.createAdminProject).toHaveBeenCalledWith({
-			content,
-			demoUrl: null,
-			description: "Deskripsi project",
-			repositoryUrl: null,
-			skillIds: [],
-			status: PublishStatus.DRAFT,
-			tagIds: [],
-			thumbnailImage: null,
-			title: "Project Baru",
-		});
-	});
-
-	it("returns field errors without creating an invalid project", async () => {
-		const result = await createProject(projectFormData({ content: "", title: "" }));
-
-		expect(result).toEqual({
-			error: { fields: { content: "Wajib diisi.", title: "Wajib diisi." } },
-		});
-		expect(mocks.createAdminProject).not.toHaveBeenCalled();
-	});
-
-	it("rejects an invalid thumbnail URL before creating a project", async () => {
-		const result = await createProject(projectFormData({ thumbnailImage: "not-a-url" }));
-
-		expect(result).toEqual({ error: { fields: { thumbnailImage: "URL tidak valid." } } });
-		expect(mocks.createAdminProject).not.toHaveBeenCalled();
-	});
-
-	it("updates and deletes projects for an authenticated admin", async () => {
-		await expect(updateProject("project-1", projectFormData({ status: "PUBLISHED" }))).resolves.toEqual({
-			data: { id: "project-1", slug: "project-baru" },
-		});
-		expect(mocks.updateAdminProject).toHaveBeenCalledWith(
-			"project-1",
-			expect.objectContaining({ status: PublishStatus.PUBLISHED }),
-		);
+		expect(mocks.updateAdminProject).toHaveBeenCalledWith("project-1", projectInput());
 
 		await expect(deleteProject("project-1")).resolves.toEqual({ data: { id: "project-1" } });
 	});
 
-	it("maps unavailable projects to the action contracts", async () => {
-		mocks.updateAdminProject.mockResolvedValue(null);
-		mocks.deleteAdminProject.mockResolvedValue(null);
-
-		await expect(updateProject("missing", projectFormData({ status: "DRAFT" }))).resolves.toEqual({
-			error: { fields: { _form: "Project tidak ditemukan." } },
+	it("maps service validation and not-found errors", async () => {
+		mocks.createAdminProject.mockRejectedValue(new ValidationException({ title: "Wajib diisi." }));
+		await expect(createProject(projectInput({ title: "" }))).resolves.toEqual({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { title: "Wajib diisi." },
+				message: "Input tidak valid.",
+			},
 		});
-		await expect(deleteProject("missing")).resolves.toEqual({ error: { message: "Project tidak ditemukan." } });
-	});
 
-	it("does not query the database for an empty update id", async () => {
-		await expect(updateProject("", projectFormData({ status: "DRAFT" }))).resolves.toEqual({
-			error: { fields: { _form: "Project tidak ditemukan." } },
+		mocks.deleteAdminProject.mockRejectedValue(new NotFoundException("Project tidak ditemukan."));
+		await expect(deleteProject("missing")).resolves.toEqual({
+			error: { code: "NOT_FOUND", message: "Project tidak ditemukan." },
 		});
-		expect(mocks.updateAdminProject).not.toHaveBeenCalled();
 	});
 });

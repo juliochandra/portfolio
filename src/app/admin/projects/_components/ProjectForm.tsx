@@ -12,31 +12,17 @@ import { getSkillIcon } from "@/components/ui/SkillTag";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { StatusSelect } from "@/components/ui/StatusSelect";
 import { createProject, updateProject } from "@/features/projects/projects.action";
-import { createProjectSchema, projectFormDataToInput, updateProjectSchema } from "@/features/projects/projects.schema";
-import type { PublishStatus } from "@/lib/publish-status";
+import { projectFormDataToInput } from "@/features/projects/projects.schema";
+import type { AdminProjectDetail } from "@/features/projects/projects.type";
 import { emptyRichTextDocument, parseRichTextDocument } from "@/lib/tiptap/json";
 import { isImageUrl } from "@/lib/validation/is-image-url";
-import { validateWithZod } from "@/lib/validation/zod";
-
-type ProjectFormProject = {
-	content: string;
-	demoUrl: string | null;
-	description: string | null;
-	id: string;
-	repositoryUrl: string | null;
-	skillIds: string[];
-	status: PublishStatus;
-	tagIds: string[];
-	thumbnailImage: string | null;
-	title: string;
-};
 
 type ProjectFormProps = {
 	folders: { id: string; name: string }[];
 	media: MediaImagePickerItem[];
 	mediaCurrentPage?: number;
 	mediaTotalPages?: number;
-	project?: ProjectFormProject;
+	project?: AdminProjectDetail;
 	skills: { icon: string | null; id: string; name: string }[];
 	tags: { id: string; name: string }[];
 };
@@ -83,24 +69,14 @@ export function ProjectForm({
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const formData = new FormData(event.currentTarget);
-		const validation = validateWithZod(
-			isEditing ? updateProjectSchema : createProjectSchema,
-			projectFormDataToInput(formData),
-		);
-
-		if (!validation.success) {
-			setSuccessMessage(null);
-			setFields(validation.fields);
-			return;
-		}
-
 		setFields({});
 		setSuccessMessage(null);
 		setIsSubmitting(true);
 		try {
-			const result = project ? await updateProject(project.id, formData) : await createProject(formData);
+			const input = projectFormDataToInput(formData);
+			const result = project ? await updateProject(project.id, input) : await createProject(input);
 			if ("error" in result) {
-				setFields("fields" in result.error ? result.error.fields : { _form: result.error.message });
+				setFields(result.error.fields ?? { _form: result.error.message });
 				return;
 			}
 

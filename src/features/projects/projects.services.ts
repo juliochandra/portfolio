@@ -12,57 +12,28 @@ import {
 	type ProjectListRecord,
 	updateProjectRecord,
 } from "@/features/projects/projects.repository";
-import type { CreateProjectInput, UpdateProjectInput } from "@/features/projects/projects.schema";
-import { PublishStatus, toPublishStatus } from "@/lib/publish-status";
-import { generateUniqueSlug } from "@/lib/slug";
 import {
-	emptyRichTextDocument,
-	parseRichTextDocument,
-	type RichTextDocument,
-	serializeRichTextDocument,
-} from "@/lib/tiptap/json";
-
-export type ProjectSkill = {
-	icon: string;
-	name: string;
-};
-
-export type PublicProjectListItem = {
-	demoUrl: string | null;
-	description: string | null;
-	id: string;
-	repositoryUrl: string | null;
-	skills: ProjectSkill[];
-	slug: string;
-	thumbnailImage: string | null;
-	title: string;
-};
-
-export type PublicProjectDetail = PublicProjectListItem & {
-	content: RichTextDocument;
-	publishedAt: Date | null;
-	tags: { name: string }[];
-};
-
-export type AdminProjectListItem = {
-	description: string | null;
-	id: string;
-	status: PublishStatus;
-	title: string;
-};
-
-export type AdminProjectDetail = {
-	content: string;
-	demoUrl: string | null;
-	description: string | null;
-	id: string;
-	repositoryUrl: string | null;
-	skillIds: string[];
-	status: PublishStatus;
-	tagIds: string[];
-	thumbnailImage: string | null;
-	title: string;
-};
+	adminProjectsPageSchema,
+	createProjectSchema,
+	getProjectsParamsSchema,
+	projectSlugSchema,
+	updateProjectSchema,
+} from "@/features/projects/projects.schema";
+import type {
+	AdminProjectDetail,
+	AdminProjectListItem,
+	AdminProjectListPage,
+	GetProjectsParams,
+	ProjectInput,
+	ProjectSkill,
+	PublicProjectDetail,
+	PublicProjectListItem,
+} from "@/features/projects/projects.type";
+import { PublishStatus, toPublishStatus } from "@/lib/publish-status";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
+import { generateUniqueSlug } from "@/lib/slug";
+import { emptyRichTextDocument, parseRichTextDocument, serializeRichTextDocument } from "@/lib/tiptap/json";
+import { validateWithZod } from "@/lib/validation/zod";
 
 function completeSkills(skills: ProjectListRecord["skills"]): ProjectSkill[] {
 	return skills.filter((skill): skill is ProjectSkill => skill.icon !== null);
@@ -90,17 +61,31 @@ function toPublicProjectDetail(project: ProjectDetailRecord): PublicProjectDetai
 	};
 }
 
-export async function getPublishedProjects(params?: { limit?: number }): Promise<PublicProjectListItem[]> {
+export async function getPublishedProjects(params?: GetProjectsParams): Promise<PublicProjectListItem[]> {
+	const validation = validateWithZod(getProjectsParamsSchema, params);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields, "Parameter project tidak valid.");
+	}
+
 	const projects = await findProjects({
-		limit: params?.limit,
+		limit: validation.data?.limit,
 		status: PublishStatus.PUBLISHED,
 	});
 	return projects.map(toPublicProjectListItem);
 }
 
-export async function getPublishedProjectBySlug(slug: string): Promise<PublicProjectDetail | null> {
-	const project = await findProjectBySlug({ slug, status: PublishStatus.PUBLISHED });
-	return project ? toPublicProjectDetail(project) : null;
+export async function getPublishedProjectBySlug(slug: string): Promise<PublicProjectDetail> {
+	const validation = validateWithZod(projectSlugSchema, slug);
+	if (!validation.success) {
+		throw new NotFoundException("Project tidak ditemukan.");
+	}
+
+	const project = await findProjectBySlug({ slug: validation.data, status: PublishStatus.PUBLISHED });
+	if (!project) {
+		throw new NotFoundException("Project tidak ditemukan.");
+	}
+
+	return toPublicProjectDetail(project);
 }
 
 function toAdminProjectListItem(project: Awaited<ReturnType<typeof findProjectsAdmin>>[number]): AdminProjectListItem {
@@ -114,16 +99,15 @@ export async function getProjectsAdmin(): Promise<AdminProjectListItem[]> {
 
 export const ADMIN_PROJECTS_PER_PAGE = 10;
 
-export type AdminProjectListPage = {
-	currentPage: number;
-	projects: AdminProjectListItem[];
-	totalPages: number;
-};
-
 export async function getProjectsAdminPage(page: number): Promise<AdminProjectListPage> {
+	const validation = validateWithZod(adminProjectsPageSchema, page);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields, "Halaman project tidak valid.");
+	}
+
 	const totalProjects = await countProjectsAdmin();
 	const totalPages = Math.max(1, Math.ceil(totalProjects / ADMIN_PROJECTS_PER_PAGE));
-	const currentPage = Math.min(page, totalPages);
+	const currentPage = Math.min(validation.data, totalPages);
 	const projects = await findProjectsAdmin({
 		skip: (currentPage - 1) * ADMIN_PROJECTS_PER_PAGE,
 		take: ADMIN_PROJECTS_PER_PAGE,
@@ -132,10 +116,10 @@ export async function getProjectsAdminPage(page: number): Promise<AdminProjectLi
 	return { currentPage, projects: projects.map(toAdminProjectListItem), totalPages };
 }
 
-export async function getProjectAdminById(id: string): Promise<AdminProjectDetail | null> {
+export async function getProjectAdminById(id: string): Promise<AdminProjectDetail> {
 	const project = await findProjectDetailForAdmin(id);
 	if (!project) {
-		return null;
+		throw new NotFoundException("Project tidak ditemukan.");
 	}
 
 	return {
@@ -146,39 +130,53 @@ export async function getProjectAdminById(id: string): Promise<AdminProjectDetai
 	};
 }
 
-export async function createAdminProject(input: CreateProjectInput): Promise<{ id: string; slug: string }> {
-	const slug = await generateUniqueSlug(input.title, isProjectSlugAvailable);
-	const publishedAt = input.status === PublishStatus.PUBLISHED ? new Date() : null;
+export async function createAdminProject(input: ProjectInput): Promise<{ id: string; slug: string }> {
+	const validation = validateWithZod(createProjectSchema, input);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields);
+	}
+
+	const slug = await generateUniqueSlug(validation.data.title, isProjectSlugAvailable);
+	const publishedAt = validation.data.status === PublishStatus.PUBLISHED ? new Date() : null;
 
 	return createProjectRecord({
-		...input,
-		content: serializeRichTextDocument(input.content),
+		...validation.data,
+		content: serializeRichTextDocument(validation.data.content),
 		publishedAt,
 		slug,
 	});
 }
 
-export async function updateAdminProject(id: string, input: UpdateProjectInput): Promise<{ id: string; slug: string } | null> {
+export async function updateAdminProject(id: string, input: ProjectInput): Promise<{ id: string; slug: string }> {
+	const validation = validateWithZod(updateProjectSchema, input);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields);
+	}
+
 	const existing = await findProjectForAdmin(id);
 	if (!existing) {
-		return null;
+		throw new NotFoundException("Project tidak ditemukan.");
 	}
 
 	const slug =
-		existing.title === input.title
+		existing.title === validation.data.title
 			? existing.slug
-			: await generateUniqueSlug(input.title, (candidate) => isProjectSlugAvailable(candidate, id));
-	const publishedAt = existing.publishedAt ?? (input.status === PublishStatus.PUBLISHED ? new Date() : null);
+			: await generateUniqueSlug(validation.data.title, (candidate) => isProjectSlugAvailable(candidate, id));
+	const publishedAt = existing.publishedAt ?? (validation.data.status === PublishStatus.PUBLISHED ? new Date() : null);
 
 	return updateProjectRecord(id, {
-		...input,
-		content: serializeRichTextDocument(input.content),
+		...validation.data,
+		content: serializeRichTextDocument(validation.data.content),
 		publishedAt,
 		slug,
 	});
 }
 
-export async function deleteAdminProject(id: string): Promise<{ id: string } | null> {
+export async function deleteAdminProject(id: string): Promise<{ id: string }> {
 	const existing = await findProjectForAdmin(id);
-	return existing ? deleteProjectRecord(id) : null;
+	if (!existing) {
+		throw new NotFoundException("Project tidak ditemukan.");
+	}
+
+	return deleteProjectRecord(id);
 }
