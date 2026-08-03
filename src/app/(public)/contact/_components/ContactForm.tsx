@@ -38,7 +38,7 @@ export function ContactForm() {
 		try {
 			const result = await sendMessage(validation.data);
 			if ("error" in result) {
-				setErrors(result.error.fields);
+				setErrors(result.error.fields ?? { _form: result.error.message });
 				return;
 			}
 

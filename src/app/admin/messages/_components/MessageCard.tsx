@@ -1,16 +1,10 @@
 import { FaArrowRotateLeft, FaBoxArchive, FaChevronDown } from "react-icons/fa6";
 import { Button } from "@/components/ui/Button";
 import { archiveMessage, unarchiveMessage } from "@/features/messages/messages.action";
+import type { AdminMessage } from "@/features/messages/messages.type";
 
 type MessageCardProps = {
-	message: {
-		createdAt: string;
-		email: string;
-		id: string;
-		message: string;
-		name: string;
-		status: "ARCHIVED" | "READ" | "UNREAD";
-	};
+	message: AdminMessage;
 };
 
 function formatCreatedAt(value: string): string {

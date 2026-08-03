@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ValidationException } from "@/lib/server-action-exception/exceptions";
 
 const mocks = vi.hoisted(() => ({
 	createPublicMessage: vi.fn(),
@@ -16,51 +17,32 @@ describe("message public Server Action", () => {
 		mocks.createPublicMessage.mockResolvedValue({ id: "message-1" });
 	});
 
-	it("normalizes, stores, and returns a valid message id", async () => {
-		const result = await sendMessage({
-			email: "  recruiter@example.com  ",
-			message: "  Mari berdiskusi tentang peluang kerja.  ",
-			name: "  Recruiter  ",
-		});
-
-		expect(result).toEqual({ data: { id: "message-1" } });
-		expect(mocks.createPublicMessage).toHaveBeenCalledWith({
+	it("forwards a public message to the service", async () => {
+		const input = {
 			email: "recruiter@example.com",
 			message: "Mari berdiskusi tentang peluang kerja.",
 			name: "Recruiter",
-		});
+		};
+
+		await expect(sendMessage(input)).resolves.toEqual({ data: { id: "message-1" } });
+		expect(mocks.createPublicMessage).toHaveBeenCalledWith(input);
 	});
 
-	it("returns field errors and does not store empty required values", async () => {
-		const result = await sendMessage({ email: "", message: "   ", name: "" });
+	it("maps validation errors from the service", async () => {
+		mocks.createPublicMessage.mockRejectedValue(
+			new ValidationException({ email: "Wajib diisi.", message: "Wajib diisi.", name: "Wajib diisi." }),
+		);
 
-		expect(result).toEqual({
+		await expect(sendMessage({ email: "", message: "", name: "" })).resolves.toEqual({
 			error: {
+				code: "VALIDATION_ERROR",
 				fields: {
 					email: "Wajib diisi.",
 					message: "Wajib diisi.",
 					name: "Wajib diisi.",
 				},
+				message: "Input tidak valid.",
 			},
 		});
-		expect(mocks.createPublicMessage).not.toHaveBeenCalled();
-	});
-
-	it("returns field errors for invalid email and bounded fields", async () => {
-		const result = await sendMessage({
-			email: "invalid-email",
-			message: "Pesan",
-			name: "a".repeat(101),
-		});
-
-		expect(result).toEqual({
-			error: {
-				fields: {
-					email: "Format email tidak valid.",
-					name: "Maksimal 100 karakter.",
-				},
-			},
-		});
-		expect(mocks.createPublicMessage).not.toHaveBeenCalled();
 	});
 });
