@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
 
 const mocks = vi.hoisted(() => ({
 	createTagRecord: vi.fn(),
@@ -29,11 +30,12 @@ describe("tag admin services", () => {
 		mocks.updateTagRecord.mockResolvedValue({ id: "tag-1" });
 		mocks.deleteTagRecord.mockResolvedValue({ id: "tag-1" });
 	});
-	it("generates a unique slug and rejects duplicate names", async () => {
+	it("generates a unique slug and rejects invalid or duplicate names", async () => {
 		await expect(createAdminTag({ name: "React" })).resolves.toEqual({ id: "tag-1" });
 		expect(mocks.createTagRecord).toHaveBeenCalledWith({ name: "React", slug: "react" });
+		await expect(createAdminTag({ name: "" })).rejects.toBeInstanceOf(ValidationException);
 		mocks.isTagNameAvailable.mockResolvedValue(false);
-		await expect(createAdminTag({ name: "React" })).resolves.toBe("name_taken");
+		await expect(createAdminTag({ name: "React" })).rejects.toBeInstanceOf(ValidationException);
 	});
 	it("updates existing tags and deletes only the tag record", async () => {
 		mocks.findTagForAdmin.mockResolvedValue({ id: "tag-1", name: "React", slug: "react" });
@@ -41,5 +43,12 @@ describe("tag admin services", () => {
 		expect(mocks.updateTagRecord).toHaveBeenCalledWith("tag-1", { name: "Vue", slug: "vue" });
 		await expect(deleteAdminTag("tag-1")).resolves.toEqual({ id: "tag-1" });
 		expect(mocks.deleteTagRecord).toHaveBeenCalledWith("tag-1");
+	});
+
+	it("rejects missing tags", async () => {
+		mocks.findTagForAdmin.mockResolvedValue(null);
+
+		await expect(updateAdminTag("missing", { name: "React" })).rejects.toBeInstanceOf(NotFoundException);
+		await expect(deleteAdminTag("missing")).rejects.toBeInstanceOf(NotFoundException);
 	});
 });
