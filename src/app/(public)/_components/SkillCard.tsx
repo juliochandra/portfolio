@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { getSkillIcon } from "@/components/ui/SkillTag";
-import type { PublicSkill } from "@/features/skills/skills.services";
+import type { PublicSkill } from "@/features/skills/skills.type";
 import { isImageUrl } from "@/lib/validation/is-image-url";
 
 export function SkillCard({ skill }: { skill: PublicSkill }) {

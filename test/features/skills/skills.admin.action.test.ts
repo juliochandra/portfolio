@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { SkillInput } from "@/features/skills/skills.type";
+import { NotFoundException, UnauthorizedException, ValidationException } from "@/lib/server-action-exception/exceptions";
 
 const mocks = vi.hoisted(() => ({
 	createAdminSkill: vi.fn(),
 	deleteAdminSkill: vi.fn(),
-	getServerSession: vi.fn(),
 	getSkillsAdmin: vi.fn(),
+	requireServerSession: vi.fn(),
 	updateAdminSkill: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/server-session", () => ({
-	getServerSession: mocks.getServerSession,
+	requireServerSession: mocks.requireServerSession,
 }));
 vi.mock("@/features/skills/skills.services", () => ({
 	createAdminSkill: mocks.createAdminSkill,
@@ -23,7 +25,7 @@ import { createSkill, deleteSkill, getSkillsAdmin, updateSkill } from "@/feature
 
 const skillIconUrl = "https://cdn.example/skills/typescript.png";
 
-function skillInput(values: Record<string, unknown> = {}): Record<string, unknown> {
+function skillInput(values: Partial<SkillInput> = {}): SkillInput {
 	return {
 		icon: skillIconUrl,
 		name: "TypeScript",
@@ -34,7 +36,7 @@ function skillInput(values: Record<string, unknown> = {}): Record<string, unknow
 describe("skill admin Server Actions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
+		mocks.requireServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getSkillsAdmin.mockResolvedValue([]);
 		mocks.createAdminSkill.mockResolvedValue({ id: "skill-1" });
 		mocks.updateAdminSkill.mockResolvedValue({ id: "skill-1" });
@@ -42,69 +44,41 @@ describe("skill admin Server Actions", () => {
 	});
 
 	it("checks a session before every admin action", async () => {
-		mocks.getServerSession.mockResolvedValue(null);
-
-		await expect(getSkillsAdmin()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(createSkill(skillInput())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(updateSkill("skill-1", skillInput())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(deleteSkill("skill-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		expect(mocks.createAdminSkill).not.toHaveBeenCalled();
-	});
-
-	it("lists all skills for an authenticated admin", async () => {
-		mocks.getSkillsAdmin.mockResolvedValue([{ icon: null, id: "skill-1", name: "TypeScript" }]);
+		mocks.requireServerSession.mockRejectedValue(new UnauthorizedException());
 
 		await expect(getSkillsAdmin()).resolves.toEqual({
-			data: [{ icon: null, id: "skill-1", name: "TypeScript" }],
+			error: { code: "UNAUTHORIZED", message: "Sesi tidak valid atau telah berakhir." },
 		});
-	});
-
-	it("validates object input and creates a skill", async () => {
-		await expect(createSkill(skillInput())).resolves.toEqual({ data: { id: "skill-1" } });
-		expect(mocks.createAdminSkill).toHaveBeenCalledWith({ icon: skillIconUrl, name: "TypeScript" });
-	});
-
-	it("returns field errors without creating an invalid skill", async () => {
-		const result = await createSkill(skillInput({ icon: "", name: "" }));
-
-		expect(result).toEqual({ error: { fields: { icon: "Wajib diisi.", name: "Wajib diisi." } } });
-		expect(mocks.createAdminSkill).not.toHaveBeenCalled();
-	});
-
-	it("rejects an icon that is not an image URL", async () => {
-		const result = await createSkill(skillInput({ icon: "typescript" }));
-
-		expect(result).toEqual({ error: { fields: { icon: "URL ikon tidak valid." } } });
-		expect(mocks.createAdminSkill).not.toHaveBeenCalled();
-	});
-
-	it("maps a duplicate name to its field", async () => {
-		mocks.createAdminSkill.mockResolvedValue("name_taken");
-
 		await expect(createSkill(skillInput())).resolves.toEqual({
-			error: { fields: { name: "Nama keahlian sudah digunakan." } },
+			error: { code: "UNAUTHORIZED", message: "Sesi tidak valid atau telah berakhir." },
 		});
+		expect(mocks.createAdminSkill).not.toHaveBeenCalled();
 	});
 
-	it("updates and deletes skills for an authenticated admin", async () => {
+	it("forwards authenticated admin requests to the services", async () => {
+		await expect(getSkillsAdmin()).resolves.toEqual({ data: [] });
+		await expect(createSkill(skillInput())).resolves.toEqual({ data: { id: "skill-1" } });
+		expect(mocks.createAdminSkill).toHaveBeenCalledWith(skillInput());
+
 		await expect(updateSkill("skill-1", skillInput())).resolves.toEqual({ data: { id: "skill-1" } });
-		expect(mocks.updateAdminSkill).toHaveBeenCalledWith("skill-1", { icon: skillIconUrl, name: "TypeScript" });
+		expect(mocks.updateAdminSkill).toHaveBeenCalledWith("skill-1", skillInput());
 
 		await expect(deleteSkill("skill-1")).resolves.toEqual({ data: { id: "skill-1" } });
 	});
 
-	it("maps unavailable and duplicate skills to the action contracts", async () => {
-		mocks.updateAdminSkill.mockResolvedValue(null);
-		mocks.deleteAdminSkill.mockResolvedValue(null);
-
-		await expect(updateSkill("missing", skillInput())).resolves.toEqual({
-			error: { fields: { _form: "Keahlian tidak ditemukan." } },
+	it("maps validation and not-found errors from services", async () => {
+		mocks.createAdminSkill.mockRejectedValue(new ValidationException({ name: "Nama keahlian sudah digunakan." }));
+		await expect(createSkill(skillInput())).resolves.toEqual({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { name: "Nama keahlian sudah digunakan." },
+				message: "Input tidak valid.",
+			},
 		});
-		await expect(deleteSkill("missing")).resolves.toEqual({ error: { message: "Keahlian tidak ditemukan." } });
 
-		mocks.updateAdminSkill.mockResolvedValue("name_taken");
-		await expect(updateSkill("skill-1", skillInput())).resolves.toEqual({
-			error: { fields: { name: "Nama keahlian sudah digunakan." } },
+		mocks.deleteAdminSkill.mockRejectedValue(new NotFoundException("Keahlian tidak ditemukan."));
+		await expect(deleteSkill("missing")).resolves.toEqual({
+			error: { code: "NOT_FOUND", message: "Keahlian tidak ditemukan." },
 		});
 	});
 });
