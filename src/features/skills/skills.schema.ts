@@ -1,6 +1,5 @@
 import { z } from "zod";
-
-export const skillIdSchema = z.string().trim().min(1);
+import type { SkillInput } from "@/features/skills/skills.type";
 
 const REQUIRED_MESSAGE = "Wajib diisi.";
 
@@ -22,5 +21,14 @@ const skillInputSchema = z.object({
 export const createSkillSchema = skillInputSchema;
 export const updateSkillSchema = skillInputSchema;
 
-export type CreateSkillInput = z.output<typeof createSkillSchema>;
-export type UpdateSkillInput = z.output<typeof updateSkillSchema>;
+function readString(formData: FormData, name: string): string {
+	const value = formData.get(name);
+	return typeof value === "string" ? value : "";
+}
+
+export function skillFormDataToInput(formData: FormData): SkillInput {
+	return {
+		icon: readString(formData, "icon"),
+		name: readString(formData, "name"),
+	};
+}

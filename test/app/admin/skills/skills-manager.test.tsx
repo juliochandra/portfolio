@@ -30,7 +30,14 @@ describe("SkillsManager", () => {
 		mocks.deleteSkill.mockResolvedValue({ data: { id: "skill-1" } });
 	});
 
-	it("shows validation errors without creating an incomplete skill", async () => {
+	it("shows validation errors returned by the Server Action", async () => {
+		mocks.createSkill.mockResolvedValue({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { icon: "Wajib diisi.", name: "Wajib diisi." },
+				message: "Input tidak valid.",
+			},
+		});
 		const manager = render(<SkillsManager folders={[]} initialSkills={[]} media={[]} />);
 		fireEvent.click(manager.getByRole("button", { name: "Tambah Skill" }));
 		const dialog = manager.getByRole("dialog", { name: "Tambah Skill" });
@@ -38,7 +45,7 @@ describe("SkillsManager", () => {
 		fireEvent.submit(within(dialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
 		await waitFor(() => expect(within(dialog).getAllByText("Wajib diisi.")).toHaveLength(2));
-		expect(mocks.createSkill).not.toHaveBeenCalled();
+		expect(mocks.createSkill).toHaveBeenCalledOnce();
 	});
 
 	it("selects an icon from the media modal and creates a skill", async () => {
