@@ -43,7 +43,14 @@ describe("PostForm", () => {
 		mocks.updatePost.mockResolvedValue({ data: { id: "post-1", slug: "tulisan-baru" } });
 	});
 
-	it("shows validation errors without creating an incomplete post", async () => {
+	it("shows validation errors returned by the Server Action", async () => {
+		mocks.createPost.mockResolvedValue({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { content: "Wajib diisi.", title: "Wajib diisi." },
+				message: "Input tidak valid.",
+			},
+		});
 		const postForm = render(<PostForm folders={[]} media={[]} tags={[]} />);
 
 		fireEvent.submit(postForm.getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
@@ -51,7 +58,7 @@ describe("PostForm", () => {
 		await waitFor(() => {
 			expect(postForm.getAllByText("Wajib diisi.")).toHaveLength(2);
 		});
-		expect(mocks.createPost).not.toHaveBeenCalled();
+		expect(mocks.createPost).toHaveBeenCalledOnce();
 	});
 
 	it("labels the optional excerpt field as description", () => {

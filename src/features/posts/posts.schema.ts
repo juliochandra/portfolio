@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { PostInput } from "@/features/posts/posts.type";
 import { publishStatuses } from "@/lib/publish-status";
 import { emptyRichTextDocument, hasRichTextContent, parseRichTextDocument } from "@/lib/tiptap/json";
 
@@ -8,12 +9,9 @@ export const getPostsParamsSchema = z
 	})
 	.optional();
 
-export type GetPostsParams = z.infer<typeof getPostsParamsSchema>;
-
 export const adminPostsPageSchema = z.number().int().positive();
 
-export const postSlugSchema = z.string().trim().min(1);
-export const postIdSchema = z.string().trim().min(1);
+export const postSlugSchema = z.string().trim().min(1, "Slug tulisan wajib diisi.");
 
 const REQUIRED_MESSAGE = "Wajib diisi.";
 
@@ -64,22 +62,24 @@ export const updatePostSchema = postInputSchema.extend({
 	status: z.enum(publishStatuses),
 });
 
-export type CreatePostInput = z.output<typeof createPostSchema>;
-export type UpdatePostInput = z.output<typeof updatePostSchema>;
-
-function readString(formData: FormData, name: string): unknown {
-	return formData.get(name) ?? "";
+function readString(formData: FormData, name: string): string {
+	const value = formData.get(name);
+	return typeof value === "string" ? value : "";
 }
 
-function readArray(formData: FormData, name: string): unknown[] {
-	return [...formData.getAll(name), ...formData.getAll(`${name}[]`)];
+function readArray(formData: FormData, name: string): string[] {
+	return [...formData.getAll(name), ...formData.getAll(`${name}[]`)].filter(
+		(value): value is string => typeof value === "string",
+	);
 }
 
-export function postFormDataToInput(formData: FormData): Record<string, unknown> {
+export function postFormDataToInput(formData: FormData): PostInput {
+	const status = readString(formData, "status");
+
 	return {
 		content: readString(formData, "content"),
 		description: readString(formData, "description"),
-		status: formData.get("status") ?? undefined,
+		status: status || undefined,
 		tagIds: readArray(formData, "tagIds"),
 		// biome-ignore lint/nursery/noSecrets: Field name mirrors the form and Zod schema.
 		thumbnailImage: readString(formData, "thumbnailImage"),
