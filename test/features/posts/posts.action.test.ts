@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
+import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const mocks = vi.hoisted(() => ({
 	getPublishedPostBySlug: vi.fn(),
@@ -11,7 +13,6 @@ vi.mock("@/features/posts/posts.services", () => ({
 }));
 
 import { getPostBySlug, getPosts } from "@/features/posts/posts.action";
-import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const content: RichTextDocument = {
 	content: [{ content: [{ text: "Isi lengkap tulisan.", type: "text" }], type: "paragraph" }],
@@ -29,54 +30,43 @@ const postListItem = {
 	title: "Memahami Server Actions",
 };
 
-const postDetail = {
-	...postListItem,
-	content,
-	nextPost: null,
-	prevPost: null,
-};
-
 describe("post public Server Actions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.getPublishedPosts.mockResolvedValue([postListItem]);
-		mocks.getPublishedPostBySlug.mockResolvedValue(postDetail);
+		mocks.getPublishedPostBySlug.mockResolvedValue({ ...postListItem, content, nextPost: null, prevPost: null });
 	});
 
-	it("returns all published posts when limit is omitted", async () => {
-		await expect(getPosts()).resolves.toEqual({ data: [postListItem] });
-		expect(mocks.getPublishedPosts).toHaveBeenCalledWith(undefined);
-	});
-
-	it("passes a valid limit to the post service", async () => {
+	it("forwards post list parameters to the service", async () => {
 		await expect(getPosts({ limit: 3 })).resolves.toEqual({ data: [postListItem] });
 		expect(mocks.getPublishedPosts).toHaveBeenCalledWith({ limit: 3 });
 	});
 
-	it("returns an empty list as a successful result", async () => {
-		mocks.getPublishedPosts.mockResolvedValue([]);
+	it("maps validation errors from the service", async () => {
+		mocks.getPublishedPosts.mockRejectedValue(
+			new ValidationException({ limit: "Number must be greater than 0" }, "Parameter tulisan tidak valid."),
+		);
 
-		await expect(getPosts()).resolves.toEqual({ data: [] });
-	});
-
-	it("rejects an invalid limit before calling the service", async () => {
-		await expect(getPosts({ limit: 0 })).rejects.toThrow("Parameter tulisan tidak valid.");
-		expect(mocks.getPublishedPosts).not.toHaveBeenCalled();
-	});
-
-	it("returns a published post by its normalized slug", async () => {
-		await expect(getPostBySlug("  memahami-server-actions  ")).resolves.toEqual({
-			data: postDetail,
+		await expect(getPosts({ limit: 0 })).resolves.toEqual({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { limit: "Number must be greater than 0" },
+				message: "Parameter tulisan tidak valid.",
+			},
 		});
-		expect(mocks.getPublishedPostBySlug).toHaveBeenCalledWith("memahami-server-actions");
 	});
 
-	it("returns the same error for an invalid or unavailable slug", async () => {
-		const invalidSlug = await getPostBySlug("   ");
-		mocks.getPublishedPostBySlug.mockResolvedValue(null);
-		const unavailablePost = await getPostBySlug("draft-post");
+	it("returns a published post from the service", async () => {
+		await expect(getPostBySlug("memahami-server-actions")).resolves.toMatchObject({
+			data: { id: "post-1", title: "Memahami Server Actions" },
+		});
+	});
 
-		expect(invalidSlug).toEqual({ error: { message: "Tulisan tidak ditemukan." } });
-		expect(unavailablePost).toEqual(invalidSlug);
+	it("maps unavailable posts to a not-found error", async () => {
+		mocks.getPublishedPostBySlug.mockRejectedValue(new NotFoundException("Tulisan tidak ditemukan."));
+
+		await expect(getPostBySlug("draft-post")).resolves.toEqual({
+			error: { code: "NOT_FOUND", message: "Tulisan tidak ditemukan." },
+		});
 	});
 });

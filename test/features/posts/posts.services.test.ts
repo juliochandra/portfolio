@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PublishStatus } from "@/lib/publish-status";
+import { NotFoundException } from "@/lib/server-action-exception/exceptions";
 import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const content: RichTextDocument = {
@@ -101,15 +102,15 @@ describe("post public services", () => {
 		});
 	});
 
-	it("returns null when the post is unavailable or has no publication date", async () => {
+	it("rejects when the post is unavailable or has no publication date", async () => {
 		mocks.findPostBySlug.mockResolvedValue(null);
-		await expect(getPublishedPostBySlug("missing-post")).resolves.toBeNull();
+		await expect(getPublishedPostBySlug("missing-post")).rejects.toBeInstanceOf(NotFoundException);
 
 		mocks.findPostBySlug.mockResolvedValue({
 			...postRecord,
 			content: serializedContent,
 			publishedAt: null,
 		});
-		await expect(getPublishedPostBySlug("inconsistent-post")).resolves.toBeNull();
+		await expect(getPublishedPostBySlug("inconsistent-post")).rejects.toBeInstanceOf(NotFoundException);
 	});
 });

@@ -28,6 +28,7 @@ export default async function Home() {
 	]);
 	const contactResult = await getContactInfo();
 	const contactInfo = "data" in contactResult ? contactResult.data : [];
+	const posts = "data" in postsResult ? postsResult.data : [];
 	const email = contactInfo.find(isEmailContact);
 	const emailHref = email ? (email.value.startsWith("mailto:") ? email.value : `mailto:${email.value}`) : "test@mail.com";
 
@@ -97,9 +98,9 @@ export default async function Home() {
 					title="Tulisan Terbaru"
 					description="Pemikiran, tutorial, dan wawasan seputar pengembangan web dan membangun produk."
 				/>
-				{postsResult.data.length > 0 ? (
+				{posts.length > 0 ? (
 					<div className="mx-auto mt-10">
-						{postsResult.data.map((post) => (
+						{posts.map((post) => (
 							<PostItem key={post.id} post={post} />
 						))}
 					</div>

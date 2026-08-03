@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { TagList } from "@/components/ui/TagList";
-import type { PublicPostListItem } from "@/features/posts/posts.services";
+import type { PublicPostListItem } from "@/features/posts/posts.type";
 
 type PostItemProps = {
 	post: PublicPostListItem;

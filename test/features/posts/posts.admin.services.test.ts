@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PublishStatus } from "@/lib/publish-status";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
 import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const mocks = vi.hoisted(() => ({
@@ -44,11 +45,11 @@ const content: RichTextDocument = {
 const serializedContent = JSON.stringify(content);
 
 const input = {
-	content,
-	description: null,
+	content: serializedContent,
+	description: "",
 	status: PublishStatus.PUBLISHED,
 	tagIds: ["tag-1"],
-	thumbnailImage: null,
+	thumbnailImage: "",
 	title: "Tulisan Baru",
 };
 
@@ -125,9 +126,11 @@ describe("post admin services", () => {
 		expect(mocks.createPostRecord).toHaveBeenCalledWith({
 			...input,
 			content: serializedContent,
+			description: null,
 			publishedAt: new Date("2026-07-17T10:00:00.000Z"),
 			readingTime: 1,
 			slug: "tulisan-baru",
+			thumbnailImage: null,
 		});
 	});
 
@@ -141,12 +144,12 @@ describe("post admin services", () => {
 
 		await updateAdminPost("post-1", {
 			...input,
-			content: {
+			content: JSON.stringify({
 				content: [
 					{ content: [{ text: Array.from({ length: 201 }, () => "kata").join(" "), type: "text" }], type: "paragraph" },
 				],
 				type: "doc",
-			},
+			}),
 			status: PublishStatus.ARCHIVED,
 		});
 		expect(mocks.isPostSlugAvailable).not.toHaveBeenCalled();
@@ -174,11 +177,13 @@ describe("post admin services", () => {
 		);
 	});
 
-	it("does not mutate a missing post", async () => {
+	it("rejects invalid input and missing posts", async () => {
+		await expect(createAdminPost({ ...input, title: "" })).rejects.toBeInstanceOf(ValidationException);
+
 		mocks.findPostForAdmin.mockResolvedValue(null);
 
-		await expect(updateAdminPost("missing", input)).resolves.toBeNull();
-		await expect(deleteAdminPost("missing")).resolves.toBeNull();
+		await expect(updateAdminPost("missing", input)).rejects.toBeInstanceOf(NotFoundException);
+		await expect(deleteAdminPost("missing")).rejects.toBeInstanceOf(NotFoundException);
 		expect(mocks.updatePostRecord).not.toHaveBeenCalled();
 		expect(mocks.deletePostRecord).not.toHaveBeenCalled();
 	});

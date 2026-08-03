@@ -14,55 +14,33 @@ import {
 	type PostListRecord,
 	updatePostRecord,
 } from "@/features/posts/posts.repository";
-import type { CreatePostInput, UpdatePostInput } from "@/features/posts/posts.schema";
+import {
+	adminPostsPageSchema,
+	createPostSchema,
+	getPostsParamsSchema,
+	postSlugSchema,
+	updatePostSchema,
+} from "@/features/posts/posts.schema";
+import type {
+	AdminPostDetail,
+	AdminPostListItem,
+	AdminPostListPage,
+	GetPostsParams,
+	PostInput,
+	PublicPostDetail,
+	PublicPostListItem,
+	PublicPostNavigationItem,
+} from "@/features/posts/posts.type";
 import { PublishStatus, toPublishStatus } from "@/lib/publish-status";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
 import { generateUniqueSlug } from "@/lib/slug";
 import {
 	emptyRichTextDocument,
 	parseRichTextDocument,
-	type RichTextDocument,
 	richTextDocumentToPlainText,
 	serializeRichTextDocument,
 } from "@/lib/tiptap/json";
-
-export type PublicPostListItem = {
-	description: string | null;
-	id: string;
-	publishedAt: string;
-	readingTime: number;
-	slug: string;
-	tags: { name: string }[];
-	thumbnailImage: string | null;
-	title: string;
-};
-
-export type PublicPostDetail = PublicPostListItem & {
-	content: RichTextDocument;
-	nextPost: PublicPostNavigationItem | null;
-	prevPost: PublicPostNavigationItem | null;
-};
-
-export type PublicPostNavigationItem = {
-	slug: string;
-	title: string;
-};
-
-export type AdminPostListItem = {
-	createdAt: string;
-	id: string;
-	status: PublishStatus;
-	title: string;
-};
-
-export type AdminPostDetail = {
-	content: string;
-	description: string | null;
-	id: string;
-	status: PublishStatus;
-	tagIds: string[];
-	thumbnailImage: string | null;
-	title: string;
-};
+import { validateWithZod } from "@/lib/validation/zod";
 
 type PostWithPublishedAt<TPost extends PostListRecord> = TPost & { publishedAt: Date };
 
@@ -100,18 +78,28 @@ function toPublicPostDetail(
 	};
 }
 
-export async function getPublishedPosts(params?: { limit?: number }): Promise<PublicPostListItem[]> {
+export async function getPublishedPosts(params?: GetPostsParams): Promise<PublicPostListItem[]> {
+	const validation = validateWithZod(getPostsParamsSchema, params);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields, "Parameter tulisan tidak valid.");
+	}
+
 	const posts = await findPosts({
-		limit: params?.limit,
+		limit: validation.data?.limit,
 		status: PublishStatus.PUBLISHED,
 	});
 	return posts.filter(hasPublishedAt).map(toPublicPostListItem);
 }
 
-export async function getPublishedPostBySlug(slug: string): Promise<PublicPostDetail | null> {
-	const post = await findPostBySlug({ slug, status: PublishStatus.PUBLISHED });
+export async function getPublishedPostBySlug(slug: string): Promise<PublicPostDetail> {
+	const validation = validateWithZod(postSlugSchema, slug);
+	if (!validation.success) {
+		throw new NotFoundException("Tulisan tidak ditemukan.");
+	}
+
+	const post = await findPostBySlug({ slug: validation.data, status: PublishStatus.PUBLISHED });
 	if (!post || !hasPublishedAt(post)) {
-		return null;
+		throw new NotFoundException("Tulisan tidak ditemukan.");
 	}
 
 	const [previousPost, nextPost] = await Promise.all([
@@ -132,16 +120,15 @@ export async function getPostsAdmin(): Promise<AdminPostListItem[]> {
 
 export const ADMIN_POSTS_PER_PAGE = 10;
 
-export type AdminPostListPage = {
-	currentPage: number;
-	posts: AdminPostListItem[];
-	totalPages: number;
-};
-
 export async function getPostsAdminPage(page: number): Promise<AdminPostListPage> {
+	const validation = validateWithZod(adminPostsPageSchema, page);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields, "Halaman tulisan tidak valid.");
+	}
+
 	const totalPosts = await countPostsAdmin();
 	const totalPages = Math.max(1, Math.ceil(totalPosts / ADMIN_POSTS_PER_PAGE));
-	const currentPage = Math.min(page, totalPages);
+	const currentPage = Math.min(validation.data, totalPages);
 	const posts = await findPostsAdmin({
 		skip: (currentPage - 1) * ADMIN_POSTS_PER_PAGE,
 		take: ADMIN_POSTS_PER_PAGE,
@@ -158,10 +145,10 @@ export async function getPostsAdminPage(page: number): Promise<AdminPostListPage
 	};
 }
 
-export async function getPostAdminById(id: string): Promise<AdminPostDetail | null> {
+export async function getPostAdminById(id: string): Promise<AdminPostDetail> {
 	const post = await findPostDetailForAdmin(id);
 	if (!post) {
-		return null;
+		throw new NotFoundException("Tulisan tidak ditemukan.");
 	}
 
 	const { tags, ...postDetail } = post;
@@ -177,43 +164,57 @@ export function calculateReadingTime(content: string): number {
 	return Math.max(1, Math.ceil(wordCount / 200));
 }
 
-export async function createAdminPost(input: CreatePostInput): Promise<{ id: string; slug: string }> {
-	const slug = await generateUniqueSlug(input.title, isPostSlugAvailable);
-	const publishedAt = input.status === PublishStatus.PUBLISHED ? new Date() : null;
-	const content = serializeRichTextDocument(input.content);
+export async function createAdminPost(input: PostInput): Promise<{ id: string; slug: string }> {
+	const validation = validateWithZod(createPostSchema, input);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields);
+	}
+
+	const slug = await generateUniqueSlug(validation.data.title, isPostSlugAvailable);
+	const publishedAt = validation.data.status === PublishStatus.PUBLISHED ? new Date() : null;
+	const content = serializeRichTextDocument(validation.data.content);
 
 	return createPostRecord({
-		...input,
+		...validation.data,
 		content,
 		publishedAt,
-		readingTime: calculateReadingTime(richTextDocumentToPlainText(input.content)),
+		readingTime: calculateReadingTime(richTextDocumentToPlainText(validation.data.content)),
 		slug,
 	});
 }
 
-export async function updateAdminPost(id: string, input: UpdatePostInput): Promise<{ id: string; slug: string } | null> {
+export async function updateAdminPost(id: string, input: PostInput): Promise<{ id: string; slug: string }> {
+	const validation = validateWithZod(updatePostSchema, input);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields);
+	}
+
 	const existing = await findPostForAdmin(id);
 	if (!existing) {
-		return null;
+		throw new NotFoundException("Tulisan tidak ditemukan.");
 	}
 
 	const slug =
-		existing.title === input.title
+		existing.title === validation.data.title
 			? existing.slug
-			: await generateUniqueSlug(input.title, (candidate) => isPostSlugAvailable(candidate, id));
-	const publishedAt = existing.publishedAt ?? (input.status === PublishStatus.PUBLISHED ? new Date() : null);
-	const content = serializeRichTextDocument(input.content);
+			: await generateUniqueSlug(validation.data.title, (candidate) => isPostSlugAvailable(candidate, id));
+	const publishedAt = existing.publishedAt ?? (validation.data.status === PublishStatus.PUBLISHED ? new Date() : null);
+	const content = serializeRichTextDocument(validation.data.content);
 
 	return updatePostRecord(id, {
-		...input,
+		...validation.data,
 		content,
 		publishedAt,
-		readingTime: calculateReadingTime(richTextDocumentToPlainText(input.content)),
+		readingTime: calculateReadingTime(richTextDocumentToPlainText(validation.data.content)),
 		slug,
 	});
 }
 
-export async function deleteAdminPost(id: string): Promise<{ id: string } | null> {
+export async function deleteAdminPost(id: string): Promise<{ id: string }> {
 	const existing = await findPostForAdmin(id);
-	return existing ? deletePostRecord(id) : null;
+	if (!existing) {
+		throw new NotFoundException("Tulisan tidak ditemukan.");
+	}
+
+	return deletePostRecord(id);
 }

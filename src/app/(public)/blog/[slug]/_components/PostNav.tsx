@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { PublicPostNavigationItem } from "@/features/posts/posts.services";
+import type { PublicPostNavigationItem } from "@/features/posts/posts.type";
 
 type PostNavProps = {
 	nextPost: PublicPostNavigationItem | null;
