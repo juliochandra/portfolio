@@ -42,7 +42,14 @@ describe("ProjectForm", () => {
 		mocks.updateProject.mockResolvedValue({ data: { id: "project-1", slug: "project-baru" } });
 	});
 
-	it("shows validation errors without creating an incomplete project", async () => {
+	it("shows validation errors returned by the Server Action", async () => {
+		mocks.createProject.mockResolvedValue({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { content: "Wajib diisi.", description: "Wajib diisi.", title: "Wajib diisi." },
+				message: "Input tidak valid.",
+			},
+		});
 		const projectForm = render(<ProjectForm folders={[]} media={[]} skills={[]} tags={[]} />);
 
 		fireEvent.submit(projectForm.getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
@@ -50,7 +57,7 @@ describe("ProjectForm", () => {
 		await waitFor(() => {
 			expect(projectForm.getAllByText("Wajib diisi.")).toHaveLength(3);
 		});
-		expect(mocks.createProject).not.toHaveBeenCalled();
+		expect(mocks.createProject).toHaveBeenCalledOnce();
 	});
 
 	it("uses a full-width project form and rich text editor", () => {

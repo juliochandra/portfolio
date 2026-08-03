@@ -6,6 +6,7 @@ import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { getProjects } from "@/features/projects/projects.action";
+import type { PublicProjectListItem } from "@/features/projects/projects.type";
 
 const PROJECTS_PER_PAGE = 6;
 
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 	description: "Koleksi project yang dikerjakan Julio Chandra.",
 };
 
-function countUniqueSkills(projects: Awaited<ReturnType<typeof getProjects>>["data"]): number {
+function countUniqueSkills(projects: PublicProjectListItem[]): number {
 	return new Set(projects.flatMap((project) => project.skills.map((skill) => skill.name.toLocaleLowerCase()))).size;
 }
 
@@ -78,7 +79,7 @@ function Pagination({ currentPage, totalPages }: { currentPage: number; totalPag
 export default async function PortfolioPage({ searchParams }: PortfolioPageProps) {
 	const { page } = await searchParams;
 	const projectsResult = await getProjects();
-	const projects = projectsResult.data;
+	const projects = "data" in projectsResult ? projectsResult.data : [];
 	const totalSkills = countUniqueSkills(projects);
 	const totalPages = Math.max(1, Math.ceil(projects.length / PROJECTS_PER_PAGE));
 	const currentPage = getCurrentPage(page, totalPages);

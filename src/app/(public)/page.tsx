@@ -28,6 +28,7 @@ export default async function Home() {
 	]);
 	const contactResult = await getContactInfo();
 	const contactInfo = "data" in contactResult ? contactResult.data : [];
+	const projects = "data" in projectsResult ? projectsResult.data : [];
 	const posts = "data" in postsResult ? postsResult.data : [];
 	const email = contactInfo.find(isEmailContact);
 	const emailHref = email ? (email.value.startsWith("mailto:") ? email.value : `mailto:${email.value}`) : "test@mail.com";
@@ -76,9 +77,9 @@ export default async function Home() {
 					title="Project Unggulan"
 					description="Beberapa project yang pernah saya kerjakan - masing-masing dibangun dengan fokus pada performa, skalabilitas, dan pengalaman pengguna yang baik."
 				/>
-				{projectsResult.data.length > 0 ? (
+				{projects.length > 0 ? (
 					<div className="mt-12 grid gap-6 lg:grid-cols-3">
-						{projectsResult.data.map((project) => (
+						{projects.map((project) => (
 							<ProjectCard key={project.id} project={project} />
 						))}
 					</div>
