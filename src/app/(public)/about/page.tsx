@@ -15,8 +15,8 @@ import {
 import { Callout } from "@/app/(public)/about/_components/Callout";
 import { InfoCard } from "@/app/(public)/about/_components/InfoCard";
 import { ProcessStep } from "@/app/(public)/about/_components/ProcessStep";
-import { Section } from "@/shared/components/Section";
-import { SectionHeader } from "@/shared/components/SectionHeader";
+import { Section } from "@/components/layout/Section";
+import { SectionHeader } from "@/components/layout/SectionHeader";
 
 export const metadata: Metadata = {
 	title: "About",

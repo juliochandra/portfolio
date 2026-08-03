@@ -3,35 +3,14 @@ import {
 	type RecentPostRecord,
 	type RecentProjectRecord,
 } from "@/features/dashboard/dashboard.repository";
-import { type PublishStatus, toPublishStatus } from "@/lib/publish-status";
+import type { DashboardRecentPost, DashboardRecentProject, DashboardSummary } from "@/features/dashboard/dashboard.type";
+import { toPublishStatus } from "@/lib/publish-status";
 
-type RecentItem = {
-	createdAt: string;
-	id: string;
-	status: PublishStatus;
-	thumbnailImage: string | null;
-	title: string;
-};
-
-type RecentPost = RecentItem & { tags: { name: string }[] };
-type RecentProject = RecentItem & { skills: { name: string }[] };
-
-export type DashboardSummary = {
-	publishedPosts: number;
-	publishedProjects: number;
-	recentPosts: RecentPost[];
-	recentProjects: RecentProject[];
-	totalPosts: number;
-	totalProjects: number;
-	totalSkills: number;
-	totalTags: number;
-};
-
-function toRecentPost(item: RecentPostRecord): RecentPost {
+function toRecentPost(item: RecentPostRecord): DashboardRecentPost {
 	return { ...item, createdAt: item.createdAt.toISOString(), status: toPublishStatus(item.status) };
 }
 
-function toRecentProject(item: RecentProjectRecord): RecentProject {
+function toRecentProject(item: RecentProjectRecord): DashboardRecentProject {
 	return { ...item, createdAt: item.createdAt.toISOString(), status: toPublishStatus(item.status) };
 }
 

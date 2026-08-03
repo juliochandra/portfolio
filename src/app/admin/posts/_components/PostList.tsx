@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ManageRow } from "@/components/admin/ManageRow";
+import { Button } from "@/components/ui/Button";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import { deletePost } from "@/features/posts/posts.action";
 import type { PublishStatus } from "@/lib/publish-status";
-import { Button } from "@/shared/components/Button";
-import { ManageRow } from "@/shared/components/ManageRow";
-import { StatusMessage } from "@/shared/components/StatusMessage";
 
 type PostListItem = {
 	createdAt: string;

@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import { FaBookOpen, FaClock, FaPenNib } from "react-icons/fa";
+import { PostItem } from "@/components/content/PostItem";
+import { Section } from "@/components/layout/Section";
+import { SectionHeader } from "@/components/layout/SectionHeader";
+import { StatCard } from "@/components/ui/StatCard";
 import { getPosts } from "@/features/posts/posts.action";
-import { PostItem } from "@/shared/components/PostItem";
-import { Section } from "@/shared/components/Section";
-import { SectionHeader } from "@/shared/components/SectionHeader";
-import { StatCard } from "@/shared/components/StatCard";
+import type { PublicPostListItem } from "@/features/posts/posts.type";
 
 export const metadata: Metadata = {
 	title: "Blog",
 	description: "Tulisan Julio Chandra tentang pengembangan web dan produk digital.",
 };
 
-function getFirstPublishedYear(posts: Awaited<ReturnType<typeof getPosts>>["data"]): number | null {
+function getFirstPublishedYear(posts: PublicPostListItem[]): number | null {
 	if (posts.length === 0) {
 		return null;
 	}
@@ -21,7 +22,7 @@ function getFirstPublishedYear(posts: Awaited<ReturnType<typeof getPosts>>["data
 
 export default async function BlogPage() {
 	const postsResult = await getPosts();
-	const posts = postsResult.data;
+	const posts = "data" in postsResult ? postsResult.data : [];
 	const totalReadingTime = posts.reduce((total, post) => total + post.readingTime, 0);
 	const firstPublishedYear = getFirstPublishedYear(posts);
 

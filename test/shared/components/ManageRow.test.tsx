@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ManageRow } from "@/components/admin/ManageRow";
 import { PublishStatus } from "@/lib/publish-status";
-import { ManageRow } from "@/shared/components/ManageRow";
 
 describe("ManageRow", () => {
 	beforeEach(() => {

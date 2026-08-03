@@ -18,6 +18,7 @@ describe("MediaCard", () => {
 				media={{
 					createdAt: "2026-07-23T00:00:00.000Z",
 					fileName: "image.png",
+					folderId: null,
 					id: "media-1",
 					mimeType: "image/png",
 					size: 1024,

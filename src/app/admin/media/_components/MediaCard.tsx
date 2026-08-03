@@ -1,21 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { deleteMedia } from "@/features/media/media.action";
-import { Button } from "@/shared/components/Button";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
-
-type Media = {
-	createdAt: string;
-	fileName: string;
-	id: string;
-	mimeType: string;
-	size: number;
-	url: string;
-};
+import type { MediaGalleryItem } from "@/features/media/media.type";
 
 type MediaCardProps = {
-	media: Media;
+	media: MediaGalleryItem;
 	onDeleteError: (message: string) => void;
 	onDeleted: () => void;
 };

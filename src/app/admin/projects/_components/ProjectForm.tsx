@@ -3,40 +3,26 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { FaImage } from "react-icons/fa";
+import { RichTextEditor } from "@/components/editor/RichTextEditor";
+import { type MediaImagePickerItem, MediaImagePickerModal } from "@/components/media/MediaImagePickerModal";
+import { BackLink } from "@/components/ui/BackLink";
+import { Button } from "@/components/ui/Button";
+import { FormField } from "@/components/ui/FormField";
+import { getSkillIcon } from "@/components/ui/SkillTag";
+import { StatusMessage } from "@/components/ui/StatusMessage";
+import { StatusSelect } from "@/components/ui/StatusSelect";
 import { createProject, updateProject } from "@/features/projects/projects.action";
-import { createProjectSchema, projectFormDataToInput, updateProjectSchema } from "@/features/projects/projects.schema";
-import type { PublishStatus } from "@/lib/publish-status";
+import { projectFormDataToInput } from "@/features/projects/projects.schema";
+import type { AdminProjectDetail } from "@/features/projects/projects.type";
 import { emptyRichTextDocument, parseRichTextDocument } from "@/lib/tiptap/json";
 import { isImageUrl } from "@/lib/validation/is-image-url";
-import { validateWithZod } from "@/lib/validation/zod";
-import { BackLink } from "@/shared/components/BackLink";
-import { Button } from "@/shared/components/Button";
-import { FormField } from "@/shared/components/FormField";
-import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
-import { RichTextEditor } from "@/shared/components/RichTextEditor";
-import { getSkillIcon } from "@/shared/components/SkillTag";
-import { StatusMessage } from "@/shared/components/StatusMessage";
-import { StatusSelect } from "@/shared/components/StatusSelect";
-
-type ProjectFormProject = {
-	content: string;
-	demoUrl: string | null;
-	description: string | null;
-	id: string;
-	repositoryUrl: string | null;
-	skillIds: string[];
-	status: PublishStatus;
-	tagIds: string[];
-	thumbnailImage: string | null;
-	title: string;
-};
 
 type ProjectFormProps = {
 	folders: { id: string; name: string }[];
 	media: MediaImagePickerItem[];
 	mediaCurrentPage?: number;
 	mediaTotalPages?: number;
-	project?: ProjectFormProject;
+	project?: AdminProjectDetail;
 	skills: { icon: string | null; id: string; name: string }[];
 	tags: { id: string; name: string }[];
 };
@@ -83,24 +69,14 @@ export function ProjectForm({
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const formData = new FormData(event.currentTarget);
-		const validation = validateWithZod(
-			isEditing ? updateProjectSchema : createProjectSchema,
-			projectFormDataToInput(formData),
-		);
-
-		if (!validation.success) {
-			setSuccessMessage(null);
-			setFields(validation.fields);
-			return;
-		}
-
 		setFields({});
 		setSuccessMessage(null);
 		setIsSubmitting(true);
 		try {
-			const result = project ? await updateProject(project.id, formData) : await createProject(formData);
+			const input = projectFormDataToInput(formData);
+			const result = project ? await updateProject(project.id, input) : await createProject(input);
 			if ("error" in result) {
-				setFields("fields" in result.error ? result.error.fields : { _form: result.error.message });
+				setFields(result.error.fields ?? { _form: result.error.message });
 				return;
 			}
 

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MessageStatus } from "@/shared/message-status";
+import { MessageStatus } from "@/lib/message-status";
+import { NotFoundException } from "@/lib/server-action-exception/exceptions";
 
 const mocks = vi.hoisted(() => ({
 	findMessages: vi.fn(),
@@ -34,7 +35,11 @@ describe("message admin services", () => {
 	it("returns one paginated message page", async () => {
 		mocks.findMessages.mockResolvedValue([]);
 
-		await expect(getAdminMessagesPage("aktif", 2)).resolves.toEqual({ currentPage: 2, messages: [], totalPages: 2 });
+		await expect(getAdminMessagesPage({ page: 2, tab: "aktif" })).resolves.toEqual({
+			currentPage: 2,
+			messages: [],
+			totalPages: 2,
+		});
 		expect(mocks.countMessages).toHaveBeenCalledWith([MessageStatus.UNREAD, MessageStatus.READ]);
 		expect(mocks.findMessages).toHaveBeenCalledWith([MessageStatus.UNREAD, MessageStatus.READ], { skip: 10, take: 10 });
 	});
@@ -90,9 +95,9 @@ describe("message admin services", () => {
 	it("does not mutate a missing message", async () => {
 		mocks.findMessageStatus.mockResolvedValue(null);
 
-		await expect(markAdminMessageRead("missing")).resolves.toBeNull();
-		await expect(archiveAdminMessage("missing")).resolves.toBeNull();
-		await expect(unarchiveAdminMessage("missing")).resolves.toBeNull();
+		await expect(markAdminMessageRead("missing")).rejects.toBeInstanceOf(NotFoundException);
+		await expect(archiveAdminMessage("missing")).rejects.toBeInstanceOf(NotFoundException);
+		await expect(unarchiveAdminMessage("missing")).rejects.toBeInstanceOf(NotFoundException);
 		expect(mocks.updateMessageStatus).not.toHaveBeenCalled();
 	});
 });

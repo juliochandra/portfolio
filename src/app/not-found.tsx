@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Footer } from "@/shared/components/Footer";
-import { Navbar } from "@/shared/components/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Navbar } from "@/components/layout/Navbar";
 
 export default function NotFoundPage() {
 	return (

@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { CiMail } from "react-icons/ci";
 import { SkillCard } from "@/app/(public)/_components/SkillCard";
+import { PostItem } from "@/components/content/PostItem";
+import { ProjectCard } from "@/components/content/ProjectCard";
+import { Section } from "@/components/layout/Section";
+import { SectionHeader } from "@/components/layout/SectionHeader";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { getContactInfo } from "@/features/contact/contact.action";
 import { getPosts } from "@/features/posts/posts.action";
 import { getProjects } from "@/features/projects/projects.action";
 import { getSkills } from "@/features/skills/skills.action";
-import { ButtonLink } from "@/shared/components/ButtonLink";
-import { PostItem } from "@/shared/components/PostItem";
-import { ProjectCard } from "@/shared/components/ProjectCard";
-import { Section } from "@/shared/components/Section";
-import { SectionHeader } from "@/shared/components/SectionHeader";
 
 export const metadata: Metadata = {
 	title: "Home",
@@ -27,7 +27,10 @@ export default async function Home() {
 		getSkills(),
 	]);
 	const contactResult = await getContactInfo();
-	const email = contactResult.data.find(isEmailContact);
+	const contactInfo = "data" in contactResult ? contactResult.data : [];
+	const projects = "data" in projectsResult ? projectsResult.data : [];
+	const posts = "data" in postsResult ? postsResult.data : [];
+	const email = contactInfo.find(isEmailContact);
 	const emailHref = email ? (email.value.startsWith("mailto:") ? email.value : `mailto:${email.value}`) : "test@mail.com";
 
 	return (
@@ -74,9 +77,9 @@ export default async function Home() {
 					title="Project Unggulan"
 					description="Beberapa project yang pernah saya kerjakan - masing-masing dibangun dengan fokus pada performa, skalabilitas, dan pengalaman pengguna yang baik."
 				/>
-				{projectsResult.data.length > 0 ? (
+				{projects.length > 0 ? (
 					<div className="mt-12 grid gap-6 lg:grid-cols-3">
-						{projectsResult.data.map((project) => (
+						{projects.map((project) => (
 							<ProjectCard key={project.id} project={project} />
 						))}
 					</div>
@@ -96,9 +99,9 @@ export default async function Home() {
 					title="Tulisan Terbaru"
 					description="Pemikiran, tutorial, dan wawasan seputar pengembangan web dan membangun produk."
 				/>
-				{postsResult.data.length > 0 ? (
+				{posts.length > 0 ? (
 					<div className="mx-auto mt-10">
-						{postsResult.data.map((post) => (
+						{posts.map((post) => (
 							<PostItem key={post.id} post={post} />
 						))}
 					</div>

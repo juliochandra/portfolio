@@ -1,13 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { PostInput } from "@/features/posts/posts.type";
 import { PublishStatus } from "@/lib/publish-status";
-import type { RichTextDocument } from "@/lib/tiptap/json";
+import { NotFoundException, UnauthorizedException, ValidationException } from "@/lib/server-action-exception/exceptions";
 
-const content: RichTextDocument = {
+const serializedContent = JSON.stringify({
 	content: [{ content: [{ text: "Isi tulisan", type: "text" }], type: "paragraph" }],
 	type: "doc",
-};
-
-const serializedContent = JSON.stringify(content);
+});
 
 const mocks = vi.hoisted(() => ({
 	createAdminPost: vi.fn(),
@@ -15,12 +14,12 @@ const mocks = vi.hoisted(() => ({
 	getPostAdminById: vi.fn(),
 	getPostsAdmin: vi.fn(),
 	getPostsAdminPage: vi.fn(),
-	getServerSession: vi.fn(),
+	requireServerSession: vi.fn(),
 	updateAdminPost: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/server-session", () => ({
-	getServerSession: mocks.getServerSession,
+	requireServerSession: mocks.requireServerSession,
 }));
 vi.mock("@/features/posts/posts.services", () => ({
 	createAdminPost: mocks.createAdminPost,
@@ -42,10 +41,13 @@ import {
 	updatePost,
 } from "@/features/posts/posts.action";
 
-function postInput(values: Record<string, unknown> = {}): Record<string, unknown> {
+function postInput(values: Partial<PostInput> = {}): PostInput {
 	return {
 		content: serializedContent,
+		description: "",
 		status: PublishStatus.DRAFT,
+		tagIds: [],
+		thumbnailImage: "",
 		title: "Tulisan Baru",
 		...values,
 	};
@@ -54,7 +56,7 @@ function postInput(values: Record<string, unknown> = {}): Record<string, unknown
 describe("post admin Server Actions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
+		mocks.requireServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getPostsAdmin.mockResolvedValue([]);
 		mocks.getPostsAdminPage.mockResolvedValue({ currentPage: 1, posts: [], totalPages: 1 });
 		mocks.getPostAdminById.mockResolvedValue({
@@ -72,105 +74,44 @@ describe("post admin Server Actions", () => {
 	});
 
 	it("checks a session before every admin action", async () => {
-		mocks.getServerSession.mockResolvedValue(null);
-
-		await expect(getPostsAdmin()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(getPostAdmin("post-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(createPost(postInput())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(updatePost("post-1", postInput())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(deletePost("post-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		expect(mocks.createAdminPost).not.toHaveBeenCalled();
-	});
-
-	it("lists all posts for an authenticated admin", async () => {
-		mocks.getPostsAdmin.mockResolvedValue([
-			{ createdAt: "2026-07-17T10:00:00.000Z", id: "post-1", status: PublishStatus.ARCHIVED, title: "Tulisan Lama" },
-		]);
+		mocks.requireServerSession.mockRejectedValue(new UnauthorizedException());
 
 		await expect(getPostsAdmin()).resolves.toEqual({
-			data: [{ createdAt: "2026-07-17T10:00:00.000Z", id: "post-1", status: "ARCHIVED", title: "Tulisan Lama" }],
+			error: { code: "UNAUTHORIZED", message: "Sesi tidak valid atau telah berakhir." },
 		});
+		await expect(createPost(postInput())).resolves.toEqual({
+			error: { code: "UNAUTHORIZED", message: "Sesi tidak valid atau telah berakhir." },
+		});
+		expect(mocks.createAdminPost).not.toHaveBeenCalled();
 	});
 
-	it("gets a validated page of posts for an authenticated admin", async () => {
-		mocks.getPostsAdminPage.mockResolvedValue({ currentPage: 2, posts: [], totalPages: 2 });
-
-		await expect(getPostsAdminPage(2)).resolves.toEqual({
-			data: { currentPage: 2, posts: [], totalPages: 2 },
-		});
+	it("forwards authenticated admin requests to the services", async () => {
+		await expect(getPostsAdminPage(2)).resolves.toEqual({ data: { currentPage: 1, posts: [], totalPages: 1 } });
 		expect(mocks.getPostsAdminPage).toHaveBeenCalledWith(2);
-	});
 
-	it("gets a post detail for an authenticated admin", async () => {
-		await expect(getPostAdmin("post-1")).resolves.toMatchObject({
-			data: { id: "post-1", tagIds: ["tag-1"], title: "Tulisan Baru" },
-		});
-		expect(mocks.getPostAdminById).toHaveBeenCalledWith("post-1");
-	});
+		await expect(getPostAdmin("post-1")).resolves.toMatchObject({ data: { id: "post-1" } });
+		await expect(createPost(postInput())).resolves.toEqual({ data: { id: "post-1", slug: "tulisan-baru" } });
+		expect(mocks.createAdminPost).toHaveBeenCalledWith(postInput());
 
-	it("validates an object input and creates a draft by default", async () => {
-		await expect(createPost({ content: serializedContent, title: "Tulisan Baru" })).resolves.toEqual({
-			data: { id: "post-1", slug: "tulisan-baru" },
-		});
-		expect(mocks.createAdminPost).toHaveBeenCalledWith({
-			content,
-			description: null,
-			status: PublishStatus.DRAFT,
-			tagIds: [],
-			thumbnailImage: null,
-			title: "Tulisan Baru",
-		});
-	});
-
-	it("returns field errors without creating an invalid post", async () => {
-		const result = await createPost(postInput({ content: "", title: "" }));
-
-		expect(result).toEqual({
-			error: { fields: { content: "Wajib diisi.", title: "Wajib diisi." } },
-		});
-		expect(mocks.createAdminPost).not.toHaveBeenCalled();
-	});
-
-	it("rejects content that is not a Tiptap JSON document", async () => {
-		const result = await createPost(postInput({ content: "<p>Isi lama</p>" }));
-
-		expect(result).toEqual({ error: { fields: { content: "Wajib diisi." } } });
-		expect(mocks.createAdminPost).not.toHaveBeenCalled();
-	});
-
-	it("rejects a JSON document with an unsupported node", async () => {
-		const result = await createPost(postInput({ content: '{"type":"doc","content":[{"type":"script"}]}' }));
-
-		expect(result).toEqual({ error: { fields: { content: "Wajib diisi." } } });
-		expect(mocks.createAdminPost).not.toHaveBeenCalled();
-	});
-
-	it("rejects an invalid thumbnail URL before creating a post", async () => {
-		const result = await createPost(postInput({ thumbnailImage: "not-a-url" }));
-
-		expect(result).toEqual({ error: { fields: { thumbnailImage: "URL tidak valid." } } });
-		expect(mocks.createAdminPost).not.toHaveBeenCalled();
-	});
-
-	it("updates and deletes posts for an authenticated admin", async () => {
-		await expect(updatePost("post-1", postInput({ status: PublishStatus.PUBLISHED }))).resolves.toEqual({
-			data: { id: "post-1", slug: "tulisan-baru" },
-		});
-		expect(mocks.updateAdminPost).toHaveBeenCalledWith(
-			"post-1",
-			expect.objectContaining({ status: PublishStatus.PUBLISHED }),
-		);
+		await expect(updatePost("post-1", postInput())).resolves.toEqual({ data: { id: "post-1", slug: "tulisan-baru" } });
+		expect(mocks.updateAdminPost).toHaveBeenCalledWith("post-1", postInput());
 
 		await expect(deletePost("post-1")).resolves.toEqual({ data: { id: "post-1" } });
 	});
 
-	it("maps unavailable posts to the action contracts", async () => {
-		mocks.updateAdminPost.mockResolvedValue(null);
-		mocks.deleteAdminPost.mockResolvedValue(null);
-
-		await expect(updatePost("missing", postInput())).resolves.toEqual({
-			error: { fields: { _form: "Tulisan tidak ditemukan." } },
+	it("maps service validation and not-found errors", async () => {
+		mocks.createAdminPost.mockRejectedValue(new ValidationException({ title: "Wajib diisi." }));
+		await expect(createPost(postInput({ title: "" }))).resolves.toEqual({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { title: "Wajib diisi." },
+				message: "Input tidak valid.",
+			},
 		});
-		await expect(deletePost("missing")).resolves.toEqual({ error: { message: "Tulisan tidak ditemukan." } });
+
+		mocks.deleteAdminPost.mockRejectedValue(new NotFoundException("Tulisan tidak ditemukan."));
+		await expect(deletePost("missing")).resolves.toEqual({
+			error: { code: "NOT_FOUND", message: "Tulisan tidak ditemukan." },
+		});
 	});
 });

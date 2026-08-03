@@ -3,16 +3,16 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useState } from "react";
 import { FaCheck, FaImage, FaMagnifyingGlass, FaPlus, FaTrash, FaXmark } from "react-icons/fa6";
+import { type MediaImagePickerItem, MediaImagePickerModal } from "@/components/media/MediaImagePickerModal";
+import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { FormField } from "@/components/ui/FormField";
+import { getSkillIcon } from "@/components/ui/SkillTag";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import { createSkill, deleteSkill, updateSkill } from "@/features/skills/skills.action";
 import { createSkillSchema, updateSkillSchema } from "@/features/skills/skills.schema";
 import { isImageUrl } from "@/lib/validation/is-image-url";
 import { validateWithZod } from "@/lib/validation/zod";
-import { Button } from "@/shared/components/Button";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
-import { FormField } from "@/shared/components/FormField";
-import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
-import { getSkillIcon } from "@/shared/components/SkillTag";
-import { StatusMessage } from "@/shared/components/StatusMessage";
 
 type Skill = {
 	icon: string | null;

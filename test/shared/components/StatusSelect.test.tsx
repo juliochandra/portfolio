@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { StatusSelect } from "@/shared/components/StatusSelect";
+import { StatusSelect } from "@/components/ui/StatusSelect";
 
 // biome-ignore lint/nursery/noSecrets: component name
 describe("StatusSelect", () => {

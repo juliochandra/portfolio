@@ -1,6 +1,5 @@
 import Link from "next/link";
-
-type MessageTab = "aktif" | "arsip";
+import type { MessageTab } from "@/features/messages/messages.type";
 
 type TabSwitchProps = {
 	activeTab: MessageTab;

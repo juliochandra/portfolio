@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/app/(public)/contact/_components/ContactForm";
+import { Section } from "@/components/layout/Section";
+import { SectionHeader } from "@/components/layout/SectionHeader";
+import { ContactLink } from "@/components/ui/ContactLink";
 import { getContactInfo } from "@/features/contact/contact.action";
-import { ContactLink } from "@/shared/components/ContactLink";
-import { Section } from "@/shared/components/Section";
-import { SectionHeader } from "@/shared/components/SectionHeader";
 
 export const metadata: Metadata = {
 	title: "Contact",
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 
 export default async function ContactPage() {
 	const contactInfoResult = await getContactInfo();
+	const contactInfo = "data" in contactInfoResult ? contactInfoResult.data : [];
 
 	return (
 		<>
@@ -22,7 +23,7 @@ export default async function ContactPage() {
 					description="Punya ide, peluang, atau project yang ingin didiskusikan? Saya akan senang mendengarnya."
 				/>
 				<section className="mt-10 flex flex-wrap justify-center gap-3" aria-label="Info kontak">
-					{contactInfoResult.data.map((contactInfo) => (
+					{contactInfo.map((contactInfo) => (
 						<ContactLink key={contactInfo.id} {...contactInfo} />
 					))}
 				</section>

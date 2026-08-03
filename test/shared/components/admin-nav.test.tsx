@@ -12,11 +12,11 @@ vi.mock("next/navigation", () => ({
 	useRouter: () => ({ push: mocks.push, refresh: mocks.refresh }),
 }));
 vi.mock("@/features/auth/auth.action", () => ({ logout: mocks.logout }));
-vi.mock("@/shared/components/ThemeToggle", () => ({
+vi.mock("@/components/ui/ThemeToggle", () => ({
 	ThemeToggle: () => <button type="button">Tema</button>,
 }));
 
-import { AdminNav } from "@/shared/components/AdminNav";
+import { AdminNav } from "@/components/layout/AdminNav";
 
 describe("AdminNav", () => {
 	beforeEach(() => {

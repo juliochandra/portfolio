@@ -2,12 +2,12 @@
 
 import { type FormEvent, useRef, useState } from "react";
 import { FaLock, FaPaperPlane } from "react-icons/fa";
+import { Button } from "@/components/ui/Button";
+import { FormField } from "@/components/ui/FormField";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import { sendMessage } from "@/features/messages/messages.action";
 import { sendMessageSchema } from "@/features/messages/messages.schema";
 import { validateWithZod } from "@/lib/validation/zod";
-import { Button } from "@/shared/components/Button";
-import { FormField } from "@/shared/components/FormField";
-import { StatusMessage } from "@/shared/components/StatusMessage";
 
 type FormErrors = Record<string, string>;
 
@@ -38,7 +38,7 @@ export function ContactForm() {
 		try {
 			const result = await sendMessage(validation.data);
 			if ("error" in result) {
-				setErrors(result.error.fields);
+				setErrors(result.error.fields ?? { _form: result.error.message });
 				return;
 			}
 

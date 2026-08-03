@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { PublishStatus } from "@/lib/publish-status";
-import { Button } from "@/shared/components/Button";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 
 type ManageRowAction =
 	| {

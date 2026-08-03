@@ -3,35 +3,24 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { FaImage } from "react-icons/fa";
+import { RichTextEditor } from "@/components/editor/RichTextEditor";
+import { type MediaImagePickerItem, MediaImagePickerModal } from "@/components/media/MediaImagePickerModal";
+import { BackLink } from "@/components/ui/BackLink";
+import { Button } from "@/components/ui/Button";
+import { FormField } from "@/components/ui/FormField";
+import { StatusMessage } from "@/components/ui/StatusMessage";
+import { StatusSelect } from "@/components/ui/StatusSelect";
 import { createPost, updatePost } from "@/features/posts/posts.action";
-import { createPostSchema, postFormDataToInput, updatePostSchema } from "@/features/posts/posts.schema";
-import type { PublishStatus } from "@/lib/publish-status";
+import { postFormDataToInput } from "@/features/posts/posts.schema";
+import type { AdminPostDetail } from "@/features/posts/posts.type";
 import { emptyRichTextDocument, parseRichTextDocument } from "@/lib/tiptap/json";
-import { validateWithZod } from "@/lib/validation/zod";
-import { BackLink } from "@/shared/components/BackLink";
-import { Button } from "@/shared/components/Button";
-import { FormField } from "@/shared/components/FormField";
-import { type MediaImagePickerItem, MediaImagePickerModal } from "@/shared/components/MediaImagePickerModal";
-import { RichTextEditor } from "@/shared/components/RichTextEditor";
-import { StatusMessage } from "@/shared/components/StatusMessage";
-import { StatusSelect } from "@/shared/components/StatusSelect";
-
-type PostFormPost = {
-	content: string;
-	description: string | null;
-	id: string;
-	status: PublishStatus;
-	tagIds: string[];
-	thumbnailImage: string | null;
-	title: string;
-};
 
 type PostFormProps = {
 	folders: { id: string; name: string }[];
 	media: MediaImagePickerItem[];
 	mediaCurrentPage?: number;
 	mediaTotalPages?: number;
-	post?: PostFormPost;
+	post?: AdminPostDetail;
 	tags: { id: string; name: string }[];
 };
 
@@ -60,21 +49,13 @@ export function PostForm({ folders, media, mediaCurrentPage = 1, mediaTotalPages
 		event.preventDefault();
 		const formData = new FormData(event.currentTarget);
 		const input = postFormDataToInput(formData);
-		const validation = validateWithZod(isEditing ? updatePostSchema : createPostSchema, input);
-
-		if (!validation.success) {
-			setSuccessMessage(null);
-			setFields(validation.fields);
-			return;
-		}
-
 		setFields({});
 		setSuccessMessage(null);
 		setIsSubmitting(true);
 		try {
 			const result = post ? await updatePost(post.id, input) : await createPost(input);
 			if ("error" in result) {
-				setFields("fields" in result.error ? result.error.fields : { _form: result.error.message });
+				setFields(result.error.fields ?? { _form: result.error.message });
 				return;
 			}
 

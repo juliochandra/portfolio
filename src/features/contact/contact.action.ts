@@ -1,91 +1,69 @@
 "use server";
 
 import {
-	type CreateContactInfoInput,
-	contactInfoIdSchema,
-	createContactInfoSchema,
-	type UpdateContactInfoInput,
-	updateContactInfoSchema,
-} from "@/features/contact/contact.schema";
-import {
 	createAdminContactInfo,
 	deleteAdminContactInfo,
 	getContactInfoAdmin as getAdminContactInfo,
 	getPublicContactInfo,
-	type PublicContactInfo,
 	updateAdminContactInfo,
 } from "@/features/contact/contact.services";
-import { getServerSession } from "@/lib/auth/server-session";
-import { validateWithZod } from "@/lib/validation/zod";
+import type {
+	ContactInfoListResponse,
+	ContactInfoMutationResponse,
+	ContactInfoWriteInput,
+} from "@/features/contact/contact.type";
+import { requireServerSession } from "@/lib/auth/server-session";
+import { toServerActionFailure } from "@/lib/server-action-exception/to-server-action-failure";
+import type { ServerActionFailure } from "@/lib/server-action-exception/types";
 
-type GetContactInfoResult = { data: PublicContactInfo[] };
-
-const CONTACT_INFO_NOT_FOUND_MESSAGE = "Info kontak tidak ditemukan.";
-const UNAUTHORIZED = { error: { message: "UNAUTHORIZED" } } as const;
-
-type GetContactInfoAdminResult =
-	| { data: Awaited<ReturnType<typeof getAdminContactInfo>> }
-	| { error: { message: "UNAUTHORIZED" } };
-
-type ContactInfoMutationResult =
-	| { data: { id: string } }
-	| { error: { fields: Record<string, string> } }
-	| { error: { message: "UNAUTHORIZED" } };
-
-type DeleteContactInfoResult =
-	| { data: { id: string } }
-	| { error: { message: "Info kontak tidak ditemukan." | "UNAUTHORIZED" } };
-
-export async function getContactInfo(): Promise<GetContactInfoResult> {
-	return { data: await getPublicContactInfo() };
+export async function getContactInfo(): Promise<ContactInfoListResponse | ServerActionFailure> {
+	try {
+		return { data: await getPublicContactInfo() };
+	} catch (error) {
+		return toServerActionFailure(error);
+	}
 }
 
-export async function getContactInfoAdmin(): Promise<GetContactInfoAdminResult> {
-	if (!(await getServerSession())) {
-		return UNAUTHORIZED;
+export async function getContactInfoAdmin(): Promise<ContactInfoListResponse | ServerActionFailure> {
+	try {
+		await requireServerSession();
+		return { data: await getAdminContactInfo() };
+	} catch (error) {
+		return toServerActionFailure(error);
 	}
-
-	return { data: await getAdminContactInfo() };
 }
 
-export async function createContactInfo(data: unknown): Promise<ContactInfoMutationResult> {
-	if (!(await getServerSession())) {
-		return UNAUTHORIZED;
+export async function createContactInfo(
+	input: ContactInfoWriteInput,
+): Promise<ContactInfoMutationResponse | ServerActionFailure> {
+	try {
+		await requireServerSession();
+		const contactInfo = await createAdminContactInfo(input);
+		return { data: { id: contactInfo.id } };
+	} catch (error) {
+		return toServerActionFailure(error);
 	}
-
-	const validation = validateWithZod(createContactInfoSchema, data);
-	if (!validation.success) {
-		return { error: { fields: validation.fields } };
-	}
-
-	return { data: await createAdminContactInfo(validation.data as CreateContactInfoInput) };
 }
 
-export async function updateContactInfo(id: string, data: unknown): Promise<ContactInfoMutationResult> {
-	if (!(await getServerSession())) {
-		return UNAUTHORIZED;
+export async function updateContactInfo(
+	id: string,
+	input: ContactInfoWriteInput,
+): Promise<ContactInfoMutationResponse | ServerActionFailure> {
+	try {
+		await requireServerSession();
+		const contactInfo = await updateAdminContactInfo(id, input);
+		return { data: { id: contactInfo.id } };
+	} catch (error) {
+		return toServerActionFailure(error);
 	}
-	if (!validateWithZod(contactInfoIdSchema, id).success) {
-		return { error: { fields: { _form: CONTACT_INFO_NOT_FOUND_MESSAGE } } };
-	}
-
-	const validation = validateWithZod(updateContactInfoSchema, data);
-	if (!validation.success) {
-		return { error: { fields: validation.fields } };
-	}
-
-	const contactInfo = await updateAdminContactInfo(id, validation.data as UpdateContactInfoInput);
-	return contactInfo ? { data: contactInfo } : { error: { fields: { _form: CONTACT_INFO_NOT_FOUND_MESSAGE } } };
 }
 
-export async function deleteContactInfo(id: string): Promise<DeleteContactInfoResult> {
-	if (!(await getServerSession())) {
-		return UNAUTHORIZED;
+export async function deleteContactInfo(id: string): Promise<ContactInfoMutationResponse | ServerActionFailure> {
+	try {
+		await requireServerSession();
+		const contactInfo = await deleteAdminContactInfo(id);
+		return { data: { id: contactInfo.id } };
+	} catch (error) {
+		return toServerActionFailure(error);
 	}
-	if (!validateWithZod(contactInfoIdSchema, id).success) {
-		return { error: { message: CONTACT_INFO_NOT_FOUND_MESSAGE } };
-	}
-
-	const contactInfo = await deleteAdminContactInfo(id);
-	return contactInfo ? { data: contactInfo } : { error: { message: CONTACT_INFO_NOT_FOUND_MESSAGE } };
 }

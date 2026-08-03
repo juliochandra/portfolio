@@ -1,4 +1,4 @@
-import { SkillTag } from "@/shared/components/SkillTag";
+import { SkillTag } from "@/components/ui/SkillTag";
 
 type TagListProps = {
 	className?: string;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/shared/components/ThemeProvider";
-import { ToastProvider } from "@/shared/components/ToastProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { ToastProvider } from "@/components/providers/ToastProvider";
 
 export const metadata: Metadata = {
 	title: { default: "Portfolio", template: "%s | Portfolio" },

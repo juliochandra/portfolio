@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/auth/cookies";
 import { createSessionTokens } from "@/lib/auth/session";
+import { UnauthorizedException, ValidationException } from "@/lib/server-action-exception/exceptions";
 
 const mocks = vi.hoisted(() => ({
 	authenticateUser: vi.fn(),
@@ -54,7 +55,7 @@ describe("auth Server Actions", () => {
 		cookieFixture = createCookieStore();
 		mocks.cookies.mockResolvedValue(cookieFixture.store);
 		mocks.authenticateUser.mockResolvedValue(authUser);
-		mocks.changeUserPassword.mockResolvedValue({ success: true });
+		mocks.changeUserPassword.mockResolvedValue(undefined);
 	});
 
 	async function addValidSession(): Promise<void> {
@@ -78,25 +79,40 @@ describe("auth Server Actions", () => {
 		expect(cookieFixture.cookies.get(REFRESH_TOKEN_COOKIE)?.options?.httpOnly).toBe(true);
 	});
 
-	it("returns a generic error for incomplete credentials without calling the service", async () => {
+	it("returns a generic error when the service rejects incomplete credentials", async () => {
+		mocks.authenticateUser.mockRejectedValue(new UnauthorizedException("Username atau kata sandi salah."));
+
 		const result = await login({ username: "", password: "old-password" });
 
-		expect(result).toEqual({ error: { message: "Username atau kata sandi salah." } });
-		expect(mocks.authenticateUser).not.toHaveBeenCalled();
+		expect(result).toEqual({
+			error: { code: "UNAUTHORIZED", message: "Username atau kata sandi salah." },
+		});
+		expect(mocks.authenticateUser).toHaveBeenCalledWith({ username: "", password: "old-password" });
 		expect(cookieFixture.cookies).toHaveLength(0);
 	});
 
 	it("returns the same generic error when authentication fails", async () => {
-		mocks.authenticateUser.mockResolvedValue(null);
+		mocks.authenticateUser.mockRejectedValue(new UnauthorizedException("Username atau kata sandi salah."));
 
 		await expect(login({ username: "admin", password: "wrong" })).resolves.toEqual({
-			error: { message: "Username atau kata sandi salah." },
+			error: { code: "UNAUTHORIZED", message: "Username atau kata sandi salah." },
 		});
 		expect(cookieFixture.cookies).toHaveLength(0);
 	});
 
+	it("returns a safe error when the login service throws", async () => {
+		const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+		mocks.authenticateUser.mockRejectedValue(new Error("Database tidak tersedia."));
+
+		await expect(login({ username: "admin", password: "old-password" })).resolves.toEqual({
+			error: { code: "INTERNAL_SERVER_ERROR", message: "Terjadi kesalahan pada server." },
+		});
+
+		consoleError.mockRestore();
+	});
+
 	it("rejects logout without a valid session", async () => {
-		await expect(logout()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
+		await expect(logout()).resolves.toEqual({ error: { code: "UNAUTHORIZED", message: "UNAUTHORIZED" } });
 	});
 
 	it("logs out a valid session by expiring both cookies", async () => {
@@ -124,6 +140,7 @@ describe("auth Server Actions", () => {
 			}),
 		).resolves.toEqual({ data: { success: true } });
 		expect(mocks.changeUserPassword).toHaveBeenCalledWith({
+			confirmPassword: "new-password",
 			newPassword: "new-password",
 			oldPassword: "old-password",
 			userId: authUser.id,
@@ -132,10 +149,9 @@ describe("auth Server Actions", () => {
 
 	it("maps an old-password mismatch to a field error without ending the session", async () => {
 		await addValidSession();
-		mocks.changeUserPassword.mockResolvedValue({
-			reason: "OLD_PASSWORD_MISMATCH",
-			success: false,
-		});
+		mocks.changeUserPassword.mockRejectedValue(
+			new ValidationException({ oldPassword: "Kata sandi lama tidak cocok." }, "Kata sandi lama tidak cocok."),
+		);
 
 		await expect(
 			changePassword({
@@ -144,17 +160,18 @@ describe("auth Server Actions", () => {
 				confirmPassword: "new-password",
 			}),
 		).resolves.toEqual({
-			error: { fields: { oldPassword: "Kata sandi lama tidak cocok." } },
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { oldPassword: "Kata sandi lama tidak cocok." },
+				message: "Kata sandi lama tidak cocok.",
+			},
 		});
 		expect(cookieFixture.cookies.get(ACCESS_TOKEN_COOKIE)?.value).not.toBe("");
 	});
 
 	it("returns unauthorized when the session user no longer exists", async () => {
 		await addValidSession();
-		mocks.changeUserPassword.mockResolvedValue({
-			reason: "USER_NOT_FOUND",
-			success: false,
-		});
+		mocks.changeUserPassword.mockRejectedValue(new UnauthorizedException("UNAUTHORIZED"));
 
 		await expect(
 			changePassword({
@@ -162,11 +179,14 @@ describe("auth Server Actions", () => {
 				newPassword: "new-password",
 				confirmPassword: "new-password",
 			}),
-		).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
+		).resolves.toEqual({ error: { code: "UNAUTHORIZED", message: "UNAUTHORIZED" } });
 	});
 
-	it("returns a field error when confirmation differs", async () => {
+	it("returns a field error when the service rejects confirmation", async () => {
 		await addValidSession();
+		mocks.changeUserPassword.mockRejectedValue(
+			new ValidationException({ confirmPassword: "Konfirmasi kata sandi tidak cocok." }),
+		);
 
 		await expect(
 			changePassword({
@@ -175,19 +195,23 @@ describe("auth Server Actions", () => {
 				confirmPassword: "different-password",
 			}),
 		).resolves.toEqual({
-			error: { fields: { confirmPassword: "Konfirmasi kata sandi tidak cocok." } },
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { confirmPassword: "Konfirmasi kata sandi tidak cocok." },
+				message: "Input tidak valid.",
+			},
 		});
-		expect(mocks.changeUserPassword).not.toHaveBeenCalled();
+		expect(mocks.changeUserPassword).toHaveBeenCalledOnce();
 	});
 
-	it("checks authorization before changing a password", async () => {
+	it("rejects a password change without a valid session", async () => {
 		await expect(
 			changePassword({
 				oldPassword: "old-password",
 				newPassword: "new-password",
 				confirmPassword: "new-password",
 			}),
-		).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
+		).resolves.toEqual({ error: { code: "UNAUTHORIZED", message: "UNAUTHORIZED" } });
 		expect(mocks.changeUserPassword).not.toHaveBeenCalled();
 	});
 });

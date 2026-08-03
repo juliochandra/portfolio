@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
-import { type ButtonSize, type ButtonVariant, buttonClassName } from "@/shared/components/Button";
+import { type ButtonSize, type ButtonVariant, buttonClassName } from "@/components/ui/Button";
 
 type Props = Omit<ComponentProps<typeof Link>, "className"> & {
 	className?: string;

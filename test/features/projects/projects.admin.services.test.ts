@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PublishStatus } from "@/lib/publish-status";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
 import type { RichTextDocument } from "@/lib/tiptap/json";
 
 const content: RichTextDocument = {
@@ -43,14 +44,14 @@ import {
 } from "@/features/projects/projects.services";
 
 const input = {
-	content,
-	demoUrl: null,
+	content: serializedContent,
+	demoUrl: "",
 	description: "Deskripsi project",
-	repositoryUrl: null,
+	repositoryUrl: "",
 	skillIds: ["skill-1"],
 	status: PublishStatus.PUBLISHED,
 	tagIds: ["tag-1"],
-	thumbnailImage: null,
+	thumbnailImage: "",
 	title: "Project Baru",
 };
 
@@ -119,8 +120,11 @@ describe("project admin services", () => {
 		expect(mocks.createProjectRecord).toHaveBeenCalledWith({
 			...input,
 			content: serializedContent,
+			demoUrl: null,
 			publishedAt: new Date("2026-07-17T10:00:00.000Z"),
+			repositoryUrl: null,
 			slug: "project-baru",
+			thumbnailImage: null,
 		});
 	});
 
@@ -169,11 +173,13 @@ describe("project admin services", () => {
 		);
 	});
 
-	it("returns null without mutating a missing project", async () => {
+	it("rejects invalid input and missing projects", async () => {
+		await expect(createAdminProject({ ...input, title: "" })).rejects.toBeInstanceOf(ValidationException);
+
 		mocks.findProjectForAdmin.mockResolvedValue(null);
 
-		await expect(updateAdminProject("missing", input)).resolves.toBeNull();
-		await expect(deleteAdminProject("missing")).resolves.toBeNull();
+		await expect(updateAdminProject("missing", input)).rejects.toBeInstanceOf(NotFoundException);
+		await expect(deleteAdminProject("missing")).rejects.toBeInstanceOf(NotFoundException);
 		expect(mocks.updateProjectRecord).not.toHaveBeenCalled();
 		expect(mocks.deleteProjectRecord).not.toHaveBeenCalled();
 	});

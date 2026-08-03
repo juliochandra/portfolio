@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ContactInfoWriteInput } from "@/features/contact/contact.type";
+import { NotFoundException, UnauthorizedException, ValidationException } from "@/lib/server-action-exception/exceptions";
 
 const mocks = vi.hoisted(() => ({
 	createAdminContactInfo: vi.fn(),
 	deleteAdminContactInfo: vi.fn(),
 	getContactInfoAdmin: vi.fn(),
-	getServerSession: vi.fn(),
+	requireServerSession: vi.fn(),
 	updateAdminContactInfo: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/server-session", () => ({
-	getServerSession: mocks.getServerSession,
+	requireServerSession: mocks.requireServerSession,
 }));
 vi.mock("@/features/contact/contact.services", () => ({
 	createAdminContactInfo: mocks.createAdminContactInfo,
@@ -26,8 +28,9 @@ import {
 	updateContactInfo,
 } from "@/features/contact/contact.action";
 
-function contactInfoInput(values: Record<string, unknown> = {}): Record<string, unknown> {
+function contactInfoInput(values: Partial<ContactInfoWriteInput> = {}): ContactInfoWriteInput {
 	return {
+		icon: null,
 		label: "Email",
 		value: "mailto:hello@example.com",
 		...values,
@@ -37,7 +40,7 @@ function contactInfoInput(values: Record<string, unknown> = {}): Record<string, 
 describe("contact info admin Server Actions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
+		mocks.requireServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getContactInfoAdmin.mockResolvedValue([]);
 		mocks.createAdminContactInfo.mockResolvedValue({ id: "contact-1" });
 		mocks.updateAdminContactInfo.mockResolvedValue({ id: "contact-1" });
@@ -45,12 +48,14 @@ describe("contact info admin Server Actions", () => {
 	});
 
 	it("checks a session before every admin action", async () => {
-		mocks.getServerSession.mockResolvedValue(null);
+		mocks.requireServerSession.mockRejectedValue(new UnauthorizedException("UNAUTHORIZED"));
 
-		await expect(getContactInfoAdmin()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(createContactInfo(contactInfoInput())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(updateContactInfo("contact-1", contactInfoInput())).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(deleteContactInfo("contact-1")).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
+		const unauthorized = { error: { code: "UNAUTHORIZED", message: "UNAUTHORIZED" } };
+
+		await expect(getContactInfoAdmin()).resolves.toEqual(unauthorized);
+		await expect(createContactInfo(contactInfoInput())).resolves.toEqual(unauthorized);
+		await expect(updateContactInfo("contact-1", contactInfoInput())).resolves.toEqual(unauthorized);
+		await expect(deleteContactInfo("contact-1")).resolves.toEqual(unauthorized);
 		expect(mocks.createAdminContactInfo).not.toHaveBeenCalled();
 	});
 
@@ -64,29 +69,25 @@ describe("contact info admin Server Actions", () => {
 		});
 	});
 
-	it("validates object input and creates contact information with a capitalized label", async () => {
-		await expect(createContactInfo(contactInfoInput({ label: "github profile" }))).resolves.toEqual({
+	it("forwards the input to the service and creates contact information", async () => {
+		const input = contactInfoInput({ label: "github profile" });
+
+		await expect(createContactInfo(input)).resolves.toEqual({
 			data: { id: "contact-1" },
 		});
-		expect(mocks.createAdminContactInfo).toHaveBeenCalledWith({
-			icon: null,
-			label: "Github Profile",
-			value: "mailto:hello@example.com",
+		expect(mocks.createAdminContactInfo).toHaveBeenCalledWith(input);
+	});
+
+	it("maps validation errors from the service", async () => {
+		mocks.createAdminContactInfo.mockRejectedValue(new ValidationException({ label: "Wajib diisi.", value: "Wajib diisi." }));
+
+		await expect(createContactInfo(contactInfoInput({ label: "", value: "" }))).resolves.toEqual({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { label: "Wajib diisi.", value: "Wajib diisi." },
+				message: "Input tidak valid.",
+			},
 		});
-	});
-
-	it("returns field errors without creating invalid contact information", async () => {
-		const result = await createContactInfo(contactInfoInput({ label: "", value: "" }));
-
-		expect(result).toEqual({ error: { fields: { label: "Wajib diisi.", value: "Wajib diisi." } } });
-		expect(mocks.createAdminContactInfo).not.toHaveBeenCalled();
-	});
-
-	it("rejects a value that is not a URL", async () => {
-		const result = await createContactInfo(contactInfoInput({ value: "hello@example.com" }));
-
-		expect(result).toEqual({ error: { fields: { value: "URL tidak valid." } } });
-		expect(mocks.createAdminContactInfo).not.toHaveBeenCalled();
 	});
 
 	it("updates and deletes contact information for an authenticated admin", async () => {
@@ -102,13 +103,15 @@ describe("contact info admin Server Actions", () => {
 		await expect(deleteContactInfo("contact-1")).resolves.toEqual({ data: { id: "contact-1" } });
 	});
 
-	it("maps unavailable contact information to the action contracts", async () => {
-		mocks.updateAdminContactInfo.mockResolvedValue(null);
-		mocks.deleteAdminContactInfo.mockResolvedValue(null);
+	it("maps missing contact information from the service", async () => {
+		mocks.updateAdminContactInfo.mockRejectedValue(new NotFoundException("Info kontak tidak ditemukan."));
+		mocks.deleteAdminContactInfo.mockRejectedValue(new NotFoundException("Info kontak tidak ditemukan."));
 
 		await expect(updateContactInfo("missing", contactInfoInput())).resolves.toEqual({
-			error: { fields: { _form: "Info kontak tidak ditemukan." } },
+			error: { code: "NOT_FOUND", message: "Info kontak tidak ditemukan." },
 		});
-		await expect(deleteContactInfo("missing")).resolves.toEqual({ error: { message: "Info kontak tidak ditemukan." } });
+		await expect(deleteContactInfo("missing")).resolves.toEqual({
+			error: { code: "NOT_FOUND", message: "Info kontak tidak ditemukan." },
+		});
 	});
 });

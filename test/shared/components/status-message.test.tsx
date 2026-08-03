@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/nursery/noSecrets: Component names and test messages are not secrets. */
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { StatusMessage } from "@/shared/components/StatusMessage";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 
 const toastMocks = vi.hoisted(() => ({
 	error: vi.fn(),

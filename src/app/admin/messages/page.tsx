@@ -2,8 +2,7 @@ import Link from "next/link";
 import { MessageCard } from "@/app/admin/messages/_components/MessageCard";
 import { TabSwitch } from "@/app/admin/messages/_components/TabSwitch";
 import { getMessagesPage, markMessageRead } from "@/features/messages/messages.action";
-
-type MessageTab = "aktif" | "arsip";
+import type { MessageTab } from "@/features/messages/messages.type";
 
 type MessagesPageProps = {
 	searchParams: Promise<{ page?: string; tab?: string }>;

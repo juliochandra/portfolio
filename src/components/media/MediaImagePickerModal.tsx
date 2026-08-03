@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { FaFolder } from "react-icons/fa6";
+import { Button } from "@/components/ui/Button";
 import { getMediaGalleryPage } from "@/features/media/media.action";
-import { Button } from "@/shared/components/Button";
 
 export type MediaImagePickerFolder = {
 	id: string;

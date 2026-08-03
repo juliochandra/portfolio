@@ -20,7 +20,7 @@ vi.mock("@/lib/database/prisma", () => ({
 	},
 }));
 
-import { createContactInfoRecord, findContactInfoAdmin, updateContactInfoRecord } from "@/features/contact/contact.repository";
+import { createContactInfoRecord, findContactInfo, updateContactInfoRecord } from "@/features/contact/contact.repository";
 
 const input = {
 	icon: null,
@@ -36,19 +36,17 @@ describe("contact info admin repository", () => {
 		mocks.update.mockResolvedValue({ id: "contact-1" });
 	});
 
-	it("lists all contact information using the admin projection", async () => {
-		await findContactInfoAdmin();
+	it("lists all contact information", async () => {
+		await findContactInfo();
 
-		expect(mocks.findMany).toHaveBeenCalledWith({
-			select: { icon: true, id: true, label: true, value: true },
-		});
+		expect(mocks.findMany).toHaveBeenCalledWith();
 	});
 
 	it("creates and updates one contact information row", async () => {
 		await createContactInfoRecord(input);
-		expect(mocks.create).toHaveBeenCalledWith({ data: input, select: { id: true } });
+		expect(mocks.create).toHaveBeenCalledWith({ data: input });
 
 		await updateContactInfoRecord("contact-1", input);
-		expect(mocks.update).toHaveBeenCalledWith({ data: input, select: { id: true }, where: { id: "contact-1" } });
+		expect(mocks.update).toHaveBeenCalledWith({ data: input, where: { id: "contact-1" } });
 	});
 });
