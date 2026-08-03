@@ -8,22 +8,11 @@ import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { createMediaFolder, deleteMediaFolder, getMediaGalleryPage, uploadMedia } from "@/features/media/media.action";
-
-type Media = {
-	createdAt: string;
-	fileName: string;
-	folderId: string | null;
-	id: string;
-	mimeType: string;
-	size: number;
-	url: string;
-};
-
-type MediaFolder = { id: string; name: string };
+import type { MediaFolder, MediaGalleryItem, MediaGalleryPage } from "@/features/media/media.type";
 
 type MediaManagerProps = {
-	folders: (MediaFolder & { mediaCount: number })[];
-	gallery: { currentPage: number; media: Media[]; totalPages: number };
+	folders: MediaFolder[];
+	gallery: MediaGalleryPage;
 };
 
 export function MediaManager({ folders, gallery: initialGallery }: MediaManagerProps) {
@@ -83,7 +72,7 @@ export function MediaManager({ folders, gallery: initialGallery }: MediaManagerP
 					const result = await uploadMedia(formData);
 					if ("error" in result) {
 						const errorMessage =
-							("fields" in result.error ? Object.values(result.error.fields)[0] : result.error.message) ??
+							(result.error.fields ? Object.values(result.error.fields)[0] : result.error.message) ??
 							"Gagal mengunggah gambar.";
 						uploadErrors.push(`${file.name}: ${errorMessage}`);
 					} else {
@@ -118,7 +107,7 @@ export function MediaManager({ folders, gallery: initialGallery }: MediaManagerP
 		try {
 			const result = await createMediaFolder({ name: folderName });
 			if ("error" in result) {
-				setFolderFields("fields" in result.error ? result.error.fields : { _form: result.error.message });
+				setFolderFields(result.error.fields ?? { _form: result.error.message });
 				return;
 			}
 
@@ -304,9 +293,9 @@ function GalleryRoot({
 	onOpenFolder,
 	onRequestDeleteFolder,
 }: {
-	folders: (MediaFolder & { mediaCount: number })[];
+	folders: MediaFolder[];
 	uploadProgress: { completed: number; total: number } | null;
-	media: Media[];
+	media: MediaGalleryItem[];
 	onDeleteError: (message: string) => void;
 	onDeleted: () => void;
 	onOpenFolder: (folderId: string) => void;
@@ -386,7 +375,7 @@ function FolderContents({
 }: {
 	folderName: string;
 	uploadProgress: { completed: number; total: number } | null;
-	media: Media[];
+	media: MediaGalleryItem[];
 	onDeleteError: (message: string) => void;
 	onDeleted: () => void;
 	onGoBack: () => void;
@@ -416,7 +405,7 @@ function MediaGrid({
 }: {
 	emptyMessage: string;
 	uploadProgress: { completed: number; total: number } | null;
-	media: Media[];
+	media: MediaGalleryItem[];
 	onDeleteError: (message: string) => void;
 	onDeleted: () => void;
 }) {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ConflictException, ValidationException } from "@/lib/server-action-exception/exceptions";
 
 const mocks = vi.hoisted(() => ({
 	createMediaFolderRecord: vi.fn(),
@@ -22,6 +23,13 @@ import {
 	getMediaGalleryPage,
 	uploadAdminMedia,
 } from "@/features/media/media.services";
+
+function uploadFormData(folderId = ""): FormData {
+	const formData = new FormData();
+	formData.set("file", new File(["x"], "x.png", { type: "image/png" }));
+	formData.set("folderId", folderId);
+	return formData;
+}
 
 describe("media services", () => {
 	beforeEach(() => {
@@ -49,7 +57,7 @@ describe("media services", () => {
 			totalPages: 1,
 		});
 		expect(mocks.findMediaGallery).toHaveBeenCalledWith({ folderId: null, skip: 0, take: 24 });
-		await uploadAdminMedia({ file: new File(["x"], "x.png", { type: "image/png" }), folderId: null });
+		await uploadAdminMedia(uploadFormData());
 		expect(mocks.uploadMediaObject).toHaveBeenCalled();
 	});
 	it("deletes the R2 object before its metadata record", async () => {
@@ -62,7 +70,7 @@ describe("media services", () => {
 		mocks.findMediaFolderById.mockResolvedValue({ id: "folder-1" });
 
 		await expect(createAdminMediaFolder({ name: "Portfolio" })).resolves.toEqual({ id: "folder-1", name: "Portfolio" });
-		await uploadAdminMedia({ file: new File(["x"], "x.png", { type: "image/png" }), folderId: "folder-1" });
+		await uploadAdminMedia(uploadFormData("folder-1"));
 
 		expect(mocks.createMediaRecord).toHaveBeenCalledWith(expect.objectContaining({ folderId: "folder-1" }));
 	});
@@ -71,6 +79,8 @@ describe("media services", () => {
 
 		mocks.deleteEmptyMediaFolderRecord.mockResolvedValue({ count: 0 });
 		mocks.findMediaFolderById.mockResolvedValue({ id: "folder-1" });
-		await expect(deleteAdminMediaFolder("folder-1")).resolves.toBe("folder_not_empty");
+		await expect(deleteAdminMediaFolder("folder-1")).rejects.toBeInstanceOf(ConflictException);
+
+		await expect(createAdminMediaFolder({ name: "" })).rejects.toBeInstanceOf(ValidationException);
 	});
 });

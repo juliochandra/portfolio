@@ -1,4 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	ConflictException,
+	InternalServerErrorException,
+	UnauthorizedException,
+	ValidationException,
+} from "@/lib/server-action-exception/exceptions";
 
 const mocks = vi.hoisted(() => ({
 	createAdminMediaFolder: vi.fn(),
@@ -6,10 +12,13 @@ const mocks = vi.hoisted(() => ({
 	deleteAdminMediaFolder: vi.fn(),
 	getMediaFolders: vi.fn(),
 	getMediaGalleryPage: vi.fn(),
-	getServerSession: vi.fn(),
+	requireServerSession: vi.fn(),
 	uploadAdminMedia: vi.fn(),
 }));
-vi.mock("@/lib/auth/server-session", () => ({ getServerSession: mocks.getServerSession }));
+
+vi.mock("@/lib/auth/server-session", () => ({
+	requireServerSession: mocks.requireServerSession,
+}));
 vi.mock("@/features/media/media.services", () => ({
 	createAdminMediaFolder: mocks.createAdminMediaFolder,
 	deleteAdminMedia: mocks.deleteAdminMedia,
@@ -28,65 +37,80 @@ import {
 	uploadMedia,
 } from "@/features/media/media.action";
 
+function uploadFormData(): FormData {
+	const formData = new FormData();
+	formData.set("file", new File(["x"], "x.png", { type: "image/png" }));
+	return formData;
+}
+
 describe("media admin actions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
+		mocks.requireServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
 		mocks.getMediaFolders.mockResolvedValue([]);
+		mocks.getMediaGalleryPage.mockResolvedValue({ currentPage: 1, media: [], totalPages: 1 });
 		mocks.createAdminMediaFolder.mockResolvedValue({ id: "folder-1", name: "Portfolio" });
 		mocks.uploadAdminMedia.mockResolvedValue({ id: "media-1", url: "https://cdn.example/media/a.jpg" });
 		mocks.deleteAdminMedia.mockResolvedValue({ id: "media-1" });
 		mocks.deleteAdminMediaFolder.mockResolvedValue({ id: "folder-1" });
 	});
-	it("requires a session and validates the uploaded file", async () => {
-		mocks.getServerSession.mockResolvedValue(null);
-		await expect(getMediaGalleryPage({ folderId: null, page: 1 })).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		await expect(getMediaFolders()).resolves.toEqual({ error: { message: "UNAUTHORIZED" } });
-		mocks.getServerSession.mockResolvedValue({ userId: "user-1", username: "admin" });
-		const invalid = new FormData();
-		invalid.set("file", new File(["x"], "x.gif", { type: "image/gif" }));
-		await expect(uploadMedia(invalid)).resolves.toEqual({
-			error: { fields: { file: "Jenis berkas harus JPG, PNG, atau WebP." } },
+
+	it("requires a session before calling media services", async () => {
+		mocks.requireServerSession.mockRejectedValue(new UnauthorizedException("UNAUTHORIZED"));
+
+		await expect(getMediaFolders()).resolves.toEqual({
+			error: { code: "UNAUTHORIZED", message: "UNAUTHORIZED" },
 		});
+		expect(mocks.getMediaFolders).not.toHaveBeenCalled();
 	});
-	it("uploads valid files and deletes media", async () => {
-		const formData = new FormData();
-		formData.set("file", new File(["x"], "x.png", { type: "image/png" }));
-		await expect(uploadMedia(formData)).resolves.toEqual({ data: { id: "media-1", url: "https://cdn.example/media/a.jpg" } });
-		await expect(deleteMedia("media-1")).resolves.toEqual({ data: { id: "media-1" } });
+
+	it("returns media gallery and folders for an authenticated admin", async () => {
+		await expect(getMediaGalleryPage({ folderId: "folder-1", page: 1 })).resolves.toEqual({
+			data: { currentPage: 1, media: [], totalPages: 1 },
+		});
+		await expect(getMediaFolders()).resolves.toEqual({ data: [] });
 	});
-	it("returns a structured error when storage or database upload fails", async () => {
-		mocks.uploadAdminMedia.mockRejectedValue(new Error("R2 unavailable"));
-		const formData = new FormData();
-		formData.set("file", new File(["x"], "x.png", { type: "image/png" }));
+
+	it("forwards folder and upload input to the service", async () => {
+		const formData = uploadFormData();
+
+		await expect(createMediaFolder({ name: "Portfolio" })).resolves.toEqual({
+			data: { id: "folder-1", name: "Portfolio" },
+		});
+		expect(mocks.createAdminMediaFolder).toHaveBeenCalledWith({ name: "Portfolio" });
 
 		await expect(uploadMedia(formData)).resolves.toEqual({
-			error: { message: "Gagal mengunggah gambar. Coba lagi." },
+			data: { id: "media-1", url: "https://cdn.example/media/a.jpg" },
 		});
+		expect(mocks.uploadAdminMedia).toHaveBeenCalledWith(formData);
 	});
-	it("creates and lists media folders for an authenticated admin", async () => {
-		await expect(createMediaFolder({ name: "Portfolio" })).resolves.toEqual({ data: { id: "folder-1", name: "Portfolio" } });
-		await expect(getMediaFolders()).resolves.toEqual({ data: [] });
 
-		mocks.createAdminMediaFolder.mockResolvedValue("name_taken");
+	it("maps validation errors from the service", async () => {
+		mocks.createAdminMediaFolder.mockRejectedValue(new ValidationException({ name: "Nama folder sudah digunakan." }));
+
 		await expect(createMediaFolder({ name: "Portfolio" })).resolves.toEqual({
-			error: { fields: { name: "Nama folder sudah digunakan." } },
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { name: "Nama folder sudah digunakan." },
+				message: "Input tidak valid.",
+			},
 		});
 	});
-	it("gets a validated media gallery page", async () => {
-		mocks.getMediaGalleryPage.mockResolvedValue({ currentPage: 2, media: [], totalPages: 3 });
 
-		await expect(getMediaGalleryPage({ folderId: "folder-1", page: 2 })).resolves.toEqual({
-			data: { currentPage: 2, media: [], totalPages: 3 },
+	it("maps failed uploads and non-empty folders", async () => {
+		mocks.uploadAdminMedia.mockRejectedValue(new InternalServerErrorException("Gagal mengunggah gambar. Coba lagi."));
+		mocks.deleteAdminMediaFolder.mockRejectedValue(new ConflictException("Folder hanya dapat dihapus jika kosong."));
+
+		await expect(uploadMedia(uploadFormData())).resolves.toEqual({
+			error: { code: "INTERNAL_SERVER_ERROR", message: "Gagal mengunggah gambar. Coba lagi." },
 		});
-		expect(mocks.getMediaGalleryPage).toHaveBeenCalledWith({ folderId: "folder-1", page: 2 });
-	});
-	it("deletes only empty media folders", async () => {
-		await expect(deleteMediaFolder("folder-1")).resolves.toEqual({ data: { id: "folder-1" } });
-
-		mocks.deleteAdminMediaFolder.mockResolvedValue("folder_not_empty");
 		await expect(deleteMediaFolder("folder-1")).resolves.toEqual({
-			error: { message: "Folder hanya dapat dihapus jika kosong." },
+			error: { code: "CONFLICT", message: "Folder hanya dapat dihapus jika kosong." },
 		});
+	});
+
+	it("deletes media and empty folders", async () => {
+		await expect(deleteMedia("media-1")).resolves.toEqual({ data: { id: "media-1" } });
+		await expect(deleteMediaFolder("folder-1")).resolves.toEqual({ data: { id: "folder-1" } });
 	});
 });

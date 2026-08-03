@@ -3,9 +3,6 @@ import { z } from "zod";
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 const ACCEPTED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-export const mediaIdSchema = z.string().trim().min(1);
-export const mediaFolderIdSchema = z.string().trim().min(1);
-
 export const mediaGalleryPageSchema = z.object({
 	folderId: z.string().trim().min(1).nullable(),
 	page: z.number().int().positive(),
@@ -29,6 +26,4 @@ export const mediaUploadSchema = z.object({
 	folderId: optionalFolderId,
 });
 
-export type MediaUploadInput = z.output<typeof mediaUploadSchema>;
 export const createMediaFolderSchema = mediaFolderInputSchema;
-export type CreateMediaFolderInput = z.output<typeof createMediaFolderSchema>;
