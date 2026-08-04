@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { CiMail } from "react-icons/ci";
-import { SkillCard } from "@/app/(public)/_components/SkillCard";
 import { PostItem } from "@/components/content/PostItem";
 import { ProjectCard } from "@/components/content/ProjectCard";
+import { SkillCard } from "@/components/home/SkillCard";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ButtonLink } from "@/components/ui/ButtonLink";
