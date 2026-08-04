@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/features/auth/auth.action", () => ({ login: mocks.login }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: mocks.replace }) }));
 
-import { LoginForm } from "@/app/login/_components/LoginForm";
+import { LoginForm } from "@/components/login/LoginForm";
 
 describe("LoginForm", () => {
 	beforeEach(() => {
