@@ -1,4 +1,4 @@
-import { TagsManager } from "@/app/admin/tags/_components/TagsManager";
+import { TagsManager } from "@/components/admin/tags/TagsManager";
 import { getTagsAdmin } from "@/features/tags/tags.action";
 
 export default async function TagsPage() {

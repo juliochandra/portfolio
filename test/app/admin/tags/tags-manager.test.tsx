@@ -15,7 +15,7 @@ vi.mock("@/features/tags/tags.action", () => ({
 	updateTag: mocks.updateTag,
 }));
 
-import { TagsManager } from "@/app/admin/tags/_components/TagsManager";
+import { TagsManager } from "@/components/admin/tags/TagsManager";
 
 describe("TagsManager", () => {
 	beforeEach(() => {

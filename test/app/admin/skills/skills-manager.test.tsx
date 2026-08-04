@@ -15,7 +15,7 @@ vi.mock("@/features/skills/skills.action", () => ({
 	updateSkill: mocks.updateSkill,
 }));
 
-import { SkillsManager } from "@/app/admin/skills/_components/SkillsManager";
+import { SkillsManager } from "@/components/admin/skills/SkillsManager";
 
 const iconUrl = "https://cdn.example/skills/typescript.png";
 const media = [{ fileName: "typescript.png", folderId: null, id: "media-1", url: iconUrl }];
