@@ -1,4 +1,4 @@
-import { PasswordForm } from "@/app/admin/password/_components/PasswordForm";
+import { PasswordForm } from "@/components/admin/password/PasswordForm";
 
 export default function PasswordPage() {
 	return (
