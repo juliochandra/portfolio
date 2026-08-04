@@ -1,4 +1,4 @@
-import { ContactInfoManager } from "@/app/admin/contact-info/_components/ContactInfoManager";
+import { ContactInfoManager } from "@/components/admin/contact/ContactInfoManager";
 import { getContactInfoAdmin } from "@/features/contact/contact.action";
 import { getMediaFolders, getMediaGalleryPage } from "@/features/media/media.action";
 
