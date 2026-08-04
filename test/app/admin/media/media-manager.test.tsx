@@ -19,7 +19,7 @@ vi.mock("@/features/media/media.action", () => ({
 	uploadMedia: mocks.uploadMedia,
 }));
 
-import { MediaManager } from "@/app/admin/media/_components/MediaManager";
+import { MediaManager } from "@/components/admin/media/MediaManager";
 
 const emptyGallery = { currentPage: 1, media: [], totalPages: 1 };
 
