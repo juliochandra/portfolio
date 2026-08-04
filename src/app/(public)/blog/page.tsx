@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { FaBookOpen, FaClock, FaPenNib } from "react-icons/fa";
-import { PostItem } from "@/components/content/PostItem";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { PostItem } from "@/components/public/blog/PostItem";
 import { StatCard } from "@/components/ui/StatCard";
 import { getPosts } from "@/features/posts/posts.action";
 import type { PublicPostListItem } from "@/features/posts/posts.type";

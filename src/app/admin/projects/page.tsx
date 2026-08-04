@@ -1,4 +1,4 @@
-import { ProjectList } from "@/app/admin/projects/_components/ProjectList";
+import { ProjectList } from "@/components/admin/projects/ProjectList";
 import { getProjectsAdminPage } from "@/features/projects/projects.action";
 
 type ProjectsPageProps = {

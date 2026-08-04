@@ -12,11 +12,11 @@ import {
 	FaRocket,
 	FaUsers,
 } from "react-icons/fa";
-import { Callout } from "@/app/(public)/about/_components/Callout";
-import { InfoCard } from "@/app/(public)/about/_components/InfoCard";
-import { ProcessStep } from "@/app/(public)/about/_components/ProcessStep";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { Callout } from "@/components/public/about/Callout";
+import { InfoCard } from "@/components/public/about/InfoCard";
+import { ProcessStep } from "@/components/public/about/ProcessStep";
 
 export const metadata: Metadata = {
 	title: "About",

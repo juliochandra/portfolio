@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/features/media/media.action", () => ({ deleteMedia: mocks.deleteMedia }));
 
-import { MediaCard } from "@/app/admin/media/_components/MediaCard";
+import { MediaCard } from "@/components/admin/media/MediaCard";
 
 describe("MediaCard", () => {
 	it("requires confirmation before deleting an image", async () => {

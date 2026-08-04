@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { MessageCard } from "@/app/admin/messages/_components/MessageCard";
-import { TabSwitch } from "@/app/admin/messages/_components/TabSwitch";
+import { MessageCard } from "@/components/admin/messages/MessageCard";
+import { TabSwitch } from "@/components/admin/messages/TabSwitch";
 import { getMessagesPage, markMessageRead } from "@/features/messages/messages.action";
 import type { MessageTab } from "@/features/messages/messages.type";
 

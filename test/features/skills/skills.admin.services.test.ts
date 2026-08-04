@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
 
 const mocks = vi.hoisted(() => ({
 	createSkillRecord: vi.fn(),
@@ -24,7 +25,7 @@ vi.mock("@/features/skills/skills.repository", () => ({
 import { createAdminSkill, deleteAdminSkill, getSkillsAdmin, updateAdminSkill } from "@/features/skills/skills.services";
 
 const input = {
-	icon: "typescript",
+	icon: "https://cdn.example/skills/typescript.png",
 	name: "TypeScript",
 };
 
@@ -51,27 +52,33 @@ describe("skill admin services", () => {
 		expect(mocks.createSkillRecord).toHaveBeenCalledWith({ ...input, slug: "typescript" });
 	});
 
-	it("does not create a duplicate name", async () => {
+	it("rejects invalid and duplicate skill names", async () => {
+		await expect(createAdminSkill({ ...input, icon: "" })).rejects.toBeInstanceOf(ValidationException);
+
 		mocks.isSkillNameAvailable.mockResolvedValue(false);
 
-		await expect(createAdminSkill(input)).resolves.toBe("name_taken");
+		await expect(createAdminSkill(input)).rejects.toBeInstanceOf(ValidationException);
 		expect(mocks.createSkillRecord).not.toHaveBeenCalled();
 	});
 
 	it("updates the icon without changing a stable name and slug", async () => {
 		mocks.findSkillForAdmin.mockResolvedValue({ id: "skill-1", name: "TypeScript", slug: "typescript" });
 
-		await updateAdminSkill("skill-1", { ...input, icon: "ts" });
+		await updateAdminSkill("skill-1", { ...input, icon: "https://cdn.example/skills/ts.png" });
 		expect(mocks.isSkillNameAvailable).not.toHaveBeenCalled();
 		expect(mocks.isSkillSlugAvailable).not.toHaveBeenCalled();
-		expect(mocks.updateSkillRecord).toHaveBeenCalledWith("skill-1", { icon: "ts", name: "TypeScript", slug: "typescript" });
+		expect(mocks.updateSkillRecord).toHaveBeenCalledWith("skill-1", {
+			icon: "https://cdn.example/skills/ts.png",
+			name: "TypeScript",
+			slug: "typescript",
+		});
 	});
 
 	it("rejects a duplicate name and generates a slug only after a name change", async () => {
 		mocks.findSkillForAdmin.mockResolvedValue({ id: "skill-1", name: "JavaScript", slug: "javascript" });
 		mocks.isSkillNameAvailable.mockResolvedValue(false);
 
-		await expect(updateAdminSkill("skill-1", input)).resolves.toBe("name_taken");
+		await expect(updateAdminSkill("skill-1", input)).rejects.toBeInstanceOf(ValidationException);
 		expect(mocks.updateSkillRecord).not.toHaveBeenCalled();
 
 		mocks.isSkillNameAvailable.mockResolvedValue(true);
@@ -80,11 +87,11 @@ describe("skill admin services", () => {
 		expect(mocks.updateSkillRecord).toHaveBeenCalledWith("skill-1", { ...input, slug: "typescript" });
 	});
 
-	it("does not mutate a missing skill", async () => {
+	it("rejects a missing skill", async () => {
 		mocks.findSkillForAdmin.mockResolvedValue(null);
 
-		await expect(updateAdminSkill("missing", input)).resolves.toBeNull();
-		await expect(deleteAdminSkill("missing")).resolves.toBeNull();
+		await expect(updateAdminSkill("missing", input)).rejects.toBeInstanceOf(NotFoundException);
+		await expect(deleteAdminSkill("missing")).rejects.toBeInstanceOf(NotFoundException);
 		expect(mocks.updateSkillRecord).not.toHaveBeenCalled();
 		expect(mocks.deleteSkillRecord).not.toHaveBeenCalled();
 	});

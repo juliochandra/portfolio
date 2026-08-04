@@ -10,19 +10,13 @@ import { FormField } from "@/components/ui/FormField";
 import { getSkillIcon } from "@/components/ui/SkillTag";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { createSkill, deleteSkill, updateSkill } from "@/features/skills/skills.action";
-import { createSkillSchema, updateSkillSchema } from "@/features/skills/skills.schema";
+import { skillFormDataToInput } from "@/features/skills/skills.schema";
+import type { PublicSkill } from "@/features/skills/skills.type";
 import { isImageUrl } from "@/lib/validation/is-image-url";
-import { validateWithZod } from "@/lib/validation/zod";
-
-type Skill = {
-	icon: string | null;
-	id: string;
-	name: string;
-};
 
 type SkillsManagerProps = {
 	folders: { id: string; name: string }[];
-	initialSkills: Skill[];
+	initialSkills: PublicSkill[];
 	media: MediaImagePickerItem[];
 	mediaCurrentPage?: number;
 	mediaTotalPages?: number;
@@ -30,13 +24,6 @@ type SkillsManagerProps = {
 
 const inputClassName = "w-full rounded-md border border-border bg-canvas px-3 py-3 outline-none focus:border-accent";
 const deletionDescription = "Skill ini akan dihapus dari daftar keahlian.";
-
-function createSkillInput(formData: FormData): Record<string, unknown> {
-	return {
-		icon: formData.get("icon") ?? "",
-		name: formData.get("name") ?? "",
-	};
-}
 
 export function SkillsManager({
 	folders,
@@ -46,13 +33,13 @@ export function SkillsManager({
 	mediaTotalPages = 1,
 }: SkillsManagerProps) {
 	const router = useRouter();
-	const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
+	const [editingSkill, setEditingSkill] = useState<PublicSkill | null>(null);
 	const [fields, setFields] = useState<Record<string, string>>({});
 	const [isSkillFormOpen, setIsSkillFormOpen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState<{ text: string; type: "error" | "success" } | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [skillToDelete, setSkillToDelete] = useState<Skill | null>(null);
+	const [skillToDelete, setSkillToDelete] = useState<PublicSkill | null>(null);
 	const sortedSkills = [...initialSkills].sort((firstSkill, secondSkill) =>
 		firstSkill.name.localeCompare(secondSkill.name, "id", { sensitivity: "base" }),
 	);
@@ -64,7 +51,7 @@ export function SkillsManager({
 		setIsSkillFormOpen(true);
 	}
 
-	function openEditSkill(skill: Skill) {
+	function openEditSkill(skill: PublicSkill) {
 		setEditingSkill(skill);
 		setFields({});
 		setIsSkillFormOpen(true);
@@ -80,20 +67,13 @@ export function SkillsManager({
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		const input = createSkillInput(new FormData(event.currentTarget));
-		const validation = validateWithZod(editingSkill ? updateSkillSchema : createSkillSchema, input);
-
-		if (!validation.success) {
-			setFields(validation.fields);
-			return;
-		}
-
+		const input = skillFormDataToInput(new FormData(event.currentTarget));
 		setFields({});
 		setIsSubmitting(true);
 		try {
 			const result = editingSkill ? await updateSkill(editingSkill.id, input) : await createSkill(input);
 			if ("error" in result) {
-				setFields("fields" in result.error ? result.error.fields : { _form: result.error.message });
+				setFields(result.error.fields ?? { _form: result.error.message });
 				return;
 			}
 
@@ -233,7 +213,7 @@ function SkillFormDialog({
 	onDelete,
 	onSubmit,
 }: {
-	editingSkill: Skill | null;
+	editingSkill: PublicSkill | null;
 	error: Record<string, string>;
 	folders: { id: string; name: string }[];
 	isSubmitting: boolean;

@@ -9,16 +9,11 @@ import {
 	type SkillRecord,
 	updateSkillRecord,
 } from "@/features/skills/skills.repository";
-import type { CreateSkillInput, UpdateSkillInput } from "@/features/skills/skills.schema";
+import { createSkillSchema, updateSkillSchema } from "@/features/skills/skills.schema";
+import type { PublicSkill, SkillInput } from "@/features/skills/skills.type";
+import { NotFoundException, ValidationException } from "@/lib/server-action-exception/exceptions";
 import { generateUniqueSlug } from "@/lib/slug";
-
-export type PublicSkill = {
-	icon: string | null;
-	id: string;
-	name: string;
-};
-
-export type AdminSkillMutationResult = { id: string } | "name_taken" | null;
+import { validateWithZod } from "@/lib/validation/zod";
 
 function toPublicSkill(skill: SkillRecord): PublicSkill {
 	return {
@@ -38,32 +33,48 @@ export async function getSkillsAdmin(): Promise<PublicSkill[]> {
 	return skills.map(toPublicSkill);
 }
 
-export async function createAdminSkill(input: CreateSkillInput): Promise<Exclude<AdminSkillMutationResult, null>> {
-	if (!(await isSkillNameAvailable(input.name))) {
-		return "name_taken";
+export async function createAdminSkill(input: SkillInput): Promise<{ id: string }> {
+	const validation = validateWithZod(createSkillSchema, input);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields);
 	}
 
-	const slug = await generateUniqueSlug(input.name, isSkillSlugAvailable, { maxLength: 60 });
-	return createSkillRecord({ ...input, slug });
+	if (!(await isSkillNameAvailable(validation.data.name))) {
+		throw new ValidationException({ name: "Nama keahlian sudah digunakan." });
+	}
+
+	const slug = await generateUniqueSlug(validation.data.name, isSkillSlugAvailable, { maxLength: 60 });
+	return createSkillRecord({ ...validation.data, slug });
 }
 
-export async function updateAdminSkill(id: string, input: UpdateSkillInput): Promise<AdminSkillMutationResult> {
+export async function updateAdminSkill(id: string, input: SkillInput): Promise<{ id: string }> {
+	const validation = validateWithZod(updateSkillSchema, input);
+	if (!validation.success) {
+		throw new ValidationException(validation.fields);
+	}
+
 	const existing = await findSkillForAdmin(id);
 	if (!existing) {
-		return null;
+		throw new NotFoundException("Keahlian tidak ditemukan.");
 	}
-	if (existing.name !== input.name && !(await isSkillNameAvailable(input.name, id))) {
-		return "name_taken";
+	if (existing.name !== validation.data.name && !(await isSkillNameAvailable(validation.data.name, id))) {
+		throw new ValidationException({ name: "Nama keahlian sudah digunakan." });
 	}
 
 	const slug =
-		existing.name === input.name
+		existing.name === validation.data.name
 			? existing.slug
-			: await generateUniqueSlug(input.name, (candidate) => isSkillSlugAvailable(candidate, id), { maxLength: 60 });
-	return updateSkillRecord(id, { ...input, slug });
+			: await generateUniqueSlug(validation.data.name, (candidate) => isSkillSlugAvailable(candidate, id), {
+					maxLength: 60,
+				});
+	return updateSkillRecord(id, { ...validation.data, slug });
 }
 
-export async function deleteAdminSkill(id: string): Promise<{ id: string } | null> {
+export async function deleteAdminSkill(id: string): Promise<{ id: string }> {
 	const existing = await findSkillForAdmin(id);
-	return existing ? deleteSkillRecord(id) : null;
+	if (!existing) {
+		throw new NotFoundException("Keahlian tidak ditemukan.");
+	}
+
+	return deleteSkillRecord(id);
 }

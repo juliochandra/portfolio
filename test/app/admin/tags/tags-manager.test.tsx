@@ -15,7 +15,7 @@ vi.mock("@/features/tags/tags.action", () => ({
 	updateTag: mocks.updateTag,
 }));
 
-import { TagsManager } from "@/app/admin/tags/_components/TagsManager";
+import { TagsManager } from "@/components/admin/tags/TagsManager";
 
 describe("TagsManager", () => {
 	beforeEach(() => {
@@ -26,7 +26,14 @@ describe("TagsManager", () => {
 		mocks.deleteTag.mockResolvedValue({ data: { id: "tag-1" } });
 	});
 
-	it("shows a validation error without creating an empty tag", async () => {
+	it("shows validation errors returned by the Server Action", async () => {
+		mocks.createTag.mockResolvedValue({
+			error: {
+				code: "VALIDATION_ERROR",
+				fields: { name: "Wajib diisi." },
+				message: "Input tidak valid.",
+			},
+		});
 		const manager = render(<TagsManager initialTags={[]} />);
 		fireEvent.click(manager.getByRole("button", { name: "Tambah Tag" }));
 		const dialog = manager.getByRole("dialog", { name: "Tambah Tag" });
@@ -34,7 +41,7 @@ describe("TagsManager", () => {
 		fireEvent.submit(within(dialog).getByRole("button", { name: "Simpan" }).closest("form") as HTMLFormElement);
 
 		await waitFor(() => expect(within(dialog).getByText("Wajib diisi.")).toBeInTheDocument());
-		expect(mocks.createTag).not.toHaveBeenCalled();
+		expect(mocks.createTag).toHaveBeenCalledOnce();
 	});
 
 	it("creates a tag from the compact form dialog", async () => {

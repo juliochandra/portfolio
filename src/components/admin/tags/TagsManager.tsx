@@ -8,16 +8,10 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FormField } from "@/components/ui/FormField";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { createTag, deleteTag, updateTag } from "@/features/tags/tags.action";
-import { createTagSchema, updateTagSchema } from "@/features/tags/tags.schema";
-import { validateWithZod } from "@/lib/validation/zod";
-
-type Tag = {
-	id: string;
-	name: string;
-};
+import type { AdminTag, TagInput } from "@/features/tags/tags.type";
 
 type TagsManagerProps = {
-	initialTags: Tag[];
+	initialTags: AdminTag[];
 };
 
 const inputClassName = "w-full rounded-md border border-border bg-canvas px-3 py-3 outline-none focus:border-accent";
@@ -25,13 +19,13 @@ const deletionDescription = "Project/Tulisan yang memakainya tidak ikut terhapus
 
 export function TagsManager({ initialTags }: TagsManagerProps) {
 	const router = useRouter();
-	const [editingTag, setEditingTag] = useState<Tag | null>(null);
+	const [editingTag, setEditingTag] = useState<AdminTag | null>(null);
 	const [fields, setFields] = useState<Record<string, string>>({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isTagFormOpen, setIsTagFormOpen] = useState(false);
 	const [message, setMessage] = useState<{ text: string; type: "error" | "success" } | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
+	const [tagToDelete, setTagToDelete] = useState<AdminTag | null>(null);
 	const sortedTags = [...initialTags].sort((firstTag, secondTag) => firstTag.name.localeCompare(secondTag.name, "id"));
 	const visibleTags = sortedTags.filter((tag) => tag.name.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
@@ -41,7 +35,7 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
 		setIsTagFormOpen(true);
 	}
 
-	function openEditTag(tag: Tag) {
+	function openEditTag(tag: AdminTag) {
 		setEditingTag(tag);
 		setFields({});
 		setIsTagFormOpen(true);
@@ -57,21 +51,14 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		const name = new FormData(event.currentTarget).get("name")?.toString() ?? "";
-		const input = { name };
-		const validation = validateWithZod(editingTag ? updateTagSchema : createTagSchema, input);
-
-		if (!validation.success) {
-			setFields(validation.fields);
-			return;
-		}
+		const input: TagInput = { name: new FormData(event.currentTarget).get("name")?.toString() ?? "" };
 
 		setFields({});
 		setIsSubmitting(true);
 		try {
 			const result = editingTag ? await updateTag(editingTag.id, input) : await createTag(input);
 			if ("error" in result) {
-				setFields("fields" in result.error ? result.error.fields : { _form: result.error.message });
+				setFields(result.error.fields ?? { _form: result.error.message });
 				return;
 			}
 
@@ -194,7 +181,7 @@ function TagFormDialog({
 	onDelete,
 	onSubmit,
 }: {
-	editingTag: Tag | null;
+	editingTag: AdminTag | null;
 	error: string | undefined;
 	isSubmitting: boolean;
 	onCancel: () => void;

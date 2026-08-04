@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { ProjectForm } from "@/app/admin/projects/_components/ProjectForm";
+import { ProjectForm } from "@/components/admin/projects/ProjectForm";
 import { getMediaFolders, getMediaGalleryPage } from "@/features/media/media.action";
 import { getProjectAdmin } from "@/features/projects/projects.action";
 import { getSkillsAdmin } from "@/features/skills/skills.action";

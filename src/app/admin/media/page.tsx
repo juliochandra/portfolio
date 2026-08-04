@@ -1,4 +1,4 @@
-import { MediaManager } from "@/app/admin/media/_components/MediaManager";
+import { MediaManager } from "@/components/admin/media/MediaManager";
 import { getMediaFolders, getMediaGalleryPage } from "@/features/media/media.action";
 
 export default async function MediaPage() {

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { CiMail } from "react-icons/ci";
-import { SkillCard } from "@/app/(public)/_components/SkillCard";
-import { PostItem } from "@/components/content/PostItem";
-import { ProjectCard } from "@/components/content/ProjectCard";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { PostItem } from "@/components/public/blog/PostItem";
+import { SkillCard } from "@/components/public/home/SkillCard";
+import { ProjectCard } from "@/components/public/portfolio/ProjectCard";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { getContactInfo } from "@/features/contact/contact.action";
 import { getPosts } from "@/features/posts/posts.action";
@@ -30,6 +30,7 @@ export default async function Home() {
 	const contactInfo = "data" in contactResult ? contactResult.data : [];
 	const projects = "data" in projectsResult ? projectsResult.data : [];
 	const posts = "data" in postsResult ? postsResult.data : [];
+	const skills = "data" in skillsResult ? skillsResult.data : [];
 	const email = contactInfo.find(isEmailContact);
 	const emailHref = email ? (email.value.startsWith("mailto:") ? email.value : `mailto:${email.value}`) : "test@mail.com";
 
@@ -60,9 +61,9 @@ export default async function Home() {
 					title="Teknologi yang Saya Kuasai"
 					description="Beberapa teknologi dan tools yang saya gunakan untuk membangun aplikasi web yang modern, andal, dan skalabel."
 				/>
-				{skillsResult.data.length > 0 ? (
+				{skills.length > 0 ? (
 					<ul className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-						{skillsResult.data.map((skill) => (
+						{skills.map((skill) => (
 							<SkillCard key={skill.id} skill={skill} />
 						))}
 					</ul>

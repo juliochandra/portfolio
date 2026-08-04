@@ -1,4 +1,4 @@
-import { PostList } from "@/app/admin/posts/_components/PostList";
+import { PostList } from "@/components/admin/posts/PostList";
 import { getPostsAdminPage } from "@/features/posts/posts.action";
 
 type PostsPageProps = {

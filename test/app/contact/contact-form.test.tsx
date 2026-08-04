@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({ sendMessage: vi.fn() }));
 
 vi.mock("@/features/messages/messages.action", () => ({ sendMessage: mocks.sendMessage }));
 
-import { ContactForm } from "@/app/(public)/contact/_components/ContactForm";
+import { ContactForm } from "@/components/public/contact/ContactForm";
 
 describe("ContactForm", () => {
 	beforeEach(() => {
