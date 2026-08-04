@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: mocks.refresh }) }));
 vi.mock("@/features/posts/posts.action", () => ({ deletePost: vi.fn() }));
 
-import { PostList } from "@/app/admin/posts/_components/PostList";
+import { PostList } from "@/components/admin/posts/PostList";
 
 describe("PostList", () => {
 	afterEach(() => cleanup());

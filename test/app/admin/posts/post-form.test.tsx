@@ -27,7 +27,7 @@ vi.mock("@/components/editor/RichTextEditor", () => ({
 	),
 }));
 
-import { PostForm } from "@/app/admin/posts/_components/PostForm";
+import { PostForm } from "@/components/admin/posts/PostForm";
 
 const content = JSON.stringify({
 	content: [{ content: [{ text: "Isi tulisan", type: "text" }], type: "paragraph" }],
