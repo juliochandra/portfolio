@@ -18,7 +18,7 @@ vi.mock("@/features/media/media.action", () => ({
 	getMediaGalleryPage: vi.fn(),
 }));
 
-import { ContactInfoManager } from "@/app/admin/contact-info/_components/ContactInfoManager";
+import { ContactInfoManager } from "@/components/admin/contact/ContactInfoManager";
 
 // biome-ignore lint/nursery/noSecrets: Component name, not a secret.
 describe("ContactInfoManager", () => {
