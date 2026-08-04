@@ -6,7 +6,7 @@ vi.mock("@/features/messages/messages.action", () => ({
 	unarchiveMessage: vi.fn(),
 }));
 
-import { MessageCard } from "@/app/admin/messages/_components/MessageCard";
+import { MessageCard } from "@/components/admin/messages/MessageCard";
 
 describe("MessageCard", () => {
 	it("shows the restore action for archived messages", () => {
