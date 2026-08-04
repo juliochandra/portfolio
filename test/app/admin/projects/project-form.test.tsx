@@ -26,7 +26,7 @@ vi.mock("@/components/editor/RichTextEditor", () => ({
 	),
 }));
 
-import { ProjectForm } from "@/app/admin/projects/_components/ProjectForm";
+import { ProjectForm } from "@/components/admin/projects/ProjectForm";
 
 const content = JSON.stringify({
 	content: [{ content: [{ text: "Isi project", type: "text" }], type: "paragraph" }],

@@ -1,4 +1,4 @@
-import { ProjectForm } from "@/app/admin/projects/_components/ProjectForm";
+import { ProjectForm } from "@/components/admin/projects/ProjectForm";
 import { getMediaFolders, getMediaGalleryPage } from "@/features/media/media.action";
 import { getSkillsAdmin } from "@/features/skills/skills.action";
 import { getTagsAdmin } from "@/features/tags/tags.action";
