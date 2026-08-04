@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PostNav } from "@/components/blog/PostNav";
-import { ShareLinks } from "@/components/blog/ShareLinks";
 import { Section } from "@/components/layout/Section";
+import { PostNav } from "@/components/public/blog/PostNav";
+import { ShareLinks } from "@/components/public/blog/ShareLinks";
 import { BackLink } from "@/components/ui/BackLink";
 import { SkillTag } from "@/components/ui/SkillTag";
 import { getPostBySlug } from "@/features/posts/posts.action";

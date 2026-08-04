@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { ContactForm } from "@/components/contact/ContactForm";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { ContactForm } from "@/components/public/contact/ContactForm";
 import { ContactLink } from "@/components/ui/ContactLink";
 import { getContactInfo } from "@/features/contact/contact.action";
 

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaCode, FaFolderOpen, FaHeart } from "react-icons/fa";
-import { ProjectCard } from "@/components/content/ProjectCard";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { ProjectCard } from "@/components/public/portfolio/ProjectCard";
 import { StatCard } from "@/components/ui/StatCard";
 import { getProjects } from "@/features/projects/projects.action";
 import type { PublicProjectListItem } from "@/features/projects/projects.type";

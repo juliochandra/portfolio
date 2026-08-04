@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { CiMail } from "react-icons/ci";
-import { PostItem } from "@/components/content/PostItem";
-import { ProjectCard } from "@/components/content/ProjectCard";
-import { SkillCard } from "@/components/home/SkillCard";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
+import { PostItem } from "@/components/public/blog/PostItem";
+import { SkillCard } from "@/components/public/home/SkillCard";
+import { ProjectCard } from "@/components/public/portfolio/ProjectCard";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { getContactInfo } from "@/features/contact/contact.action";
 import { getPosts } from "@/features/posts/posts.action";
