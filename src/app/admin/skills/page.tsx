@@ -1,4 +1,4 @@
-import { SkillsManager } from "@/app/admin/skills/_components/SkillsManager";
+import { SkillsManager } from "@/components/admin/skills/SkillsManager";
 import { getMediaFolders, getMediaGalleryPage } from "@/features/media/media.action";
 import { getSkillsAdmin } from "@/features/skills/skills.action";
 
