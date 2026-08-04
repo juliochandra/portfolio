@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/features/auth/auth.action", () => ({ changePassword: mocks.changePassword }));
 
-import { PasswordForm } from "@/app/admin/password/_components/PasswordForm";
+import { PasswordForm } from "@/components/admin/password/PasswordForm";
 
 // biome-ignore lint/nursery/noSecrets: Component name, not a secret.
 describe("PasswordForm", () => {
