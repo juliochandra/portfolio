@@ -12,9 +12,9 @@ import {
 	FaRocket,
 	FaUsers,
 } from "react-icons/fa";
-import { Callout } from "@/app/(public)/about/_components/Callout";
-import { InfoCard } from "@/app/(public)/about/_components/InfoCard";
-import { ProcessStep } from "@/app/(public)/about/_components/ProcessStep";
+import { Callout } from "@/components/about/Callout";
+import { InfoCard } from "@/components/about/InfoCard";
+import { ProcessStep } from "@/components/about/ProcessStep";
 import { Section } from "@/components/layout/Section";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 
