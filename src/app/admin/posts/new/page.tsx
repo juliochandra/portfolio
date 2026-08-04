@@ -1,4 +1,4 @@
-import { PostForm } from "@/app/admin/posts/_components/PostForm";
+import { PostForm } from "@/components/admin/posts/PostForm";
 import { getMediaFolders, getMediaGalleryPage } from "@/features/media/media.action";
 import { getTagsAdmin } from "@/features/tags/tags.action";
 
